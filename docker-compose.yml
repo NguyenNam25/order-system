@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: order-system-postgres
+    restart: always
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: order_system
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - order_system_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  order_system_postgres_data:
