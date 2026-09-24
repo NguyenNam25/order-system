@@ -7,8 +7,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { flexRender, Table as ReactTable } from "@tanstack/react-table";
-import { features } from "@/types/data-table-features";
-import { User } from "@/types/user";
+import { features } from "@/interfaces/data-table-features";
+import { User } from "@/interfaces/user";
 
 export default function TableUser({
   table,

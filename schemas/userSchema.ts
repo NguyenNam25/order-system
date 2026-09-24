@@ -1,4 +1,4 @@
-import { PasswordUpdate } from "./../types/user";
+import { PasswordUpdate } from "./../interfaces/user";
 import z from "zod";
 
 const fullname = z

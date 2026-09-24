@@ -15,11 +15,11 @@ import type {
   User,
   UserRegister,
   UserUpdate,
-} from "@/types/user";
+} from "@/interfaces/user";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import userApi from "@/api/Routes/userApi";
+import userApi from "@/api/routes/userApi";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   PasswordUpdateSchema,

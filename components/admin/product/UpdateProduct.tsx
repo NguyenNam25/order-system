@@ -7,11 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Product, ProductForm } from "@/types/product";
+import type { Product, ProductForm } from "@/interfaces/product";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import productApi from "@/api/Routes/productApi";
+import productApi from "@/api/routes/productApi";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema } from "@/schemas/productSchema";
 import ProductField from "./ProductField";

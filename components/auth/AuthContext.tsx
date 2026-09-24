@@ -2,9 +2,9 @@
 
 import { createContext, useContext } from "react";
 
-import type { User } from "@/types/user";
+import type { User } from "@/interfaces/user";
 import { useRouter } from "next/navigation";
-import authApi from "@/api/Routes/authApi";
+import authApi from "@/api/routes/authApi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type AuthContextType = {

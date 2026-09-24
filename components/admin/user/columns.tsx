@@ -1,10 +1,10 @@
 "use client";
 
 import { createColumnHelper } from "@tanstack/react-table";
-import type { DataTableFeatures } from "@/types/data-table-features";
+import type { DataTableFeatures } from "@/interfaces/data-table-features";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { User } from "@/types/user";
+import { User } from "@/interfaces/user";
 import UserActions from "./UserActions";
 
 const columnHelper = createColumnHelper<DataTableFeatures, User>();

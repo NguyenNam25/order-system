@@ -1,6 +1,6 @@
-import CustomBreadcrumb from "@/components/Components/CustomBreadcrumb";
-import { columns } from "@/components/user/columns";
-import ListUser from "@/components/user/ListUser";
+import CustomBreadcrumb from "@/components/layout-components/CustomBreadcrumb";
+import { columns } from "@/components/admin/user/columns";
+import ListUser from "@/components/admin/user/ListUser";
 
 export default async function User() {
   return (

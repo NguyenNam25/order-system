@@ -7,11 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Category, CategoryForm } from "@/types/category";
+import type { Category, CategoryForm } from "@/interfaces/category";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import categoryApi from "@/api/Routes/categoryApi";
+import categoryApi from "@/api/routes/categoryApi";
 import CategoryField from "./CategoryField";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { categorySchema } from "@/schemas/categoryShema";

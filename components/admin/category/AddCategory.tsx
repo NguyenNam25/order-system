@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import type { Category, CategoryForm } from "@/interfaces/category";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import categoryApi from "@/api/Routes/categoryApi";
+import categoryApi from "@/api/routes/categoryApi";
 import { categorySchema } from "@/schemas/categoryShema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CategoryField from "./CategoryField";

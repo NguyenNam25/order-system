@@ -9,6 +9,7 @@ export const productSchema = z.object({
     .number({ message: "Price required" })
     .min(1000, "Price must be greater than 1000"),
   categoryId: z.number(),
+  quantity: z.number(),
   description: z.string(),
 });
 

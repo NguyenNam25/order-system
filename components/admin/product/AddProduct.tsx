@@ -11,9 +11,9 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useState } from "react";
-import type { ProductForm } from "@/types/product";
+import type { ProductForm } from "@/interfaces/product";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import productApi from "@/api/Routes/productApi";
+import productApi from "@/api/routes/productApi";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema } from "@/schemas/productSchema";
 import ProductField from "./ProductField";

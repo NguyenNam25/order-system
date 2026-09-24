@@ -20,7 +20,9 @@ export default function NavigationBar() {
   return (
     <>
       <div className="flex items-center px-48 gap-6 h-14">
-        <h1 className="w-32 h-full flex items-center justify-center">logo</h1>
+        <Link href={"/"}>
+          <h1 className="w-32 h-full flex items-center justify-center">logo</h1>
+        </Link>
         <InputGroup className="h-10 flex-1">
           <InputGroupInput placeholder="Search..." />
           <InputGroupAddon>
@@ -28,10 +30,12 @@ export default function NavigationBar() {
           </InputGroupAddon>
         </InputGroup>
         <div className="flex gap-6 h-full items-center">
-          <div className="flex gap-1 h-full items-center justify-center">
-            <UserIcon />
-            <h2>Nguyen Van A</h2>
-          </div>
+          <Link href={"/login"}>
+            <div className="flex gap-1 h-full items-center justify-center">
+              <UserIcon />
+              <h2>Login</h2>
+            </div>
+          </Link>
           <Link href="/orders">
             <div className="flex gap-1 h-full items-center justify-center">
               <ListIcon />

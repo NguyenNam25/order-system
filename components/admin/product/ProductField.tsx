@@ -1,8 +1,8 @@
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "../ui/textarea";
-import { ProductForm } from "@/types/product";
+import { Textarea } from "@/components/ui/textarea";
+import { ProductForm } from "@/interfaces/product";
 import { Control, FieldErrors, UseFormRegister, UseFormReset } from "react-hook-form";
 import CategorySelect from "./CategorySelect";
 

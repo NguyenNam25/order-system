@@ -1,6 +1,6 @@
-import CustomBreadcrumb from "@/components/Components/CustomBreadcrumb";
-import { columns } from "@/components/product/columns";
-import ListProduct from "@/components/product/ListProduct";
+import CustomBreadcrumb from "@/components//layout-components/CustomBreadcrumb";
+import { columns } from "@/components/admin/product/columns";
+import ListProduct from "@/components/admin/product/ListProduct";
 
 export default function Product() {
   return (

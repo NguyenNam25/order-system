@@ -1,4 +1,4 @@
-import { User } from "@/types/user";
+import { User } from "@/interfaces/user";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -9,11 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import AlertDialogDelete from "../Components/AlertDialogDelete";
+import AlertDialogDelete from "@/components/layout-components/AlertDialogDelete";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import userApi from "@/api/Routes/userApi";
+import userApi from "@/api/routes/userApi";
 import { toast } from "sonner";
 import UpdateUser from "./UpdateUser";
 import ChangePassword from "./ChangePassword";

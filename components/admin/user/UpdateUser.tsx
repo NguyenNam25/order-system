@@ -10,11 +10,11 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { User, UserRegister, UserUpdate } from "@/types/user";
+import type { User, UserRegister, UserUpdate } from "@/interfaces/user";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import userApi from "@/api/Routes/userApi";
+import userApi from "@/api/routes/userApi";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateUserSchema, userSchema } from "@/schemas/userSchema";
 

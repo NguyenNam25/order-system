@@ -6,7 +6,7 @@ import {
   UseFormRegister,
   UseFormReset,
 } from "react-hook-form";
-import { CategoryForm } from "@/types/category";
+import { CategoryForm } from "@/interfaces/category";
 
 type FormProp = {
   register: UseFormRegister<CategoryForm>;

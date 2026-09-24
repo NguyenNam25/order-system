@@ -1,4 +1,4 @@
-import categoryApi from "@/api/Routes/categoryApi";
+import categoryApi from "@/api/routes/categoryApi";
 import {
   Select,
   SelectContent,
@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProductForm } from "@/types/product";
+import { ProductForm } from "@/interfaces/product";
 import { useQuery } from "@tanstack/react-query";
 import { Control, Controller } from "react-hook-form";
 

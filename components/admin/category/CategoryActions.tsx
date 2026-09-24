@@ -8,14 +8,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import AlertDialogDelete from "../Components/AlertDialogDelete";
+import AlertDialogDelete from "@/components/layout-components/AlertDialogDelete";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Category } from "@/types/category";
+import { Category } from "@/interfaces/category";
 import UpdateCategory from "./UpdateCategory";
-import categoryApi from "@/api/Routes/categoryApi";
+import categoryApi from "@/api/routes/categoryApi";
 
 export default function CategoryActions({ category }: { category: Category }) {
   const [openUpdate, setOpenUpdate] = useState(false);

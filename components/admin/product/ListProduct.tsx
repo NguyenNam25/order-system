@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import productApi from "@/api/Routes/productApi";
+import productApi from "@/api/routes/productApi";
 import { useState } from "react";
 import {
   ColumnDef,
@@ -9,11 +9,19 @@ import {
   SortingState,
   useTable,
 } from "@tanstack/react-table";
-import { ProductDisplay } from "@/types/product";
-import { DataTableFeatures, features } from "@/types/data-table-features";
-import { Input } from "../ui/input";
-import { DataTablePagination } from "../Components/TablePagination";
-import ListLayout from "../ui/ListLayout";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { flexRender, Table as ReactTable } from "@tanstack/react-table";
+import { ProductDisplay } from "@/interfaces/product";
+import { DataTableFeatures, features } from "@/interfaces/data-table-features";
+import { Input } from "@/components/ui/input";
+import { DataTablePagination } from "@/components/layout-components/TablePagination";
 import AddProduct from "./AddProduct";
 import TableProduct from "./TableProduct";
 
@@ -56,7 +64,7 @@ export default function ListProduct({ columns }: DataTableProps) {
 
   return (
     <div>
-      <ListLayout>
+
         <div className="flex items-center pb-4 pt-2 justify-between">
           <Input
             placeholder="Filter Product Name..."
@@ -68,8 +76,49 @@ export default function ListProduct({ columns }: DataTableProps) {
           />
           <AddProduct/>
         </div>
-        <TableProduct table={table}/>
-      </ListLayout>
+        <Table>
+      <TableHeader>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => {
+              return (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder ? null : (
+                    flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )
+                  )}
+                </TableHead>
+              );
+            })}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows?.length ? (
+          table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.id}
+              data-state={row.getIsSelected() && "selected"}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell colSpan={table.getAllColumns().length} className="h-24 text-center">
+              No results.
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  
       <DataTablePagination table={table} />
     </div>
   )

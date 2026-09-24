@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 export default function Cart() {
   const [checkedAll, setCheckedAll] = useState(false);
   const [checkedProducts, setCheckedProducts] = useState<string[]>([]);
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <div className="grid grid-cols-3 gap-4">
@@ -111,7 +111,10 @@ export default function Cart() {
             </div>
             <h2 className="text-red-600 font-bold">890000000</h2>
           </div>
-          <Button className={"p-5 bg-red-600 hover:bg-red-700"} onClick={() => router.push("/cart/payment-info")}>
+          <Button
+            className={"p-5 bg-red-600 hover:bg-red-700"}
+            onClick={() => router.push("/cart/payment-info")}
+          >
             MUA NGAY
           </Button>
         </CardContent>

@@ -14,12 +14,12 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useState } from "react";
-import type { User, UserRegister } from "@/types/user";
+import type { User, UserRegister } from "@/interfaces/user";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { userSchema } from "@/schemas/userSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import authApi from "@/api/Routes/authApi";
+import authApi from "@/api/routes/authApi";
 
 export default function AddUser() {
   const [open, setOpen] = useState(false);

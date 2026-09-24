@@ -1,4 +1,4 @@
-import categoryApi from "@/api/Routes/categoryApi";
+import categoryApi from "@/api/routes/categoryApi";
 import {
   Dialog,
   DialogContent,
@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Product } from "@/types/product";
+import { Product } from "@/interfaces/product";
 import { useQuery } from "@tanstack/react-query";
 import { Separator } from "@/components/ui/separator";
 

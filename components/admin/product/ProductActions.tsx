@@ -8,13 +8,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import AlertDialogDelete from "../Components/AlertDialogDelete";
+import AlertDialogDelete from "@/components/layout-components/AlertDialogDelete";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Product } from "@/types/product";
-import productApi from "@/api/Routes/productApi";
+import { Product } from "@/interfaces/product";
+import productApi from "@/api/routes/productApi";
 import UpdateProduct from "./UpdateProduct";
 import ProductDetails from "./ProductDetails";
 
