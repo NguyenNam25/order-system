@@ -1,3 +1,5 @@
+"use client"
+
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -15,8 +17,18 @@ import {
 } from "@/components/ui/input-group";
 import { ListIcon, SearchIcon, ShoppingCartIcon, UserIcon } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "../auth/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 export default function NavigationBar() {
+  const { currentUser, isLoading, logout } = useAuth();
+
   return (
     <>
       <div className="flex items-center px-48 gap-6 h-14">
@@ -30,12 +42,26 @@ export default function NavigationBar() {
           </InputGroupAddon>
         </InputGroup>
         <div className="flex gap-6 h-full items-center">
-          <Link href={"/login"}>
-            <div className="flex gap-1 h-full items-center justify-center">
-              <UserIcon />
-              <h2>Login</h2>
-            </div>
-          </Link>
+          {currentUser ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-xl">
+                {currentUser.fullname}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href={"/login"}>
+              <div className="flex gap-1 h-full items-center justify-center">
+                <UserIcon />
+                <h2>Login</h2>
+              </div>
+            </Link>
+          )}
+
           <Link href="/orders">
             <div className="flex gap-1 h-full items-center justify-center">
               <ListIcon />

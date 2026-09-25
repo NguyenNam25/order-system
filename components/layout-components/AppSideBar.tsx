@@ -18,7 +18,9 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="group-data-[collapsible=icon]:hidden">
-        <h1>Shop Management</h1>
+        <Link href={"/admin"}>
+          <h1>Shop Management</h1>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

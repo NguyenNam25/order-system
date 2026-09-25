@@ -20,6 +20,7 @@ import ProductField from "./ProductField";
 
 export default function AddProduct() {
   const [open, setOpen] = useState(false);
+  const [images, setImages] = useState<File[]>([]);
 
   const {
     register,
@@ -45,6 +46,7 @@ export default function AddProduct() {
       });
       toast.success("Product add succesfully");
       reset();
+      setImages([]);
       setOpen(false);
     },
 
@@ -54,27 +56,43 @@ export default function AddProduct() {
   });
 
   const onSubmit = async (data: ProductForm) => {
-    createProductMutation.mutate({
-      name: data.name,
-      price: data.price,
-      categoryId: data.categoryId,
-      description: data.description,
-    });
+    try {
+      const product = await createProductMutation.mutateAsync({
+        name: data.name,
+        price: data.price,
+        quantity: data.quantity,
+        categoryId: data.categoryId,
+        description: data.description,
+      });
+
+      for (const file of images) {
+        await productApi.addProductImageFile(product.id, file);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen} > 
       <DialogTrigger
         className={"border py-1 px-2 rounded-lg text-white bg-black"}
       >
         Add
       </DialogTrigger>
-      <DialogContent className="max-w-2xl!">
+      <DialogContent className="max-w-2xl! max-h-[95vh] overflow-y-auto ">
         <DialogHeader>
           <DialogTitle>New Product</DialogTitle>
           <DialogDescription>Add new product</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <ProductField register={register} errors={errors} reset={reset} control={control}/>
+          <ProductField
+            register={register}
+            errors={errors}
+            reset={reset}
+            control={control}
+            images={images}
+            onImagesChange={setImages}
+          />
         </form>
       </DialogContent>
     </Dialog>

@@ -5,20 +5,20 @@ import jwt from "jsonwebtoken";
 
 export async function GET(request: Request) {
   try {
-    const token = (await cookies()).get("token")?.value;
+    // const token = (await cookies()).get("token")?.value;
 
-    if (!token) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+    // if (!token) {
+    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    // }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
+    // try {
+    //   jwt.verify(token, process.env.JWT_SECRET!);
+    // } catch (error) {
+    //   return NextResponse.json(
+    //     { message: "Invalid or expired token" },
+    //     { status: 401 },
+    //   );
+    // }
 
     const categories = await prisma.category.findMany();
 

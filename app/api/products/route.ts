@@ -21,9 +21,13 @@ export async function GET(request: Request) {
     // }
 
     const products = await prisma.product.findMany({
+      orderBy: {
+        id: "asc",
+      },
       include: {
-        category: true
-      }
+        category: true,
+        images: true,
+      },
     });
 
     return NextResponse.json(products, { status: 200 });
@@ -37,20 +41,20 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const token = (await cookies()).get("token")?.value;
+    // const token = (await cookies()).get("token")?.value;
 
-    if (!token) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+    // if (!token) {
+    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    // }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
+    // try {
+    //   jwt.verify(token, process.env.JWT_SECRET!);
+    // } catch (error) {
+    //   return NextResponse.json(
+    //     { message: "Invalid or expired token" },
+    //     { status: 401 },
+    //   );
+    // }
 
     const body = await request.json();
 
@@ -72,6 +76,7 @@ export async function POST(request: Request) {
         name: body.name,
         price: body.price,
         categoryId: body.categoryId,
+        quantity: body.quantity,
         description: body.description,
       },
     });

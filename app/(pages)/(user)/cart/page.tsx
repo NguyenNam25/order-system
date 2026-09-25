@@ -18,12 +18,23 @@ import { useState } from "react";
 import Image from "next/image";
 import harp2 from "@/public/h1470.png";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import cartApi from "@/api/routes/cartApi";
 
 export default function Cart() {
   const [checkedAll, setCheckedAll] = useState(false);
   const [checkedProducts, setCheckedProducts] = useState<string[]>([]);
   const router = useRouter();
 
+  const {data, isLoading, isError} = useQuery(
+    {
+      queryKey:["cart"],
+      queryFn: cartApi.getCart
+    }
+  )
+
+  console.log(data)
+  
   return (
     <div className="grid grid-cols-3 gap-4">
       <div className="flex flex-col col-span-2 gap-4">

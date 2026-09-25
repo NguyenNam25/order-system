@@ -17,6 +17,8 @@ export default function CategorySelect({control} : {control: Control<ProductForm
     queryFn: categoryApi.getAllCategories,
   });
 
+  console.log(data)
+
   const categorySelectItem = (data ?? []).map((category) => ({
     label: category.name,
     value: String(category.id),

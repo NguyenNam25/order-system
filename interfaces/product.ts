@@ -7,6 +7,7 @@ export interface Product {
   quantity:number;
   categoryId: number;
   description: string;
+  images: ProductImage[];
 }
 
 export interface ProductForm {
@@ -24,5 +25,17 @@ export interface ProductDisplay {
   categoryId: number;
   description: string;
   quantity:number;
+  images: ProductImage[];
   category: Category;
+}
+
+export interface ProductImage {
+  id: number;
+  imageUrl: string;
+  productId: number;
+}
+
+export interface UploadImageResponse {
+  message: string;
+  imageUrl: string;
 }

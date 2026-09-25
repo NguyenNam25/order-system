@@ -13,12 +13,12 @@ import { MoreHorizontal } from "lucide-react";
 import AlertDialogDelete from "@/components/layout-components/AlertDialogDelete";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Product } from "@/interfaces/product";
+import { Product, ProductDisplay } from "@/interfaces/product";
 import productApi from "@/api/routes/productApi";
 import UpdateProduct from "./UpdateProduct";
 import ProductDetails from "./ProductDetails";
 
-export default function ProductActions({ product }: { product: Product}) {
+export default function ProductActions({ product }: { product: ProductDisplay}) {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openDetails, setOpenDetails] = useState(false);
@@ -43,6 +43,8 @@ export default function ProductActions({ product }: { product: Product}) {
   const handleDeleteProduct = (id: number) => {
     deleteProductMutation.mutate(id);
   };
+
+  console.log(product)
 
   return (
     <>

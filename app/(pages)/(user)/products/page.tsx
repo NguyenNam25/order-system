@@ -33,8 +33,8 @@ export default function Products() {
             <CardContent className="flex flex-1 flex-col">
               <div className="relative aspect-square w-full overflow-hidden">
                 <Image
-                  src={harp2}
-                  alt="Harp"
+                  src={product.images[0]?.imageUrl}
+                  alt={product.name}
                   fill
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="object-contain transition-transform duration-300 group-hover:scale-120"
