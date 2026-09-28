@@ -17,12 +17,14 @@ enum OrderStatus {
   SHIPPING
   COMPLETED
   CANCELLED
+  RETURNED
 }
 
 model User {
   id       Int    @id @default(autoincrement())
   fullname String
   email    String @unique
+  phone    String
   password String
 
   orders Order[]
@@ -81,10 +83,14 @@ model CartItem {
 }
 
 model Order {
-  id        Int         @id @default(autoincrement())
-  userId    Int
-  status    OrderStatus
-  total     Float
+  id            Int         @id @default(autoincrement())
+  userId        Int
+  phone   String
+  address  String
+  note          String?
+  cancelNote String?
+  status        OrderStatus
+  total         Float
   createdAt DateTime    @default(now())
 
   user  User        @relation(fields: [userId], references: [id])

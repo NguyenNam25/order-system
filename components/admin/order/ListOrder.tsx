@@ -22,9 +22,11 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { DataTablePagination } from "@/components/layout-components/TablePagination";
 import { flexRender, Table as ReactTable } from "@tanstack/react-table";
+import orderApi from "@/api/routes/orderApi";
+import { Order } from "@/interfaces/order";
 
 interface DataTableProps {
-  columns: ColumnDef<DataTableFeatures, Category, unknown>[];
+  columns: ColumnDef<DataTableFeatures, Order, unknown>[];
 }
 
 export default function ListOrder({ columns }: DataTableProps) {
@@ -36,9 +38,11 @@ export default function ListOrder({ columns }: DataTableProps) {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["categories"],
-    queryFn: categoryApi.getAllCategories,
+    queryKey: ["orders"],
+    queryFn: orderApi.getAllOrders,
   });
+
+  console.log(data)
 
   const table = useTable({
     features,
@@ -62,10 +66,10 @@ export default function ListOrder({ columns }: DataTableProps) {
     <div>
       <div className="flex items-center pb-4 pt-2 justify-between">
         <Input
-          placeholder="Filter Category Name..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          placeholder="Filter userId..."
+          value={(table.getColumn("userId")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn("userId")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />

@@ -19,9 +19,15 @@ const cartApi = {
   },
 
   addToCart: async (data: AddCartRequest) => {
-    console.log("ADD TO CART:", data);
-
     const response = await axiosClient.post("/cart", data);
+
+    return response.data;
+  },
+
+  updateCartItem: async (cartItemId: number, quantity: number) => {
+    const response = await axiosClient.put(`/cart/items/${cartItemId}`, {
+      quantity,
+    });
 
     return response.data;
   },

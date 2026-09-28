@@ -3,16 +3,19 @@ export interface User {
   fullname: string;
   email: string;
   password: string;
+  phone: string;
 }
 export interface UserRegister {
   fullname: string;
   email: string;
   password: string;
+  phone: string;
 }
 
 export interface UserUpdate {
   fullname: string;
   email: string;
+  phone: string;
 }
 
 export interface PasswordUpdate {

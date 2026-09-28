@@ -5,8 +5,12 @@ export function formatVND(price: number) {
   }).format(price);
 }
 
-export function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("vi-VN").format(date);
+export function formatDate(date: Date | string) {
+  return new Date(date).toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 export function formatUSD(price: number) {
