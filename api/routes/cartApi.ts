@@ -31,6 +31,16 @@ const cartApi = {
 
     return response.data;
   },
+  deleteCartItem: async (cartItemId: number) => {
+    const response = await axiosClient.delete(`/cart/items/${cartItemId}`);
+
+    return response.data;
+  },
+  deleteAllCartItem: async () => {
+    const response = await axiosClient.delete('/cart/items');
+
+    return response.data
+  }
 };
 
 export default cartApi;

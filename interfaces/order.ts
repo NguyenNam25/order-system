@@ -4,6 +4,7 @@ import { User } from "./user";
 export interface Order {
   id: number;
   userId: number;
+  receiverName: string;
   phone: string;
   address: string;
   note: string | null;
@@ -14,8 +15,10 @@ export interface Order {
     | "SHIPPING"
     | "COMPLETED"
     | "CANCELLED"
+    | "RETURN_REQUESTED"
     | "RETURNED";
   items: OrderItem[];
+  role: "USER" | "ADMIN" | null;
   total: number;
   createdAt: Date;
   user: User;

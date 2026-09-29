@@ -3,6 +3,7 @@ import axiosClient from "../axiosConfiguration";
 import { Order } from "@/interfaces/order";
 
 export interface CreateOrderRequest {
+  receiverName: string;
   phone: string;
   address: string;
   note?: string;
@@ -24,11 +25,17 @@ const orderApi = {
 
     return response.data.order;
   },
+  deleteOrder: async (id: number): Promise<Order> => {
+    const response = await axiosClient.delete(`/orders/${id}`)
 
-  updateOrderStatus: async (id: number, status: Order["status"], note: string) => {
+    return response.data.order;
+  },
+
+  updateOrderStatus: async (id: number, status: Order["status"], cancelNote: string, role: Order["role"]) => {
     const response = await axiosClient.patch(`/orders/${id}`, {
       status,
-      note,
+      cancelNote,
+      role
     });
 
     return response.data;

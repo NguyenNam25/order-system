@@ -13,11 +13,26 @@ import { MoreHorizontal } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import OrderDetail from "./OrderDetail";
 import { Order } from "@/interfaces/order";
+import orderApi from "@/api/routes/orderApi";
 
-export default function OrderActions({ order }: { order: Order}) {
+export default function OrderActions({ order }: { order: Order }) {
   const [openDetails, setOpenDetails] = useState(false);
 
   const queryClient = useQueryClient();
+
+  const deleteOrderMutation = useMutation({
+    mutationFn: orderApi.deleteOrder,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["orders"],
+      });
+    },
+  });
+
+  const onDeleteOrder = (id: number) => {
+    deleteOrderMutation.mutate(id);
+  };
 
   return (
     <>
@@ -37,11 +52,18 @@ export default function OrderActions({ order }: { order: Order}) {
             >
               View Details
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDeleteOrder(order.id)}>
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <OrderDetail data={order} open={openDetails} onOpenChange={setOpenDetails}/>
+      <OrderDetail
+        data={order}
+        open={openDetails}
+        onOpenChange={setOpenDetails}
+      />
     </>
   );
 }

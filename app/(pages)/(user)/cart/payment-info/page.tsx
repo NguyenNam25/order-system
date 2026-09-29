@@ -24,7 +24,7 @@ import orderApi from "@/api/routes/orderApi";
 import { toast } from "sonner";
 
 interface CheckoutForm {
-  fullname: string;
+  receiverName: string;
   phone: string;
   address: string;
   note: string;
@@ -40,7 +40,7 @@ export default function PaymentInfo() {
     reset,
   } = useForm<CheckoutForm>({
     defaultValues: {
-      fullname: "",
+      receiverName: "",
       phone: "",
       address: "",
       note: "",
@@ -50,7 +50,7 @@ export default function PaymentInfo() {
   useEffect(() => {
     if (userdata.currentUser) {
       reset({
-        fullname: userdata.currentUser.fullname ?? "",
+        receiverName: userdata.currentUser.fullname ?? "",
         phone: userdata.currentUser.phone ?? "",
         address: "",
         note: "",
@@ -92,6 +92,7 @@ export default function PaymentInfo() {
 
   const onSubmit = (formData: CheckoutForm) => {
     createOrderMutation.mutate({
+      receiverName: formData.receiverName,
       phone: formData.phone,
       address: formData.address,
       note: formData.note,
@@ -141,13 +142,13 @@ export default function PaymentInfo() {
 
               <FieldGroup className="grid grid-cols-2">
                 <Field>
-                  <FieldLabel htmlFor="fullname">
+                  <FieldLabel htmlFor="receiverName">
                     Tên người nhận
                   </FieldLabel>
 
                   <Input
-                    {...register("fullname")}
-                    id="fullname"
+                    {...register("receiverName")}
+                    id="receiverName"
                     type="text"
                     className="h-12 rounded-lg bg-white border-gray-300"
                   />

@@ -22,6 +22,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import cartApi from "@/api/routes/cartApi";
 import { formatVND } from "@/lib/format";
 import { CartItem } from "@/interfaces/cart";
+import { toast } from "sonner";
 
 export default function Cart() {
   const [checkedProducts, setCheckedProducts] = useState<string[]>([]);
@@ -73,6 +74,35 @@ export default function Cart() {
     },
   });
 
+  const deleteCartItemMutation = useMutation({
+    mutationFn: ({ cartItemId }: { cartItemId: number }) =>
+      cartApi.deleteCartItem(cartItemId),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["cart"],
+      });
+
+      toast.success("đã bỏ sản phẩm khỏi giỏ hàng");
+    },
+  });
+
+  const deleteAllCartItemMutation = useMutation({
+    mutationFn: cartApi.deleteAllCartItem,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["cart"],
+      });
+
+      toast.success("đã bỏ sản phẩm khỏi giỏ hàng");
+    },
+  });
+
+  const onDeleteAllItem = () => {
+    deleteAllCartItemMutation.mutate();
+  };
+
   return (
     <div className="grid grid-cols-3 gap-4">
       <div className="flex flex-col col-span-2 gap-4">
@@ -93,12 +123,14 @@ export default function Cart() {
               />
               <FieldLabel htmlFor="terms-checkbox-basic">Tất cả</FieldLabel>
             </Field>
-            <div className="flex gap-2">
-              <Button>Mua ngay</Button>
-              <Button size="icon" className={"rounded-md"}>
-                <TrashIcon />
-              </Button>
-            </div>
+            <Button
+              disabled={!checkedAll || deleteAllCartItemMutation.isPending}
+              size="icon"
+              className="rounded-md"
+              onClick={onDeleteAllItem}
+            >
+              <TrashIcon />
+            </Button>
           </CardContent>
         </Card>
         {(data?.items ?? []).map((item) => (
@@ -135,20 +167,35 @@ export default function Cart() {
                 </h2>
 
                 <div className="flex items-center gap-2">
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="rounded-md"
-                    disabled={item.quantity <= 1}
-                    onClick={() => {
-                      updateQuantityMutation.mutate({
-                        cartItemId: item.id,
-                        quantity: item.quantity - 1,
-                      });
-                    }}
-                  >
-                    <MinusIcon />
-                  </Button>
+                  {item.quantity === 1 ? (
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="rounded-md"
+                      onClick={() => {
+                        deleteCartItemMutation.mutate({
+                          cartItemId: item.id,
+                        });
+                      }}
+                    >
+                      <TrashIcon />
+                    </Button>
+                  ) : (
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="rounded-md"
+                      disabled={item.quantity <= 1}
+                      onClick={() => {
+                        updateQuantityMutation.mutate({
+                          cartItemId: item.id,
+                          quantity: item.quantity - 1,
+                        });
+                      }}
+                    >
+                      <MinusIcon />
+                    </Button>
+                  )}
 
                   <span className="text-lg">{item.quantity}</span>
 

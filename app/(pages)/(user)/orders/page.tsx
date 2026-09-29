@@ -15,26 +15,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 import { useState } from "react";
 import harp2 from "@/public/h1470.png";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import orderApi from "@/api/routes/orderApi";
 import { formatDate, formatVND } from "@/lib/format";
-import { FolderCode, List } from "lucide-react";
 import { Order } from "@/interfaces/order";
 import OrderList from "@/components/orders/OrderList";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 const orderTabs: Record<string, Order["status"][]> = {
   pending: ["PENDING"],
@@ -43,12 +38,78 @@ const orderTabs: Record<string, Order["status"][]> = {
   returned: ["RETURNED"],
   cancelled: ["CANCELLED"],
 };
+
+interface CheckoutForm {
+  cancelNote: string;
+}
+
 export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [openCancelled, setOpenCancelled] = useState(false);
+  const [openReturned, setOpenReturned] = useState(false);
+  const { register, handleSubmit, reset } = useForm<CheckoutForm>();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["orders"],
     queryFn: orderApi.getMyOrders,
+  });
+
+  const queryClient = useQueryClient();
+
+  const handleCancelled = useMutation({
+    mutationFn: ({
+      id,
+      status,
+      cancelNote,
+      role,
+    }: {
+      id: number;
+      status: Order["status"];
+      cancelNote: string;
+      role: Order["role"];
+    }) => orderApi.updateOrderStatus(id, status, cancelNote, role),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["orders"],
+      });
+
+      toast.success("Xác nhận đơn hàng thành công");
+      setOpenCancelled(false);
+      setSelectedOrder(null);
+    },
+
+    onError: () => {
+      toast.error("Xác nhận đơn hàng thất bại");
+    },
+  });
+
+  const handleReturned = useMutation({
+    mutationFn: ({
+      id,
+      status,
+      cancelNote,
+      role,
+    }: {
+      id: number;
+      status: Order["status"];
+      cancelNote: string;
+      role: Order["role"];
+    }) => orderApi.updateOrderStatus(id, status, cancelNote, role),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["orders"],
+      });
+
+      toast.success("Xác nhận đơn hàng thành công");
+      setOpenReturned(false);
+      setSelectedOrder(null);
+    },
+
+    onError: () => {
+      toast.error("Xác nhận đơn hàng thất bại");
+    },
   });
 
   return (
@@ -109,7 +170,11 @@ export default function Orders() {
             <CardContent className="flex flex-col gap-3">
               <OrderList
                 orders={
-                  data?.filter((order) => order.status === "COMPLETED") ?? []
+                  data?.filter(
+                    (order) =>
+                      order.status === "COMPLETED" ||
+                      order.status === "RETURN_REQUESTED",
+                  ) ?? []
                 }
                 onSelect={setSelectedOrder}
               />
@@ -211,15 +276,89 @@ export default function Orders() {
                 {selectedOrder.address}
               </p>
 
-              <p>Thanh toán khi nhận hàng</p>
+              {selectedOrder.status === "COMPLETED" ? (
+                <p>Đã thanh toán</p>
+              ) : (
+                <p>Thanh toán khi nhận hàng</p>
+              )}
 
               <Separator />
 
               {selectedOrder.status === "PENDING" && (
-                <Button>Hủy đơn hàng</Button>
+                <Button onClick={() => setOpenCancelled(true)}>
+                  Hủy đơn hàng
+                </Button>
+              )}
+
+              {selectedOrder.status === "COMPLETED" && (
+                <Button onClick={() => setOpenReturned(true)}>
+                  Hoàn đơn hàng
+                </Button>
               )}
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openCancelled}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận hủy đơn hàng?</DialogTitle>
+            {selectedOrder && (
+              <form
+                onSubmit={handleSubmit((values) => {
+                  handleCancelled.mutate({
+                    id: selectedOrder.id,
+                    status: "CANCELLED",
+                    cancelNote: values.cancelNote,
+                    role: "USER"
+                  });
+                })}
+              >
+                <Field>
+                  <FieldLabel htmlFor="note">Lí do</FieldLabel>
+                  <Input
+                    {...register("cancelNote")}
+                    id="note"
+                    type="text"
+                    className="h-12 rounded-lg bg-white border-gray-300"
+                  />
+                </Field>
+                <Button type="submit">Hủy đơn hàng</Button>
+              </form>
+            )}
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openReturned}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận hủy đơn hàng?</DialogTitle>
+            {selectedOrder && (
+              <form
+                onSubmit={handleSubmit((values) => {
+                  handleReturned.mutate({
+                    id: selectedOrder.id,
+                    status: "RETURN_REQUESTED",
+                    cancelNote: values.cancelNote,
+                    role: "USER"
+                  });
+                })}
+              >
+                <Field>
+                  <FieldLabel htmlFor="note">Lí do</FieldLabel>
+                  <Input
+                    {...register("cancelNote")}
+                    id="note"
+                    type="text"
+                    className="h-12 rounded-lg bg-white border-gray-300"
+                  />
+                </Field>
+                <Button type="submit">Hoàn đơn hàng</Button>
+              </form>
+            )}
+          </DialogHeader>
         </DialogContent>
       </Dialog>
     </div>

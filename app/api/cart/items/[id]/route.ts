@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function PUT(
   request: Request,
@@ -13,17 +13,11 @@ export async function PUT(
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 },
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     // 2. Verify token
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!,
-    ) as JwtPayload;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
     const userId = decoded.userId;
 
@@ -94,6 +88,56 @@ export async function PUT(
     return NextResponse.json({
       message: "Cập nhật số lượng thành công",
       cartItem: updatedCartItem,
+    });
+  } catch (error) {
+    console.error("Update cart item error:", error);
+
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    // 1. Lấy token từ cookie
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+
+    const userId = decoded.userId;
+
+    // 3. Lấy cartItemId từ URL
+    const { id } = await params;
+    const cartItemId = Number(id);
+
+    if (!Number.isInteger(cartItemId)) {
+      return NextResponse.json(
+        { message: "Cart item ID không hợp lệ" },
+        { status: 400 },
+      );
+    }
+
+    // 5. Tìm CartItem thuộc user hiện tại
+    await prisma.cartItem.delete({
+      where: {
+        id: cartItemId,
+      },
+    });
+
+    // 8. Trả response
+    return NextResponse.json({
+      message: "Cart item deleted successfully",
     });
   } catch (error) {
     console.error("Update cart item error:", error);

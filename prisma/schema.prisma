@@ -17,7 +17,13 @@ enum OrderStatus {
   SHIPPING
   COMPLETED
   CANCELLED
+  RETURN_REQUESTED
   RETURNED
+}
+
+enum OrderRole {
+  ADMIN
+  USER
 }
 
 model User {
@@ -85,11 +91,13 @@ model CartItem {
 model Order {
   id            Int         @id @default(autoincrement())
   userId        Int
+  receiverName String
   phone   String
   address  String
   note          String?
   cancelNote String?
   status        OrderStatus
+  role    OrderRole?
   total         Float
   createdAt DateTime    @default(now())
 

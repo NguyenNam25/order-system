@@ -4,7 +4,7 @@ import productApi from "@/api/routes/productApi";
 import { formatVND } from "@/lib/format";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "../ui/button";
-import { Heart, MinusIcon, PlusIcon } from "lucide-react";
+import { Heart, MinusIcon, Phone, PlusIcon } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import { ProductImage } from "@/interfaces/product";
 import cartApi from "@/api/routes/cartApi";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function ProductDetail({ id }: { id: string }) {
   const { data, isLoading, isError } = useQuery({
@@ -28,15 +29,20 @@ export default function ProductDetail({ id }: { id: string }) {
 
   const [quantity, setQuantity] = useState(1);
 
+  const router = useRouter();
+
   useEffect(() => {
     setSelectedImage(data?.images?.[0] ?? null);
+    data?.quantity === 0 ? setQuantity(0) : setQuantity(1)
   }, [data]);
 
   const addToCartMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!data) {
         throw new Error("Product not found");
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       return cartApi.addToCart({
         productId: data.id,
@@ -45,7 +51,7 @@ export default function ProductDetail({ id }: { id: string }) {
     },
 
     onSuccess: () => {
-      toast.success("Đã thêm sản phẩm vào giỏ hàng");
+      toast.success("Đã thêm sản phẩm vào giỏ hàng", { duration: 2000 });
     },
 
     onError: (error) => {
@@ -61,13 +67,22 @@ export default function ProductDetail({ id }: { id: string }) {
   const handleIncrease = () => {
     if (!data) return;
 
-    setQuantity((prev) => Math.min(data.quantity, prev + 1));
+    setQuantity((prev) => prev + 1);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!data) return;
 
-    addToCartMutation.mutate();
+    await addToCartMutation.mutateAsync();
+  };
+
+  const handleBuy = async () => {
+    try {
+      await handleAddToCart();
+      router.push("/cart");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -149,7 +164,7 @@ export default function ProductDetail({ id }: { id: string }) {
                 variant="outline"
                 className="rounded-md"
                 onClick={handleIncrease}
-                disabled={!data || quantity >= data.quantity}
+                disabled={!data || data.quantity <= 0}
               >
                 <PlusIcon />
               </Button>
@@ -169,8 +184,18 @@ export default function ProductDetail({ id }: { id: string }) {
             <Heart className="text-black" />
           </Button>
         </div>
-
-        <Button className="bg-red-600 w-full h-12">Mua Ngay</Button>
+        {!data || data.quantity <= 0 ? (
+          <Button className="bg-white border border-blue-500 w-full h-12">
+            <div className="flex gap-2 items-center text-blue-500 justify-start">
+              <Phone className="size-4" />
+              <span>Liên hệ</span>
+            </div>
+          </Button>
+        ) : (
+          <Button className="bg-red-600 w-full h-12" onClick={handleBuy}>
+            Mua Ngay
+          </Button>
+        )}
       </div>
     </div>
   );

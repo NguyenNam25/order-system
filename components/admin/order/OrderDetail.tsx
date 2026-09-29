@@ -32,11 +32,13 @@ export default function OrderDetail({
       id,
       status,
       note,
+      role,
     }: {
       id: number;
       status: Order["status"];
       note: string;
-    }) => orderApi.updateOrderStatus(id, status, note),
+      role: Order["role"];
+    }) => orderApi.updateOrderStatus(id, status, note, role),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -57,6 +59,7 @@ export default function OrderDetail({
       id: data.id,
       status: "CONFIRMED",
       note: data.note ?? "",
+      role: "ADMIN",
     });
   };
 
@@ -65,6 +68,16 @@ export default function OrderDetail({
       id: data.id,
       status: "SHIPPING",
       note: data.note ?? "",
+      role: "ADMIN",
+    });
+  };
+
+  const onComplete = () => {
+    handleChangeStatus.mutate({
+      id: data.id,
+      status: "COMPLETED",
+      note: data.note ?? "",
+      role: "ADMIN",
     });
   };
 
@@ -72,7 +85,17 @@ export default function OrderDetail({
     handleChangeStatus.mutate({
       id: data.id,
       status: "CANCELLED",
+      note: data.note ?? "",
+      role: "ADMIN",
+    });
+  };
+
+  const onReturn = () => {
+    handleChangeStatus.mutate({
+      id: data.id,
+      status: "RETURNED",
       note: data.cancelNote ?? "",
+      role: "ADMIN",
     });
   };
 
@@ -128,41 +151,54 @@ export default function OrderDetail({
 
         <p>Thanh toán khi nhận hàng</p>
 
+        {data.cancelNote && (
+          <>
+            <Separator />
+            <h1>Lí do:</h1>
+            <p>{data.cancelNote}</p>
+          </>
+        )}
+
         <Separator />
 
         {data.status === "PENDING" && (
-          <div className="flex gap-2">
-            <Button onClick={onConfirm} disabled={handleChangeStatus.isPending}>
-              {handleChangeStatus.isPending
-                ? "Đang xác nhận..."
-                : "Xác nhận đơn hàng"}
-            </Button>
-          </div>
-        )}
-
-        {!data.cancelNote && (
-          <Button
-            variant="destructive"
-            onClick={onCancel}
-            disabled={handleChangeStatus.isPending}
-          >
+          <Button onClick={onConfirm} disabled={handleChangeStatus.isPending}>
             {handleChangeStatus.isPending
-              ? "Đang hủy..."
-              : "Xác nhận hủy đơn hàng"}
+              ? "Đang xác nhận..."
+              : "Xác nhận đơn hàng"}
           </Button>
         )}
 
+        <Button
+          variant="destructive"
+          onClick={onCancel}
+          disabled={handleChangeStatus.isPending}
+        >
+          {handleChangeStatus.isPending
+            ? "Đang hủy..."
+            : "Xác nhận hủy đơn hàng"}
+        </Button>
+
         {data.status === "CONFIRMED" && (
-          <div className="flex gap-2">
-            <Button
-              onClick={onShipping}
-              disabled={handleChangeStatus.isPending}
-            >
-              {handleChangeStatus.isPending
-                ? "Đang xác nhận..."
-                : "Xác nhận dang giao hàng"}
-            </Button>
-          </div>
+          <Button onClick={onShipping} disabled={handleChangeStatus.isPending}>
+            {handleChangeStatus.isPending
+              ? "Đang xác nhận..."
+              : "Xác nhận dang giao hàng"}
+          </Button>
+        )}
+
+        {data.status === "SHIPPING" && (
+          <Button onClick={onComplete} disabled={handleChangeStatus.isPending}>
+            {handleChangeStatus.isPending ? "Đang xác nhận..." : "Đã giao hàng"}
+          </Button>
+        )}
+
+        {data.status === "RETURN_REQUESTED" && (
+          <Button onClick={onReturn} disabled={handleChangeStatus.isPending}>
+            {handleChangeStatus.isPending
+              ? "Đang xác nhận..."
+              : "Xác nhận hoàn hàng"}
+          </Button>
         )}
       </DialogContent>
     </Dialog>

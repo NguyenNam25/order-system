@@ -19,17 +19,11 @@ export async function POST(request: Request) {
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 },
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     // 2. Verify token
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!,
-    ) as JwtPayload;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
     const userId = decoded.userId;
 
@@ -107,6 +101,56 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("Add to cart error:", error);
+
+    return NextResponse.json(
+      { message: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    // 1. Lấy token
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    // 2. Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+
+    const userId = decoded.userId;
+
+    // 3. Tìm cart của user
+    const cart = await prisma.cart.findUnique({
+      where: {
+        userId,
+      },
+    });
+
+    if (!cart) {
+      return NextResponse.json({ message: "Cart not found" }, { status: 404 });
+    }
+
+    // 4. Xóa tất cả CartItem của cart
+    await prisma.cartItem.deleteMany({
+      where: {
+        cartId: cart.id,
+      },
+    });
+
+    // 5. Trả kết quả
+    return NextResponse.json(
+      {
+        message: "All products removed from cart successfully",
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error("Delete all cart items error:", error);
 
     return NextResponse.json(
       { message: "Internal server error" },

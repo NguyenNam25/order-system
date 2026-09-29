@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     // 3. Lấy dữ liệu checkout
     const body = await request.json();
 
-    const { phone, address, note } = body;
+    const {receiverName, phone, address, note } = body;
 
     if (!phone || !address) {
       return NextResponse.json(
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!cart || cart.items.length === 0) {
+    if (!receiverName || !cart || cart.items.length === 0) {
       return NextResponse.json(
         {
           message: "Cart is empty",
@@ -105,6 +105,7 @@ export async function POST(request: Request) {
       const newOrder = await tx.order.create({
         data: {
           userId: decoded.userId,
+          receiverName,
           phone,
           address,
           note,

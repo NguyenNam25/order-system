@@ -10,6 +10,7 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
@@ -57,11 +58,34 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton>
-                  <Link href={"/admin/orders"}>
-                    <h1>Orders</h1>
-                  </Link>
+                  <h1>Orders</h1>
                 </SidebarMenuButton>
-                <SidebarMenuBadge>2</SidebarMenuBadge>
+                <SidebarMenuSub>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <Link href={"/admin/orders"}>
+                        <h1>All Orders</h1>
+                      </Link>
+                    </SidebarMenuButton>
+                    <SidebarMenuBadge>2</SidebarMenuBadge>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <Link href={"/admin/orders"}>
+                        <h1>Cancelled Orders</h1>
+                      </Link>
+                    </SidebarMenuButton>
+                    <SidebarMenuBadge>2</SidebarMenuBadge>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <Link href={"/admin/orders"}>
+                        <h1>Returned Orders</h1>
+                      </Link>
+                    </SidebarMenuButton>
+                    <SidebarMenuBadge>2</SidebarMenuBadge>
+                  </SidebarMenuItem>
+                </SidebarMenuSub>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
