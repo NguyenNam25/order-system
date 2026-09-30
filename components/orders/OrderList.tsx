@@ -14,9 +14,11 @@ import { formatDate, formatVND } from "@/lib/format";
 export default function OrderList({
   orders,
   onSelect,
+  value,
 }: {
   orders: Order[];
   onSelect: (order: Order) => void;
+  value: string;
 }) {
   if (orders.length === 0) {
     return (
@@ -44,8 +46,9 @@ export default function OrderList({
         <CardContent className="flex gap-4 font-bold text-base">
           <h1 className="flex-2">Mã đơn hàng</h1>
           <h1 className="w-48">Ngày đặt</h1>
-          <h1 className="flex-1">Tổng tiền</h1>
-          <h1 className="w-28">Trạng thái</h1>
+          <h1 className="w-48">Tổng tiền</h1>
+          {(value === "returned" || value === "shipping") &&  (<h1 className="w-32">Trạng thái</h1>)}
+          {value === "cancelled" && <h1 className="w-28">Huy boi</h1>}
         </CardContent>
       </Card>
 
@@ -60,9 +63,11 @@ export default function OrderList({
 
             <h1 className="w-48">{formatDate(order.createdAt)}</h1>
 
-            <h1 className="flex-1">{formatVND(order.total)}</h1>
+            <h1 className="w-48">{formatVND(order.total)}</h1>
 
-            <h1 className="w-28">{order.status}</h1>
+            {(value === "returned" || value === "shipping") &&  (<h1 className="w-32">{order.status}</h1>)}
+
+            {value === "cancelled" && <h1 className="w-28">{order.role}</h1>}
           </CardContent>
         </Card>
       ))}

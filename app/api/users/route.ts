@@ -6,20 +6,20 @@ import jwt from "jsonwebtoken";
 
 export async function GET(request: Request) {
   try {
-    const token = (await cookies()).get("token")?.value;
+    // const token = (await cookies()).get("token")?.value;
 
-    if (!token) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+    // if (!token) {
+    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    // }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
+    // try {
+    //   jwt.verify(token, process.env.JWT_SECRET!);
+    // } catch (error) {
+    //   return NextResponse.json(
+    //     { message: "Invalid or expired token" },
+    //     { status: 401 },
+    //   );
+    // }
 
     const users = await prisma.user.findMany({
       select: {
@@ -40,20 +40,20 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const token = (await cookies()).get("token")?.value;
+    // const token = (await cookies()).get("token")?.value;
 
-    if (!token) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+    // if (!token) {
+    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    // }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
+    // try {
+    //   jwt.verify(token, process.env.JWT_SECRET!);
+    // } catch (error) {
+    //   return NextResponse.json(
+    //     { message: "Invalid or expired token" },
+    //     { status: 401 },
+    //   );
+    // }
 
     const body = await request.json();
 
@@ -76,12 +76,16 @@ export async function POST(request: Request) {
       data: {
         fullname: body.fullname,
         email: body.email,
+        phone: body.phone,
+        role: body.role,
         password: hashedPassword,
       },
       select: {
         id: true,
         fullname: true,
         email: true,
+        phone: true,
+        role: true,
       },
     });
 

@@ -15,9 +15,14 @@ const password = z
   .min(6, "Password must contain at least 6 characters")
   .regex(/[A-Za-z]/, "Password must contain at least 1 character (a-z)");
 
-export const userSchema = z.object({ fullname, email, password });
+const phone = z
+  .string({ message: "Phone is required" })
+  .regex(/^0\d{9}$/, "Phone must be a valid phone number");
+const role = z.enum(["USER", "ADMIN"]);
 
-export const updateUserSchema = z.object({ fullname, email });
+export const userSchema = z.object({ fullname, email, password, phone, role });
+
+export const updateUserSchema = z.object({ fullname, email, phone });
 
 export const PasswordUpdateSchema = z
   .object({

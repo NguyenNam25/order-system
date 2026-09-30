@@ -18,7 +18,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 import { useState } from "react";
-import harp2 from "@/public/h1470.png";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -48,6 +47,7 @@ export default function Orders() {
   const [openCancelled, setOpenCancelled] = useState(false);
   const [openReturned, setOpenReturned] = useState(false);
   const { register, handleSubmit, reset } = useForm<CheckoutForm>();
+  const [value, setValue] = useState("pending");
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["orders"],
@@ -112,9 +112,36 @@ export default function Orders() {
     },
   });
 
+  const handleConfirmed = useMutation({
+    mutationFn: ({
+      id,
+      status,
+      cancelNote,
+      role,
+    }: {
+      id: number;
+      status: Order["status"];
+      cancelNote: string;
+      role: Order["role"];
+    }) => orderApi.updateOrderStatus(id, status, cancelNote, role),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["orders"],
+      });
+
+      toast.success("Xác nhận đơn hàng thành công");
+      setSelectedOrder(null);
+    },
+
+    onError: () => {
+      toast.error("Xác nhận đơn hàng thất bại");
+    },
+  });
+
   return (
     <div>
-      <Tabs defaultValue="pending">
+      <Tabs value={value} onValueChange={setValue}>
         <TabsList>
           <TabsTrigger value="pending">Chờ xác nhận</TabsTrigger>
           <TabsTrigger value="shipping">Đang giao hàng</TabsTrigger>
@@ -135,6 +162,7 @@ export default function Orders() {
                   data?.filter((order) => order.status === "PENDING") ?? []
                 }
                 onSelect={setSelectedOrder}
+                value={value}
               />
             </CardContent>
           </Card>
@@ -156,6 +184,7 @@ export default function Orders() {
                   ) ?? []
                 }
                 onSelect={setSelectedOrder}
+                value={value}
               />
             </CardContent>
           </Card>
@@ -170,13 +199,10 @@ export default function Orders() {
             <CardContent className="flex flex-col gap-3">
               <OrderList
                 orders={
-                  data?.filter(
-                    (order) =>
-                      order.status === "COMPLETED" ||
-                      order.status === "RETURN_REQUESTED",
-                  ) ?? []
+                  data?.filter((order) => order.status === "COMPLETED") ?? []
                 }
                 onSelect={setSelectedOrder}
+                value={value}
               />
             </CardContent>
           </Card>
@@ -194,6 +220,7 @@ export default function Orders() {
                   data?.filter((order) => order.status === "CANCELLED") ?? []
                 }
                 onSelect={setSelectedOrder}
+                value={value}
               />
             </CardContent>
           </Card>
@@ -208,9 +235,14 @@ export default function Orders() {
             <CardContent className="flex flex-col gap-3">
               <OrderList
                 orders={
-                  data?.filter((order) => order.status === "RETURNED") ?? []
+                  data?.filter(
+                    (order) =>
+                      order.status === "RETURNED" ||
+                      order.status === "RETURN_REQUESTED",
+                  ) ?? []
                 }
                 onSelect={setSelectedOrder}
+                value={value}
               />
             </CardContent>
           </Card>
@@ -290,6 +322,21 @@ export default function Orders() {
                 </Button>
               )}
 
+              {selectedOrder.status === "SHIPPING" && (
+                <Button
+                  onClick={() => {
+                    handleReturned.mutate({
+                      id: selectedOrder.id,
+                      status: "COMPLETED",
+                      cancelNote: "",
+                      role: "USER",
+                    });
+                  }}
+                >
+                  Da nhan hang
+                </Button>
+              )}
+
               {selectedOrder.status === "COMPLETED" && (
                 <Button onClick={() => setOpenReturned(true)}>
                   Hoàn đơn hàng
@@ -311,7 +358,7 @@ export default function Orders() {
                     id: selectedOrder.id,
                     status: "CANCELLED",
                     cancelNote: values.cancelNote,
-                    role: "USER"
+                    role: "USER",
                   });
                 })}
               >
@@ -342,7 +389,7 @@ export default function Orders() {
                     id: selectedOrder.id,
                     status: "RETURN_REQUESTED",
                     cancelNote: values.cancelNote,
-                    role: "USER"
+                    role: "USER",
                   });
                 })}
               >

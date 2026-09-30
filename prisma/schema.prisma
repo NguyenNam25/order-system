@@ -21,7 +21,7 @@ enum OrderStatus {
   RETURNED
 }
 
-enum OrderRole {
+enum Role {
   ADMIN
   USER
 }
@@ -32,6 +32,9 @@ model User {
   email    String @unique
   phone    String
   password String
+  role     Role
+
+  isActive Boolean @default(true)
 
   orders Order[]
   cart   Cart?
@@ -97,7 +100,7 @@ model Order {
   note          String?
   cancelNote String?
   status        OrderStatus
-  role    OrderRole?
+  role    Role?
   total         Float
   createdAt DateTime    @default(now())
 

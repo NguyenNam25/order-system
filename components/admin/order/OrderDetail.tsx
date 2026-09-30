@@ -101,19 +101,19 @@ export default function OrderDetail({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-96 overflow-y-scroll">
+      <DialogContent className="h-xl overflow-y-auto gap-4">
         <DialogHeader>
           <DialogTitle>Chi tiết đơn hàng</DialogTitle>
         </DialogHeader>
-        <div>
-          <p>Mã đơn hàng: {data.id}</p>
-
-          <p>Trạng thái: {data.status}</p>
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between">
+            <p>Mã đơn hàng: {data.id}</p>
+            <p>Trạng thái: {data.status}</p>
+          </div>
 
           <p>Ngày đặt: {formatDate(data.createdAt)}</p>
         </div>
-
-        <div>
+        <div className="flex flex-col gap-2 ">
           {data.items.map((item) => (
             <Card key={item.id} className="rounded-xl py-3">
               <CardContent className="flex items-center justify-between px-3">
@@ -137,10 +137,8 @@ export default function OrderDetail({
               </CardContent>
             </Card>
           ))}
-
-          <h1>Tổng tiền: {formatVND(data.total)}</h1>
         </div>
-
+        <h1>Tổng tiền: {formatVND(data.total)}</h1>
         <Separator />
 
         <h2>Thông tin giao hàng</h2>
@@ -154,51 +152,70 @@ export default function OrderDetail({
         {data.cancelNote && (
           <>
             <Separator />
-            <h1>Lí do:</h1>
-            <p>{data.cancelNote}</p>
+            <div className="flex gap-2">
+              <h1>Lí do: </h1>
+              <p>{data.cancelNote}</p>
+            </div>
           </>
         )}
 
-        <Separator />
-
         {data.status === "PENDING" && (
-          <Button onClick={onConfirm} disabled={handleChangeStatus.isPending}>
-            {handleChangeStatus.isPending
-              ? "Đang xác nhận..."
-              : "Xác nhận đơn hàng"}
-          </Button>
+          <div>
+            <Separator />
+            <Button
+              variant="destructive"
+              onClick={onCancel}
+              disabled={handleChangeStatus.isPending}
+            >
+              {handleChangeStatus.isPending
+                ? "Đang hủy..."
+                : "Xác nhận hủy đơn hàng"}
+            </Button>
+            <Button onClick={onConfirm} disabled={handleChangeStatus.isPending}>
+              {handleChangeStatus.isPending
+                ? "Đang xác nhận..."
+                : "Xác nhận đơn hàng"}
+            </Button>
+          </div>
         )}
 
-        <Button
-          variant="destructive"
-          onClick={onCancel}
-          disabled={handleChangeStatus.isPending}
-        >
-          {handleChangeStatus.isPending
-            ? "Đang hủy..."
-            : "Xác nhận hủy đơn hàng"}
-        </Button>
-
         {data.status === "CONFIRMED" && (
-          <Button onClick={onShipping} disabled={handleChangeStatus.isPending}>
-            {handleChangeStatus.isPending
-              ? "Đang xác nhận..."
-              : "Xác nhận dang giao hàng"}
-          </Button>
+          <>
+            <Separator />
+            <Button
+              onClick={onShipping}
+              disabled={handleChangeStatus.isPending}
+            >
+              {handleChangeStatus.isPending
+                ? "Đang xác nhận..."
+                : "Xác nhận dang giao hàng"}
+            </Button>
+          </>
         )}
 
         {data.status === "SHIPPING" && (
-          <Button onClick={onComplete} disabled={handleChangeStatus.isPending}>
-            {handleChangeStatus.isPending ? "Đang xác nhận..." : "Đã giao hàng"}
-          </Button>
+          <>
+            <Separator />
+            <Button
+              onClick={onComplete}
+              disabled={handleChangeStatus.isPending}
+            >
+              {handleChangeStatus.isPending
+                ? "Đang xác nhận..."
+                : "Đã giao hàng"}
+            </Button>
+          </>
         )}
 
         {data.status === "RETURN_REQUESTED" && (
-          <Button onClick={onReturn} disabled={handleChangeStatus.isPending}>
-            {handleChangeStatus.isPending
-              ? "Đang xác nhận..."
-              : "Xác nhận hoàn hàng"}
-          </Button>
+          <>
+            <Separator />
+            <Button onClick={onReturn} disabled={handleChangeStatus.isPending}>
+              {handleChangeStatus.isPending
+                ? "Đang xác nhận..."
+                : "Xác nhận hoàn hàng"}
+            </Button>
+          </>
         )}
       </DialogContent>
     </Dialog>

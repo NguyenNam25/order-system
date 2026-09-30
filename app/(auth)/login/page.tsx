@@ -36,10 +36,14 @@ export default function Login() {
 
     onSuccess: (data) => {
       login(data.user);
-      // window.dispatchEvent(new Event("userLogin"));
-      toast.success("Login succesfully");
 
-      router.push("/");
+      toast.success("Login successfully");
+
+      if (data.user.role === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     },
 
     onError: () => {

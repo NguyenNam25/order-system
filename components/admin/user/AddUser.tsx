@@ -20,6 +20,13 @@ import { userSchema } from "@/schemas/userSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import authApi from "@/api/routes/authApi";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function AddUser() {
   const [open, setOpen] = useState(false);
@@ -28,9 +35,13 @@ export default function AddUser() {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<UserRegister>({
     resolver: zodResolver(userSchema),
+    defaultValues: {
+      role: "USER",
+    },
   });
 
   const queryClient = useQueryClient();
@@ -54,11 +65,13 @@ export default function AddUser() {
     },
   });
 
-  const onSubmit = async (data: UserRegister) => {
+  const onSubmit = (data: UserRegister) => {
     addUserMutation.mutate({
       fullname: data.fullname,
       email: data.email,
       password: data.password,
+      phone: data.phone,
+      role: data.role,
     });
   };
 
@@ -86,7 +99,45 @@ export default function AddUser() {
               />
 
               {errors.fullname && (
-                <p className="text-red-500 text-sm">{errors.fullname.message}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.fullname.message}
+                </p>
+              )}
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
+              <Input
+                {...register("phone")}
+                id="phone"
+                type="text"
+                placeholder=""
+              />
+              {errors.phone && (
+                <p className="text-red-500 text-sm">{errors.phone.message}</p>
+              )}
+            </Field>
+            <Field>
+              <FieldLabel>Role</FieldLabel>
+
+              <Select
+                onValueChange={(value) =>
+                  setValue("role", value as "USER" | "ADMIN", {
+                    shouldValidate: true,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="USER">User</SelectItem>
+                  <SelectItem value="ADMIN">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {errors.role && (
+                <p className="text-red-500 text-sm">{errors.role.message}</p>
               )}
             </Field>
             <Field>

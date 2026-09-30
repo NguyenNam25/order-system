@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Sidebar,
   SidebarContent,
@@ -14,8 +16,42 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import AppSideMenuItem, { SideMenuItemProps } from "./AppSideMenuItem";
+import { useAuth } from "../auth/AuthContext";
+import { LogOut, UserIcon } from "lucide-react";
+
+const SideMenuItem = [
+  { status: "PENDING", url: "/admin/orders/pending", title: "Pending Orders" },
+  {
+    status: "CONFIRMED",
+    url: "/admin/orders/confirmed",
+    title: "Confirmed Orders",
+  },
+  {
+    status: "COMPLETED",
+    url: "/admin/orders/completed",
+    title: "Completed Orders",
+  },
+  {
+    status: "CANCELLED",
+    url: "/admin/orders/cancelled",
+    title: "Cancelled Orders",
+  },
+  {
+    status: "RETURN_REQUESTED",
+    url: "/admin/orders/return_requested",
+    title: "Return Requested",
+  },
+  {
+    status: "RETURNED",
+    url: "/admin/orders/returned",
+    title: "Returned Orders",
+  },
+] satisfies SideMenuItemProps[];
 
 export function AppSidebar() {
+  const { currentUser, isLoading, logout } = useAuth();
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="group-data-[collapsible=icon]:hidden">
@@ -61,37 +97,35 @@ export function AppSidebar() {
                   <h1>Orders</h1>
                 </SidebarMenuButton>
                 <SidebarMenuSub>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton>
-                      <Link href={"/admin/orders"}>
-                        <h1>All Orders</h1>
-                      </Link>
-                    </SidebarMenuButton>
-                    <SidebarMenuBadge>2</SidebarMenuBadge>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton>
-                      <Link href={"/admin/orders"}>
-                        <h1>Cancelled Orders</h1>
-                      </Link>
-                    </SidebarMenuButton>
-                    <SidebarMenuBadge>2</SidebarMenuBadge>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton>
-                      <Link href={"/admin/orders"}>
-                        <h1>Returned Orders</h1>
-                      </Link>
-                    </SidebarMenuButton>
-                    <SidebarMenuBadge>2</SidebarMenuBadge>
-                  </SidebarMenuItem>
+                  {SideMenuItem.map((item) => (
+                    <AppSideMenuItem
+                      key={item.status}
+                      status={item.status}
+                      url={item.url}
+                      title={item.title}
+                    />
+                  ))}
                 </SidebarMenuSub>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>user + logout</SidebarFooter>
+      <SidebarFooter>
+        {currentUser ? (
+          <div onClick={logout} className="hover:cursor-pointer hover:bg-gray-400 rounded-lg p-2 flex justify-between">
+            <span>{currentUser.fullname}</span>
+            <LogOut/>
+          </div>
+        ) : (
+          <Link href={"/login"}>
+            <div className="flex gap-1 h-full items-center">
+              <UserIcon />
+              <h2  className="group-data-[collapsible=icon]:hidden">Login</h2>
+            </div>
+          </Link>
+        )}
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

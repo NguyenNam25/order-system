@@ -26,11 +26,15 @@ export async function POST(request: Request) {
         fullname: body.fullname,
         email: body.email,
         password: hashedPassword,
+        phone: body.phone,
+        role: body.role,
       },
       select: {
         id: true,
         fullname: true,
         email: true,
+        phone: true,
+        role: true,
       },
     });
 

@@ -2,15 +2,24 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { OrderStatus } from "@prisma/client";
 
 interface JwtPayload {
   userId: number;
   email: string;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+
     const orders = await prisma.order.findMany({
+      where: status
+        ? {
+            status: status as OrderStatus,
+          }
+        : undefined,
       include: {
         user: true,
         items: {
@@ -61,7 +70,7 @@ export async function POST(request: Request) {
     // 3. Lấy dữ liệu checkout
     const body = await request.json();
 
-    const {receiverName, phone, address, note } = body;
+    const { receiverName, phone, address, note } = body;
 
     if (!phone || !address) {
       return NextResponse.json(
@@ -86,7 +95,16 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!receiverName || !cart || cart.items.length === 0) {
+    if (!receiverName) {
+      return NextResponse.json(
+        {
+          message: "Receiver name is required",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (!cart || cart.items.length === 0) {
       return NextResponse.json(
         {
           message: "Cart is empty",

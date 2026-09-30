@@ -11,7 +11,7 @@ export default function PageLayout({
     <>
       <SidebarProvider>
         <AppSidebar />
-        <main>
+        <main className="w-full">
           <SidebarTrigger />
           {children}
         </main>

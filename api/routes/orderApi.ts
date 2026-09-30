@@ -15,6 +15,15 @@ const orderApi = {
 
     return response.data.orders;
   },
+  getOrdersByStatus: async (status: Order["status"]): Promise<Order[]> => {
+    const response = await axiosClient.get("/orders", {
+      params: {
+        status,
+      },
+    });
+
+    return response.data.orders;
+  },
   getMyOrders: async (): Promise<Order[]> => {
     const response = await axiosClient.get("/orders/me");
 
@@ -26,16 +35,21 @@ const orderApi = {
     return response.data.order;
   },
   deleteOrder: async (id: number): Promise<Order> => {
-    const response = await axiosClient.delete(`/orders/${id}`)
+    const response = await axiosClient.delete(`/orders/${id}`);
 
     return response.data.order;
   },
 
-  updateOrderStatus: async (id: number, status: Order["status"], cancelNote: string, role: Order["role"]) => {
+  updateOrderStatus: async (
+    id: number,
+    status: Order["status"],
+    cancelNote: string,
+    role: Order["role"],
+  ) => {
     const response = await axiosClient.patch(`/orders/${id}`, {
       status,
       cancelNote,
-      role
+      role,
     });
 
     return response.data;
