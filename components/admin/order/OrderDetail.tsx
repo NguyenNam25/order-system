@@ -162,20 +162,22 @@ export default function OrderDetail({
         {data.status === "PENDING" && (
           <div>
             <Separator />
-            <Button
-              variant="destructive"
-              onClick={onCancel}
-              disabled={handleChangeStatus.isPending}
-            >
-              {handleChangeStatus.isPending
-                ? "Đang hủy..."
-                : "Xác nhận hủy đơn hàng"}
-            </Button>
-            <Button onClick={onConfirm} disabled={handleChangeStatus.isPending}>
-              {handleChangeStatus.isPending
-                ? "Đang xác nhận..."
-                : "Xác nhận đơn hàng"}
-            </Button>
+            <div className="flex flex-col gap-2 mt-2">
+              <Button
+                variant="destructive"
+                onClick={onCancel}
+                disabled={handleChangeStatus.isPending}
+              >
+                {handleChangeStatus.isPending
+                  ? "Đang hủy..."
+                  : "Xác nhận hủy đơn hàng"}
+              </Button>
+              <Button onClick={onConfirm} disabled={handleChangeStatus.isPending}>
+                {handleChangeStatus.isPending
+                  ? "Đang xác nhận..."
+                  : "Xác nhận đơn hàng"}
+              </Button>
+            </div>
           </div>
         )}
 

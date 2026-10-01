@@ -82,6 +82,11 @@ export default function ProductDetails({
             <p className="text-justify text-base">{data.category.name}</p>
           </div>
           <Separator />
+          <div className="p-1 rounded-lg flex items-center gap-3 my-1">
+            <h1 className="text-lg">Quantity:</h1>
+            <p className="text-justify text-base">{data.quantity}</p>
+          </div>
+          <Separator />
           <div className="p-1 rounded-lg my-1">
             <h1 className="pb-2 text-lg">Description:</h1>
             <p className="text-justify">{data.description}</p>

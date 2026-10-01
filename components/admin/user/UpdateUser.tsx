@@ -60,7 +60,8 @@ export default function UpdateUser({
       id: data.id,
       user: {
         fullname: formdata.fullname,
-        email: formdata.email
+        email: formdata.email,
+        phone: formdata.phone
       },
     });
   };
@@ -97,6 +98,19 @@ export default function UpdateUser({
               />
               {errors.email && (
                 <p className="text-red-500 text-sm">{errors.email.message}</p>
+              )}
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
+              <Input
+                {...register("phone")}
+                id="phone"
+                type="text"
+                placeholder="Enter Phone number"
+              />
+
+              {errors.phone && (
+                <p className="text-red-500 text-sm">{errors.phone.message}</p>
               )}
             </Field>
             <div className="flex justify-end">

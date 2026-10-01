@@ -256,22 +256,22 @@ export default function Orders() {
           }
         }}
       >
-        <DialogContent className="h-96 overflow-y-scroll">
+        <DialogContent className="h-xl overflow-y-auto gap-4">
           <DialogHeader>
             <DialogTitle>Chi tiết đơn hàng</DialogTitle>
           </DialogHeader>
 
           {selectedOrder && (
             <>
-              <div>
-                <p>Mã đơn hàng: {selectedOrder.id}</p>
-
-                <p>Trạng thái: {selectedOrder.status}</p>
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between">
+                  <p>Mã đơn hàng: {selectedOrder.id}</p>
+                  <p>Trạng thái: {selectedOrder.status}</p>
+                </div>
 
                 <p>Ngày đặt: {formatDate(selectedOrder.createdAt)}</p>
               </div>
-
-              <div>
+              <div className="flex flex-col gap-2 ">
                 {selectedOrder.items.map((item) => (
                   <Card key={item.id} className="rounded-xl py-3">
                     <CardContent className="flex items-center justify-between px-3">
@@ -314,40 +314,57 @@ export default function Orders() {
                 <p>Thanh toán khi nhận hàng</p>
               )}
 
-              <Separator />
+              {selectedOrder.cancelNote && (
+                <>
+                  <Separator />
+                  <div className="flex gap-2">
+                    <h1>Lí do: </h1>
+                    <p>{selectedOrder.cancelNote}</p>
+                  </div>
+                </>
+              )}
 
               {selectedOrder.status === "PENDING" && (
-                <Button onClick={() => setOpenCancelled(true)}>
-                  Hủy đơn hàng
-                </Button>
+                <>
+                  <Separator />
+                  <Button onClick={() => setOpenCancelled(true)}>
+                    Hủy đơn hàng
+                  </Button>
+                </>
               )}
 
               {selectedOrder.status === "SHIPPING" && (
-                <Button
-                  onClick={() => {
-                    handleReturned.mutate({
-                      id: selectedOrder.id,
-                      status: "COMPLETED",
-                      cancelNote: "",
-                      role: "USER",
-                    });
-                  }}
-                >
-                  Da nhan hang
-                </Button>
+                <>
+                  <Separator />
+                  <Button
+                    onClick={() => {
+                      handleReturned.mutate({
+                        id: selectedOrder.id,
+                        status: "COMPLETED",
+                        cancelNote: "",
+                        role: "USER",
+                      });
+                    }}
+                  >
+                    Da nhan hang
+                  </Button>
+                </>
               )}
 
               {selectedOrder.status === "COMPLETED" && (
-                <Button onClick={() => setOpenReturned(true)}>
-                  Hoàn đơn hàng
-                </Button>
+                <>
+                  <Separator />
+                  <Button onClick={() => setOpenReturned(true)}>
+                    Hoàn đơn hàng
+                  </Button>
+                </>
               )}
             </>
           )}
         </DialogContent>
       </Dialog>
 
-      <Dialog open={openCancelled}>
+      <Dialog open={openCancelled} onOpenChange={setOpenCancelled}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Xác nhận hủy đơn hàng?</DialogTitle>
@@ -371,14 +388,16 @@ export default function Orders() {
                     className="h-12 rounded-lg bg-white border-gray-300"
                   />
                 </Field>
-                <Button type="submit">Hủy đơn hàng</Button>
+                <Button type="submit" className={"rounded-lg mt-4"}>
+                  Hủy đơn hàng
+                </Button>
               </form>
             )}
           </DialogHeader>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={openReturned}>
+      <Dialog open={openReturned} onOpenChange={setOpenReturned}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Xác nhận hủy đơn hàng?</DialogTitle>

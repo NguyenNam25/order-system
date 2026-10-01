@@ -11,20 +11,6 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    // const token = (await cookies()).get("token")?.value;
-
-    // if (!token) {
-    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    // }
-
-    // try {
-    //   jwt.verify(token, process.env.JWT_SECRET!);
-    // } catch (error) {
-    //   return NextResponse.json(
-    //     { message: "Invalid or expired token" },
-    //     { status: 401 },
-    //   );
-    // }
 
     const product = await prisma.product.findUnique({
       where: {
@@ -52,21 +38,53 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    
-    // const token = (await cookies()).get("token")?.value;
 
-    // if (!token) {
-    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    // }
+    const token = (await cookies()).get("token")?.value;
 
-    // try {
-    //   jwt.verify(token, process.env.JWT_SECRET!);
-    // } catch (error) {
-    //   return NextResponse.json(
-    //     { message: "Invalid or expired token" },
-    //     { status: 401 },
-    //   );
-    // }
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+      jwt.verify(token, process.env.JWT_SECRET!);
+    } catch (error) {
+      return NextResponse.json(
+        { message: "Invalid or expired token" },
+        { status: 401 },
+      );
+    }
+
+    let decoded: { userId: number };
+
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+        userId: number;
+      };
+    } catch {
+      return NextResponse.json(
+        { message: "Invalid or expired token" },
+        { status: 401 },
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decoded.userId,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 401 });
+    }
+
+    if (user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
     const product = await prisma.product.update({
       where: {
         id: Number(id),
@@ -74,6 +92,7 @@ export async function PUT(
       data: {
         name: body.name,
         price: body.price,
+        quantity: body.quantity,
         categoryId: body.categoryId,
         description: body.description,
       },
@@ -95,20 +114,20 @@ export async function DELETE(
     const { id } = await params;
 
     const productId = Number(id);
-    // const token = (await cookies()).get("token")?.value;
+    const token = (await cookies()).get("token")?.value;
 
-    // if (!token) {
-    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    // }
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
-    // try {
-    //   jwt.verify(token, process.env.JWT_SECRET!);
-    // } catch (error) {
-    //   return NextResponse.json(
-    //     { message: "Invalid or expired token" },
-    //     { status: 401 },
-    //   );
-    // }
+    try {
+      jwt.verify(token, process.env.JWT_SECRET!);
+    } catch (error) {
+      return NextResponse.json(
+        { message: "Invalid or expired token" },
+        { status: 401 },
+      );
+    }
 
     const images = await prisma.productImage.findMany({
       where: {
@@ -135,10 +154,7 @@ export async function DELETE(
       try {
         await fs.unlink(filePath);
       } catch (error) {
-        console.error(
-          `Cannot delete image file: ${filePath}`,
-          error,
-        );
+        console.error(`Cannot delete image file: ${filePath}`, error);
       }
     }
 

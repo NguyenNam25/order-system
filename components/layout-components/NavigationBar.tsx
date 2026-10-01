@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   NavigationMenu,
@@ -42,7 +42,9 @@ export default function NavigationBar() {
           </InputGroupAddon>
         </InputGroup>
         <div className="flex gap-6 h-full items-center">
-          {currentUser ? (
+          {isLoading ? (
+            <div className="w-20 h-8" />
+          ) :   currentUser ? (
             <DropdownMenu>
               <DropdownMenuTrigger className="text-xl">
                 {currentUser.fullname}

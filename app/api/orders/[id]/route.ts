@@ -13,10 +13,7 @@ const validStatuses = [
   "RETURNED",
 ] as const;
 
-const validRoles = [
-  "ADMIN",
-  "USER",
-] as const;
+const validRoles = ["ADMIN", "USER"] as const;
 
 export async function PATCH(
   request: Request,
@@ -38,9 +35,6 @@ export async function PATCH(
 
     const { status, cancelNote, role } = body;
 
-    console.log("STATUS RECEIVED:", status);
-    console.log("VALID STATUSES:", validStatuses);
-
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
         { message: "Invalid order status" },
@@ -55,15 +49,62 @@ export async function PATCH(
       );
     }
 
-    const order = await prisma.order.update({
-      where: {
-        id: orderId,
-      },
-      data: {
-        status,
-        cancelNote,
-        role
-      },
+    // const order = await prisma.order.update({
+    //   where: {
+    //     id: orderId,
+    //   },
+    //   data: {
+    //     status,
+    //     cancelNote,
+    //     role
+    //   },
+    // });
+
+    const order = await prisma.$transaction(async (tx) => {
+      const currentOrder = await tx.order.findUnique({
+        where: {
+          id: orderId,
+        },
+        include: {
+          items: true,
+        },
+      });
+      if (!currentOrder) {
+        throw new Error("Order not found");
+      }
+
+      if (currentOrder.status === "PENDING" && status === "CONFIRMED") {
+        for (const item of currentOrder.items) {
+          const product = await tx.product.findUnique({
+            where: {
+              id: item.productId,
+            },
+          });
+          if ((product?.quantity ?? 0) < item.quantity) {
+            throw new Error(`Out of Stock: ${product?.name}`);
+          }
+          await tx.product.update({
+            where: {
+              id: item.productId,
+            },
+            data: {
+              quantity: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
+      }
+      return tx.order.update({
+        where: {
+          id: orderId,
+        },
+        data: {
+          status,
+          cancelNote,
+          role,
+        },
+      });
     });
 
     return NextResponse.json(
@@ -76,10 +117,35 @@ export async function PATCH(
   } catch (error) {
     console.error("Update order status error:", error);
 
+    if (error instanceof Error) {
+      if (error.message === "ORDER_NOT_FOUND") {
+        return NextResponse.json(
+          { message: "Order not found" },
+          { status: 404 },
+        );
+      }
+
+      if (error.message === "PRODUCT_NOT_FOUND") {
+        return NextResponse.json(
+          { message: "Product not found" },
+          { status: 404 },
+        );
+      }
+
+      if (error.message.startsWith("OUT_OF_STOCK:")) {
+        const productName = error.message.replace("OUT_OF_STOCK:", "");
+
+        return NextResponse.json(
+          {
+            message: `Sản phẩm "${productName}" không đủ số lượng`,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     return NextResponse.json(
-      {
-        message: "Internal server error",
-      },
+      { message: "Internal server error" },
       { status: 500 },
     );
   }
