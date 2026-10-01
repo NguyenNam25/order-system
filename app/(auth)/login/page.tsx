@@ -110,7 +110,7 @@ export default function Login() {
               >
                 {loginMutation.isPending ? "Logging in..." : "Login"}
               </Button>
-              <Button className="w-full">Sign up</Button>
+              <Button type="button" className="w-full" onClick={() => router.push("/register")}>Sign up</Button>
             </div>
           </CardFooter>
         </form>
