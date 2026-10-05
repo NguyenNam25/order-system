@@ -21,9 +21,12 @@ import Link from "next/link";
 import cartApi from "@/api/routes/cartApi";
 import { toast } from "sonner";
 import { useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function Products() {
   const [addingProductId, setAddingProductId] = useState<number | null>(null);
+  const router = useRouter();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["products"],
@@ -53,8 +56,13 @@ export default function Products() {
     },
 
     onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          router.push("/login");
+          toast.error("Chưa đăng nhập");
+        }
+      }
       console.error("Add to cart error:", error);
-      toast.error("Không thể thêm sản phẩm vào giỏ hàng");
     },
   });
 

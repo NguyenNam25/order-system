@@ -94,6 +94,7 @@ model CartItem {
 model Order {
   id            Int         @id @default(autoincrement())
   userId        Int
+  orderCode     String @unique
   receiverName String
   phone   String
   address  String

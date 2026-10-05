@@ -1,6 +1,5 @@
 import CustomBreadcrumb from "@/components//layout-components/CustomBreadcrumb";
 import { columns } from "@/components/admin/order/columns";
-import ListOrder from "@/components/admin/order/ListOrder";
 import ListOrderWS from "@/components/admin/order/ListOrderWithStatus";
 
 export default function page() {

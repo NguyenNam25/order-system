@@ -65,10 +65,10 @@ export default function ListOrderWS({ columns, status }: DataTableProps) {
     <div>
       <div className="flex items-center pb-4 pt-2 justify-between">
         <Input
-          placeholder="Filter userId..."
-          value={(table.getColumn("userId")?.getFilterValue() as string) ?? ""}
+          placeholder="Filter user name..."
+          value={(table.getColumn("user.fullname")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("userId")?.setFilterValue(event.target.value)
+            table.getColumn("user.fullname")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />

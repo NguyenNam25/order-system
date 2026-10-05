@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
+import { generateOrderCode } from "@/lib/generate-code";
 
 interface JwtPayload {
   userId: number;
@@ -123,6 +124,7 @@ export async function POST(request: Request) {
       const newOrder = await tx.order.create({
         data: {
           userId: decoded.userId,
+          orderCode: "",
           receiverName,
           phone,
           address,
@@ -142,6 +144,20 @@ export async function POST(request: Request) {
         },
       });
 
+      const orderCode = generateOrderCode(newOrder.id);
+
+      const order = await tx.order.update({
+        where: {
+          id: newOrder.id,
+        },
+        data: {
+          orderCode,
+        },
+        include: {
+          items: true,
+        },
+      });
+
       // 7. Xóa CartItem sau khi tạo Order
       await tx.cartItem.deleteMany({
         where: {
@@ -149,7 +165,7 @@ export async function POST(request: Request) {
         },
       });
 
-      return newOrder;
+      return order;
     });
 
     return NextResponse.json(

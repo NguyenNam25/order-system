@@ -18,6 +18,7 @@ import { ProductImage } from "@/interfaces/product";
 import cartApi from "@/api/routes/cartApi";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function ProductDetail({ id }: { id: string }) {
   const { data, isLoading, isError } = useQuery({
@@ -33,7 +34,7 @@ export default function ProductDetail({ id }: { id: string }) {
 
   useEffect(() => {
     setSelectedImage(data?.images?.[0] ?? null);
-    data?.quantity === 0 ? setQuantity(0) : setQuantity(1)
+    data?.quantity === 0 ? setQuantity(0) : setQuantity(1);
   }, [data]);
 
   const addToCartMutation = useMutation({
@@ -55,8 +56,13 @@ export default function ProductDetail({ id }: { id: string }) {
     },
 
     onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          router.push("/login");
+          toast.error("Chưa đăng nhập");
+        }
+      }
       console.error("Add to cart error:", error);
-      toast.error("Không thể thêm sản phẩm vào giỏ hàng");
     },
   });
 

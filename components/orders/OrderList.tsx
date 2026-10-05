@@ -10,6 +10,7 @@ import {
 import { List } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { formatDate, formatVND } from "@/lib/format";
+import Image from "next/image";
 
 export default function OrderList({
   orders,
@@ -20,6 +21,13 @@ export default function OrderList({
   onSelect: (order: Order) => void;
   value: string;
 }) {
+  const soLuongSanPham = orders.reduce((total, order) => {
+    return (total + order.items.reduce((sum, item) => {
+        return sum + item.quantity;
+      }, 0)
+    );
+  }, 0);
+
   if (orders.length === 0) {
     return (
       <Empty>
@@ -44,33 +52,59 @@ export default function OrderList({
     <>
       <Card className="py-3 rounded-md">
         <CardContent className="flex gap-4 font-bold text-base">
-          <h1 className="flex-2">Mã đơn hàng</h1>
-          <h1 className="w-48">Ngày đặt</h1>
-          <h1 className="w-48">Tổng tiền</h1>
-          {(value === "returned" || value === "shipping") &&  (<h1 className="w-32">Trạng thái</h1>)}
+          <h1 className="w-32">Mã đơn hàng</h1>
+          <h1 className="flex-1"></h1>
+          <h1 className="w-28">Số sản phẩm</h1>
+          <h1 className="w-28">Số lượng</h1>
+          <h1 className="w-36">Ngày đặt</h1>
+          <h1 className="w-44">Tổng tiền</h1>
+          {(value === "returned" || value === "shipping") && (
+            <h1 className="w-32">Trạng thái</h1>
+          )}
           {value === "cancelled" && <h1 className="w-28">Huy boi</h1>}
         </CardContent>
       </Card>
 
-      {orders.map((order) => (
-        <Card
-          key={order.id}
-          className="py-3 rounded-md hover:cursor-pointer"
-          onClick={() => onSelect(order)}
-        >
-          <CardContent className="flex gap-4 text-base">
-            <h1 className="flex-2">#{order.id}</h1>
+      {orders.map((order) => {
+        const { items } = order;
+        const { product } = items[0];
 
-            <h1 className="w-48">{formatDate(order.createdAt)}</h1>
+        return (
+          <Card
+            key={order.id}
+            className="py-3 rounded-md hover:cursor-pointer"
+            onClick={() => onSelect(order)}
+          >
+            <CardContent className="flex gap-4 text-base justify-center items-center">
+              <h1 className="w-32">{order.orderCode}</h1>
 
-            <h1 className="w-48">{formatVND(order.total)}</h1>
+              <div className="flex-1">
+                <Image
+                  src={product.images[0].imageUrl}
+                  alt={product.name}
+                  width={64}
+                  height={64}
+                  className="object-contain"
+                />
+              </div>
 
-            {(value === "returned" || value === "shipping") &&  (<h1 className="w-32">{order.status}</h1>)}
+              <span className="w-6 text-center">{soLuongSanPham}</span>
 
-            {value === "cancelled" && <h1 className="w-28">{order.role}</h1>}
-          </CardContent>
-        </Card>
-      ))}
+              <span className="w-40 text-center">{order.items.length}</span>
+
+              <h1 className="w-36">{formatDate(order.createdAt)}</h1>
+
+              <h1 className="w-44">{formatVND(order.total)}</h1>
+
+              {(value === "returned" || value === "shipping") && (
+                <h1 className="w-32">{order.status}</h1>
+              )}
+
+              {value === "cancelled" && <h1 className="w-28">{order.role}</h1>}
+            </CardContent>
+          </Card>
+        );
+      })}
     </>
   );
 }

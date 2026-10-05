@@ -6,64 +6,85 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Category } from "@/interfaces/category";
 import { Order } from "@/interfaces/order";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatVND } from "@/lib/format";
 import OrderActions from "./OrderActions";
+import Image from "next/image";
+import orderApi from "@/api/routes/orderApi";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import FastActions from "./FastActions";
 
 const columnHelper = createColumnHelper<DataTableFeatures, Order>();
 
 export const columns = columnHelper.columns([
-  columnHelper.accessor("id", {
+  columnHelper.accessor("orderCode", {
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          ID
+          Order Code
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
-      const id = parseInt(row.getValue("id"))
+      const orderCode = String(row.getValue("orderCode"));
 
-      return <div className="text-left ml-2">{id}</div>
+      return <div className="text-left ml-2">{orderCode}</div>;
     },
   }),
-  columnHelper.accessor("userId", {
+  columnHelper.accessor("user.fullname", {
+    id: "user.fullname",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          User Id
+          User
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
-      const userId = String(row.getValue("userId") ?? "");
-
-      return <div className="text-left ml-2">{userId}</div>;
+      return <div className="ml-2 text-left">{row.original.user.fullname}</div>;
     },
   }),
-  columnHelper.accessor("createdAt", {
+  columnHelper.accessor("items", {
+    id: "productName",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Create At
+          Product Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
-      const createdAt = String(row.getValue("createdAt") ?? "");
+      const items = row.original.items;
 
-      return <div className="text-left ml-2">{formatDate(createdAt)}</div>;
+      return (
+        <div className="ml-2 text-left">
+          {items.map((item) => (
+            <div key={item.id} className="flex gap-4">
+              <Image
+                src={item.product.images[0].imageUrl}
+                alt={item.product.name}
+                width={48}
+                height={48}
+                className="object-contain"
+              />
+              <span>{item.product.name}</span>
+              <span>x{item.quantity}</span>
+            </div>
+          ))}
+        </div>
+      );
     },
   }),
   columnHelper.accessor("total", {
@@ -79,36 +100,46 @@ export const columns = columnHelper.columns([
       );
     },
     cell: ({ row }) => {
-      const total = String(row.getValue("total") ?? "");
-
-      return <div className="text-left ml-2">{total}</div>;
+      return (
+        <div className="ml-2 text-left">{formatVND(row.original.total)}</div>
+      );
     },
   }),
-  columnHelper.accessor("status", {
+  columnHelper.accessor("items.quantity", {
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Status
+          Số lượng
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
-      const status = String(row.getValue("status") ?? "");
+      const quantity = row.original.items.reduce(
+        (total, item) => total + item.quantity,
+        0,
+      );
 
-      return <div className="text-left ml-2">{status}</div>;
+      return <div className="ml-2 text-left">{quantity}</div>;
     },
   }),
+
   columnHelper.display({
     id: "actions",
     cell: ({ row }) => {
       const order = row.original;
-      return (
-        <OrderActions order={order}/>
-      );
+      return <OrderActions order={order} />;
+    },
+  }),
+
+  columnHelper.display({
+    id: "fastActions",
+    cell: ({ row }) => {
+      const order = row.original;
+      return <FastActions order={order} />;
     },
   }),
 ]);

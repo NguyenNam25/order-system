@@ -22,6 +22,7 @@ import { useAuth } from "@/components/auth/AuthContext";
 import { useForm } from "react-hook-form";
 import orderApi from "@/api/routes/orderApi";
 import { toast } from "sonner";
+import axios from "axios";
 
 interface CheckoutForm {
   receiverName: string;
@@ -73,6 +74,9 @@ export default function PaymentInfo() {
     },
 
     onError: (error) => {
+      if (axios.isAxiosError(error)) {
+          toast.error(error.response?.data?.message);
+      }
       console.error("Create order error:", error);
 
       toast.error("Không thể tạo đơn hàng");

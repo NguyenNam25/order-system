@@ -3,6 +3,7 @@ import { User } from "./user";
 
 export interface Order {
   id: number;
+  orderCode: string;
   userId: number;
   receiverName: string;
   phone: string;
