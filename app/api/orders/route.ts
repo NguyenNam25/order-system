@@ -13,6 +13,22 @@ interface JwtPayload {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+
+    const token = (await cookies()).get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+      jwt.verify(token, process.env.JWT_SECRET!);
+    } catch (error) {
+      return NextResponse.json(
+        { message: "Invalid or expired token" },
+        { status: 401 },
+      );
+    }
+
     const status = searchParams.get("status");
 
     const orders = await prisma.order.findMany({

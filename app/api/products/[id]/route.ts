@@ -129,6 +129,37 @@ export async function DELETE(
       );
     }
 
+    let decoded: { userId: number };
+
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+        userId: number;
+      };
+    } catch {
+      return NextResponse.json(
+        { message: "Invalid or expired token" },
+        { status: 401 },
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decoded.userId,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 401 });
+    }
+
+    if (user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
     const images = await prisma.productImage.findMany({
       where: {
         productId,

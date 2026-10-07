@@ -2,6 +2,8 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 const validStatuses = [
   "PENDING",
@@ -20,6 +22,21 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const token = (await cookies()).get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+      jwt.verify(token, process.env.JWT_SECRET!);
+    } catch (error) {
+      return NextResponse.json(
+        { message: "Invalid or expired token" },
+        { status: 401 },
+      );
+    }
+
     const { id } = await params;
 
     const orderId = Number(id);
@@ -48,17 +65,6 @@ export async function PATCH(
         { status: 400 },
       );
     }
-
-    // const order = await prisma.order.update({
-    //   where: {
-    //     id: orderId,
-    //   },
-    //   data: {
-    //     status,
-    //     cancelNote,
-    //     role
-    //   },
-    // });
 
     const order = await prisma.$transaction(async (tx) => {
       const currentOrder = await tx.order.findUnique({

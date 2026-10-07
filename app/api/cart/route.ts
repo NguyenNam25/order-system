@@ -82,11 +82,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as AddCartRequest;
 
     const { productId, quantity } = body;
-
-    console.log("CART BODY:", body);
-    console.log("productId:", productId);
-    console.log("quantity:", quantity);
-
+    
     if (!productId || !quantity || quantity <= 0) {
       return NextResponse.json(
         { message: "Invalid productId or quantity" },

@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 export async function POST(request: NextRequest) {
   try {
+    const token = (await cookies()).get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+      jwt.verify(token, process.env.JWT_SECRET!);
+    } catch (error) {
+      return NextResponse.json(
+        { message: "Invalid or expired token" },
+        { status: 401 },
+      );
+    }
+
     const formData = await request.formData();
 
     const file = formData.get("file");
@@ -35,11 +52,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Thư mục lưu ảnh
-    const uploadDir = path.join(
-      process.cwd(),
-      "uploads",
-      "products",
-    );
+    const uploadDir = path.join(process.cwd(), "uploads", "products");
 
     await mkdir(uploadDir, {
       recursive: true,
@@ -50,10 +63,7 @@ export async function POST(request: NextRequest) {
 
     const fileName = `${Date.now()}-${crypto.randomUUID()}${extension}`;
 
-    const filePath = path.join(
-      uploadDir,
-      fileName,
-    );
+    const filePath = path.join(uploadDir, fileName);
 
     // Lưu file
     await writeFile(filePath, buffer);

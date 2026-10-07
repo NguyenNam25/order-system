@@ -9,20 +9,6 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    // const token = (await cookies()).get("token")?.value;
-
-    // if (!token) {
-    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    // }
-
-    // try {
-    //   jwt.verify(token, process.env.JWT_SECRET!);
-    // } catch (error) {
-    //   return NextResponse.json(
-    //     { message: "Invalid or expired token" },
-    //     { status: 401 },
-    //   );
-    // }
 
     const category = await prisma.category.findUnique({
       where: {

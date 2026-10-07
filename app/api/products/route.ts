@@ -5,21 +5,6 @@ import jwt from "jsonwebtoken";
 
 export async function GET(request: Request) {
   try {
-    // const token = (await cookies()).get("token")?.value;
-
-    // if (!token) {
-    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    // }
-
-    // try {
-    //   jwt.verify(token, process.env.JWT_SECRET!);
-    // } catch (error) {
-    //   return NextResponse.json(
-    //     { message: "Invalid or expired token" },
-    //     { status: 401 },
-    //   );
-    // }
-
     const products = await prisma.product.findMany({
       orderBy: {
         id: "asc",
@@ -41,20 +26,51 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    // const token = (await cookies()).get("token")?.value;
+    const token = (await cookies()).get("token")?.value;
 
-    // if (!token) {
-    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    // }
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
-    // try {
-    //   jwt.verify(token, process.env.JWT_SECRET!);
-    // } catch (error) {
-    //   return NextResponse.json(
-    //     { message: "Invalid or expired token" },
-    //     { status: 401 },
-    //   );
-    // }
+    try {
+      jwt.verify(token, process.env.JWT_SECRET!);
+    } catch (error) {
+      return NextResponse.json(
+        { message: "Invalid or expired token" },
+        { status: 401 },
+      );
+    }
+
+    let decoded: { userId: number };
+
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+        userId: number;
+      };
+    } catch {
+      return NextResponse.json(
+        { message: "Invalid or expired token" },
+        { status: 401 },
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decoded.userId,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 401 });
+    }
+
+    if (user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
 
     const body = await request.json();
 
