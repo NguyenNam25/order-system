@@ -144,7 +144,7 @@ export default function OrderDetail({
         <h2>Thông tin giao hàng</h2>
 
         <p>
-          {data.user?.fullname} - {data.phone} - {data.address}
+          {data.receiverName} - {data.phone} - {data.address}
         </p>
 
         <p>Thanh toán khi nhận hàng</p>

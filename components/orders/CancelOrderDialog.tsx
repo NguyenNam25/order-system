@@ -57,7 +57,7 @@ export default function CancelOrderDialog({
                 />
               </Field>
 
-              <Button type="submit" className="rounded-lg mt-4">
+              <Button type="submit" variant={"destructive"} className="rounded-lg mt-4">
                 Hủy đơn hàng
               </Button>
             </form>

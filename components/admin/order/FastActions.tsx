@@ -5,26 +5,29 @@ import { Order } from "@/interfaces/order";
 import orderApi from "@/api/routes/orderApi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import CancelOrderDialog from "@/components/orders/CancelOrderDialog";
+import { useState } from "react";
 
 interface FastActionsProps {
   order: Order;
 }
 
 export default function FastActions({ order }: FastActionsProps) {
+  const [openCancelled, setOpenCancelled] = useState(false);
   const queryClient = useQueryClient();
 
   const handleChangeStatus = useMutation({
     mutationFn: ({
       id,
       status,
-      note,
+      cancelNote,
       role,
     }: {
       id: number;
       status: Order["status"];
-      note: string;
+      cancelNote: string;
       role: Order["role"];
-    }) => orderApi.updateOrderStatus(id, status, note, role),
+    }) => orderApi.updateOrderStatus(id, status, cancelNote, role),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -32,6 +35,7 @@ export default function FastActions({ order }: FastActionsProps) {
       });
 
       toast.success("Cập nhật trạng thái đơn hàng thành công");
+      setOpenCancelled(false);
     },
 
     onError: () => {
@@ -39,77 +43,98 @@ export default function FastActions({ order }: FastActionsProps) {
     },
   });
 
-  const handleStatusChange = (status: Order["status"]) => {
+  const handleStatusChange = (
+    status: Order["status"],
+    cancelNote: string = "",
+  ) => {
     handleChangeStatus.mutate({
       id: order.id,
       status,
-      note: order.note ?? "",
+      cancelNote,
       role: "ADMIN",
     });
   };
 
-  switch (order.status) {
-    case "PENDING":
-      return (
-        <div className="flex flex-col gap-2">
-          <Button
-            variant="destructive"
-            onClick={() => handleStatusChange("CANCELLED")}
-            disabled={handleChangeStatus.isPending}
-          >
-            {handleChangeStatus.isPending
-              ? "Đang xử lý..."
-              : "Xác nhận hủy đơn hàng"}
-          </Button>
+  const isOutOfStock = order.items.some(
+    (item) => item.quantity > item.product.quantity,
+  );
 
-          <Button
-            onClick={() => handleStatusChange("CONFIRMED")}
-            disabled={handleChangeStatus.isPending}
-          >
-            {handleChangeStatus.isPending
-              ? "Đang xử lý..."
-              : "Xác nhận đơn hàng"}
-          </Button>
-        </div>
-      );
+  return (
+    <>
+      <CancelOrderDialog
+        open={openCancelled}
+        onOpenChange={setOpenCancelled}
+        order={order}
+        onSubmit={(cancelNote) => handleStatusChange("CANCELLED", cancelNote)}
+      />
 
-    case "CONFIRMED":
-      return (
-        <Button
-          onClick={() => handleStatusChange("SHIPPING")}
-          disabled={handleChangeStatus.isPending}
-        >
-          {handleChangeStatus.isPending
-            ? "Đang xử lý..."
-            : "Xác nhận đang giao hàng"}
-        </Button>
-      );
+      {(() => {
+        switch (order.status) {
+          case "PENDING":
+            return (
+              <div className="flex flex-col gap-2">
+                <Button
+                  variant="destructive"
+                  onClick={() => setOpenCancelled(true)}
+                  disabled={handleChangeStatus.isPending}
+                  className="w-28 rounded-lg"
+                >
+                  {handleChangeStatus.isPending
+                    ? "Đang xử lý..."
+                    : "Hủy đơn hàng"}
+                </Button>
 
-    case "SHIPPING":
-      return (
-        <Button
-          onClick={() => handleStatusChange("COMPLETED")}
-          disabled={handleChangeStatus.isPending}
-        >
-          {handleChangeStatus.isPending
-            ? "Đang xử lý..."
-            : "Đã giao hàng"}
-        </Button>
-      );
+                <Button
+                  onClick={() => handleStatusChange("CONFIRMED")}
+                  disabled={handleChangeStatus.isPending || isOutOfStock}
+                  className="w-28 rounded-lg"
+                >
+                  {handleChangeStatus.isPending ? "Đang xử lý..." : "Xác nhận"}
+                </Button>
+              </div>
+            );
 
-    case "RETURN_REQUESTED":
-      return (
-        <Button
-          onClick={() => handleStatusChange("RETURNED")}
-          disabled={handleChangeStatus.isPending}
-        >
-          {handleChangeStatus.isPending
-            ? "Đang xử lý..."
-            : "Xác nhận hoàn hàng"}
-        </Button>
-      );
+          case "CONFIRMED":
+            return (
+              <Button
+                onClick={() => handleStatusChange("SHIPPING")}
+                disabled={handleChangeStatus.isPending}
+                className="w-28 rounded-lg"
+              >
+                {handleChangeStatus.isPending
+                  ? "Đang xử lý..."
+                  : "Đang giao hàng"}
+              </Button>
+            );
 
-    default:
-      return null;
-  }
+          case "SHIPPING":
+            return (
+              <Button
+                onClick={() => handleStatusChange("COMPLETED")}
+                disabled={handleChangeStatus.isPending}
+                className="w-28 rounded-lg"
+              >
+                {handleChangeStatus.isPending
+                  ? "Đang xử lý..."
+                  : "Đã giao hàng"}
+              </Button>
+            );
+
+          case "RETURN_REQUESTED":
+            return (
+              <Button
+                onClick={() => handleStatusChange("RETURNED")}
+                disabled={handleChangeStatus.isPending}
+                className="w-28 rounded-lg"
+              >
+                {handleChangeStatus.isPending ? "Đang xử lý..." : "Xác nhận"}
+              </Button>
+            );
+
+          default:
+            return null;
+        }
+      })()}
+    </>
+  );
 }

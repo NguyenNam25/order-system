@@ -22,7 +22,9 @@ export default function OrderList({
   value: string;
 }) {
   const soLuongSanPham = orders.reduce((total, order) => {
-    return (total + order.items.reduce((sum, item) => {
+    return (
+      total +
+      order.items.reduce((sum, item) => {
         return sum + item.quantity;
       }, 0)
     );
@@ -53,9 +55,8 @@ export default function OrderList({
       <Card className="py-3 rounded-md">
         <CardContent className="flex gap-4 font-bold text-base">
           <h1 className="w-32">Mã đơn hàng</h1>
-          <h1 className="flex-1"></h1>
-          <h1 className="w-28">Số sản phẩm</h1>
-          <h1 className="w-28">Số lượng</h1>
+          <h1 className="flex-1">Sản phẩm</h1>
+          <h1 className="w-36 text-center">Tổng số lượng</h1>
           <h1 className="w-36">Ngày đặt</h1>
           <h1 className="w-44">Tổng tiền</h1>
           {(value === "returned" || value === "shipping") && (
@@ -79,18 +80,24 @@ export default function OrderList({
               <h1 className="w-32">{order.orderCode}</h1>
 
               <div className="flex-1">
-                <Image
-                  src={product.images[0].imageUrl}
-                  alt={product.name}
-                  width={64}
-                  height={64}
-                  className="object-contain"
-                />
+                {items.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 pr-4">
+                    <Image
+                      src={item.product.images[0].imageUrl}
+                      alt={item.product.name}
+                      width={48}
+                      height={48}
+                      className="object-contain"
+                    />
+                    <h1 className="truncate text-xs">{item.product.name}</h1>
+                    <span className="text-xs">x{item.quantity}</span>
+                  </div>
+                ))}
+
+                
               </div>
 
-              <span className="w-6 text-center">{soLuongSanPham}</span>
-
-              <span className="w-40 text-center">{order.items.length}</span>
+              <span className="w-36 text-center">{soLuongSanPham}</span>
 
               <h1 className="w-36">{formatDate(order.createdAt)}</h1>
 
