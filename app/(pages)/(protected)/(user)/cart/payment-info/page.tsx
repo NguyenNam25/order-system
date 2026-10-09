@@ -1,19 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Card, CardContent } from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import cartApi from "@/api/routes/cartApi";
@@ -23,6 +16,7 @@ import { useForm } from "react-hook-form";
 import orderApi from "@/api/routes/orderApi";
 import { toast } from "sonner";
 import axios from "axios";
+import { Cart } from "@/interfaces/cart";
 
 interface CheckoutForm {
   receiverName: string;
@@ -35,11 +29,28 @@ export default function PaymentInfo() {
   const userdata = useAuth();
   const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-  } = useForm<CheckoutForm>({
+  const searchParams = useSearchParams();
+
+  const items = searchParams.get("items");
+  const itemIds =
+    items
+      ?.split(",")
+      .map(Number)
+      .filter((id) => !isNaN(id)) ?? [];
+
+  const { data, isLoading } = useQuery<Cart | null>({
+    queryKey: ["cart", itemIds],
+    queryFn: () => cartApi.getCartItems(itemIds),
+    enabled: itemIds.length > 0,
+  });
+
+  useEffect(() => {
+    if (items === null || itemIds.length === 0) {
+      router.replace("/cart");
+    }
+  }, [items, itemIds.length, router]);
+
+  const { register, handleSubmit, reset } = useForm<CheckoutForm>({
     defaultValues: {
       receiverName: "",
       phone: "",
@@ -59,11 +70,6 @@ export default function PaymentInfo() {
     }
   }, [userdata.currentUser, reset]);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["cart"],
-    queryFn: cartApi.getCart,
-  });
-
   const createOrderMutation = useMutation({
     mutationFn: orderApi.createOrder,
 
@@ -74,23 +80,24 @@ export default function PaymentInfo() {
     },
 
     onError: (error) => {
-      if (axios.isAxiosError(error)) {
-          toast.error(error.response?.data?.message);
-      }
       console.error("Create order error:", error);
+
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message ?? "Không thể tạo đơn hàng");
+        return;
+      }
 
       toast.error("Không thể tạo đơn hàng");
     },
   });
 
   const totalQuantity = data?.items.reduce(
-    (total, item) => total + item.quantity,
+    (total: number, item) => total + item.quantity,
     0,
   );
 
   const cartTotal = data?.items.reduce(
-    (total, item) =>
-      total + item.product.price * item.quantity,
+    (total: number, item) => total + item.product.price * item.quantity,
     0,
   );
 
@@ -100,6 +107,7 @@ export default function PaymentInfo() {
       phone: formData.phone,
       address: formData.address,
       note: formData.note,
+      itemIds,
     });
   };
 
@@ -112,10 +120,7 @@ export default function PaymentInfo() {
               <h1>Danh sách sản phẩm</h1>
 
               {data?.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-4 w-full"
-                >
+                <div key={item.id} className="flex items-center gap-4 w-full">
                   <Image
                     src={item.product.images[0].imageUrl}
                     alt={item.product.name}
@@ -124,13 +129,9 @@ export default function PaymentInfo() {
                     className="object-contain"
                   />
 
-                  <h1 className="flex-1">
-                    {item.product.name}
-                  </h1>
+                  <h1 className="flex-1">{item.product.name}</h1>
 
-                  <h2>
-                    Số lượng: {item.quantity}
-                  </h2>
+                  <h2>Số lượng: {item.quantity}</h2>
 
                   <h2 className="text-red-600">
                     {formatVND(item.product.price)}
@@ -146,9 +147,7 @@ export default function PaymentInfo() {
 
               <FieldGroup className="grid grid-cols-2">
                 <Field>
-                  <FieldLabel htmlFor="receiverName">
-                    Tên người nhận
-                  </FieldLabel>
+                  <FieldLabel htmlFor="receiverName">Tên người nhận</FieldLabel>
 
                   <Input
                     {...register("receiverName")}
@@ -172,9 +171,7 @@ export default function PaymentInfo() {
                 </Field>
 
                 <Field className="col-span-2">
-                  <FieldLabel htmlFor="address">
-                    Địa chỉ
-                  </FieldLabel>
+                  <FieldLabel htmlFor="address">Địa chỉ</FieldLabel>
 
                   <Input
                     {...register("address")}
@@ -185,9 +182,7 @@ export default function PaymentInfo() {
                 </Field>
 
                 <Field className="col-span-2">
-                  <FieldLabel htmlFor="note">
-                    Ghi chú
-                  </FieldLabel>
+                  <FieldLabel htmlFor="note">Ghi chú</FieldLabel>
 
                   <Input
                     {...register("note")}
@@ -208,16 +203,12 @@ export default function PaymentInfo() {
 
               <div className="flex justify-between">
                 <h2>Số lượng sản phẩm</h2>
-                <h2 className="font-bold">
-                  {totalQuantity ?? 0}
-                </h2>
+                <h2 className="font-bold">{totalQuantity ?? 0}</h2>
               </div>
 
               <div className="flex justify-between">
                 <h2>Tổng tiền hàng</h2>
-                <h2 className="font-bold">
-                  {formatVND(cartTotal ?? 0)}
-                </h2>
+                <h2 className="font-bold">{formatVND(cartTotal ?? 0)}</h2>
               </div>
 
               <Separator />
@@ -225,9 +216,7 @@ export default function PaymentInfo() {
               <div className="flex justify-between items-center">
                 <div className="flex flex-col">
                   <h2 className="font-bold">Tổng tiền</h2>
-                  <span className="text-gray-400 text-sm">
-                    Đã bao gồm VAT
-                  </span>
+                  <span className="text-gray-400 text-sm">Đã bao gồm VAT</span>
                 </div>
 
                 <h2 className="text-red-600 font-bold">

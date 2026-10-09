@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 interface JwtPayload {
   userId: number;
@@ -13,25 +14,41 @@ interface AddCartRequest {
 }
 
 // GET /api/cart
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const { searchParams } = new URL(request.url);
 
-    if (!token) {
+    const user = await getAuthenticatedUser();
+
+    if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
+    // Lấy itemIds từ URL
+    const itemsParam = searchParams.get("items");
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-    const userId = decoded.userId;
+    const itemIds =
+      itemsParam
+        ?.split(",")
+        .map(Number)
+        .filter((id) => !isNaN(id)) ?? [];
 
     const cart = await prisma.cart.findUnique({
       where: {
-        userId,
+        userId: user.userId,
       },
+
       include: {
         items: {
+          // Nếu có itemIds thì chỉ lấy những item đó
+          where:
+            itemIds.length > 0
+              ? {
+                  id: {
+                    in: itemIds,
+                  },
+                }
+              : undefined,
+
           include: {
             product: {
               include: {
@@ -44,22 +61,19 @@ export async function GET() {
       },
     });
 
-    if (!cart) {
-      return NextResponse.json(
-        {
-          message: "Cart is empty",
-          cart: null,
-        },
-        { status: 200 },
-      );
-    }
-
-    return NextResponse.json(cart, { status: 200 });
+    return NextResponse.json(
+      {
+        cart,
+      },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Get cart error:", error);
 
     return NextResponse.json(
-      { message: "Internal server error" },
+      {
+        message: "Internal server error",
+      },
       { status: 500 },
     );
   }
@@ -68,21 +82,18 @@ export async function GET() {
 // POST /api/cart
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const user = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-    const userId = decoded.userId;
+    const userId = user.userId;
 
     const body = (await request.json()) as AddCartRequest;
 
     const { productId, quantity } = body;
-    
+
     if (!productId || !quantity || quantity <= 0) {
       return NextResponse.json(
         { message: "Invalid productId or quantity" },

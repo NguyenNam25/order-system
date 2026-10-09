@@ -2,16 +2,11 @@
 
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import harp2 from "@/public/h1470.png";
 import { Check, Heart, Phone, ShoppingCartIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -22,11 +17,31 @@ import cartApi from "@/api/routes/cartApi";
 import { toast } from "sonner";
 import { useState } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/components/auth/AuthContext";
 
 export default function Products() {
   const [addingProductId, setAddingProductId] = useState<number | null>(null);
+  const { currentUser, isLoading: authLoading } = useAuth();
+
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const queryString = searchParams.toString();
+
+  const currentUrl = queryString ? `${pathname}?${queryString}` : pathname;
+
+  const requireLogin = () => {
+    if (authLoading) return false;
+
+    if (!currentUser) {
+      router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return false;
+    }
+
+    return true;
+  };
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["products"],
@@ -58,15 +73,20 @@ export default function Products() {
     onError: (error) => {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
-          router.push("/login");
-          toast.error("Chưa đăng nhập");
+          toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+
+          router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+          return;
         }
       }
+
+      toast.error("Không thể thêm sản phẩm vào giỏ hàng");
       console.error("Add to cart error:", error);
     },
   });
 
   const handleAddToCart = async (productId: number) => {
+    if (!requireLogin()) return;
     if (!data) return;
 
     setAddingProductId(productId);

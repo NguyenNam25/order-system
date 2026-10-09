@@ -26,14 +26,17 @@ export default function Orders() {
     mutationFn: ({
       id,
       status,
-      cancelNote,
-      role,
+      data,
     }: {
       id: number;
       status: Order["status"];
-      cancelNote: string;
-      role: Order["role"];
-    }) => orderApi.updateOrderStatus(id, status, cancelNote, role),
+      data?: {
+        cancelNote?: string;
+        returnNote?: string;
+        returnMethod?: "REFUND" | "EXCHANGE";
+        returnRejectNote?: string;
+      };
+    }) => orderApi.updateOrderStatus(id, status, data),
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
@@ -79,8 +82,6 @@ export default function Orders() {
           handleUpdateOrder.mutate({
             id: selectedOrder.id,
             status: "COMPLETED",
-            cancelNote: "",
-            role: "USER",
           });
         }}
       />
@@ -95,8 +96,9 @@ export default function Orders() {
           handleUpdateOrder.mutate({
             id: selectedOrder.id,
             status: "CANCELLED",
-            cancelNote,
-            role: "USER",
+            data: {
+              cancelNote,
+            },
           });
         }}
       />
@@ -105,14 +107,15 @@ export default function Orders() {
         open={openReturned}
         onOpenChange={setOpenReturned}
         order={selectedOrder}
-        onSubmit={(cancelNote) => {
+        onSubmit={(returnNote) => {
           if (!selectedOrder) return;
 
           handleUpdateOrder.mutate({
             id: selectedOrder.id,
             status: "RETURN_REQUESTED",
-            cancelNote,
-            role: "USER",
+            data: {
+              returnNote,
+            },
           });
         }}
       />

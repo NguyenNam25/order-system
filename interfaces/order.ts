@@ -10,6 +10,9 @@ export interface Order {
   address: string;
   note: string | null;
   cancelNote: string | null;
+  returnNote: string | null;
+  returnRejectNote: string | null;
+  returnMethod: "REFUND" | "EXCHANGE" | null;
   status:
     | "PENDING"
     | "CONFIRMED"
@@ -17,7 +20,8 @@ export interface Order {
     | "COMPLETED"
     | "CANCELLED"
     | "RETURN_REQUESTED"
-    | "RETURNED";
+    | "RETURN_APPROVED"
+    | "RETURN_REJECTED";
   items: OrderItem[];
   role: "USER" | "ADMIN" | null;
   total: number;

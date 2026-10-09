@@ -18,6 +18,16 @@ const cartApi = {
     return response.data.cart ?? response.data;
   },
 
+  getCartItems: async (itemIds: number[]): Promise<Cart | null> => {
+    const response = await axiosClient.get("/cart", {
+      params: {
+        items: itemIds.join(","),
+      },
+    });
+
+    return response.data.cart ?? response.data;
+  },
+
   addToCart: async (data: AddCartRequest) => {
     const response = await axiosClient.post("/cart", data);
 
@@ -37,10 +47,10 @@ const cartApi = {
     return response.data;
   },
   deleteAllCartItem: async () => {
-    const response = await axiosClient.delete('/cart/items');
+    const response = await axiosClient.delete("/cart/items");
 
-    return response.data
-  }
+    return response.data;
+  },
 };
 
 export default cartApi;

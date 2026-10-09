@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 interface JwtPayload {
   userId: number;
@@ -14,18 +15,13 @@ interface AddCartItemRequest {
 
 export async function POST(request: Request) {
   try {
-    // 1. Lấy token từ cookie
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const user = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-    const userId = decoded.userId;
+    const userId = user.userId;
 
     // 3. Lấy dữ liệu từ request
     const body = (await request.json()) as AddCartItemRequest;
@@ -112,17 +108,13 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     // 1. Lấy token
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const user = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-    const userId = decoded.userId;
+    const userId = user.userId;
 
     // 3. Tìm cart của user
     const cart = await prisma.cart.findUnique({

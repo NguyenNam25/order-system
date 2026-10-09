@@ -23,12 +23,12 @@ import { LogOut, UserIcon } from "lucide-react";
 const SideMenuItem = [
   { status: "PENDING", url: "/admin/orders/pending", title: "Pending Orders" },
   {
-    status: "CONFIRMED",
+    status: ["CONFIRMED", "SHIPPING"],
     url: "/admin/orders/confirmed",
     title: "Confirmed Orders",
   },
   {
-    status: "COMPLETED",
+    status: ["COMPLETED", "RETURN_REJECTED"],
     url: "/admin/orders/completed",
     title: "Completed Orders",
   },
@@ -43,7 +43,7 @@ const SideMenuItem = [
     title: "Return Requested",
   },
   {
-    status: "RETURNED",
+    status: "RETURN_APPROVED",
     url: "/admin/orders/returned",
     title: "Returned Orders",
   },
@@ -99,7 +99,7 @@ export function AppSidebar() {
                 <SidebarMenuSub>
                   {SideMenuItem.map((item) => (
                     <AppSideMenuItem
-                      key={item.status}
+                      key={item.title}
                       status={item.status}
                       url={item.url}
                       title={item.title}
@@ -113,15 +113,18 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         {currentUser ? (
-          <div onClick={logout} className="hover:cursor-pointer hover:bg-gray-400 rounded-lg p-2 flex justify-between">
+          <div
+            onClick={logout}
+            className="hover:cursor-pointer hover:bg-gray-400 rounded-lg p-2 flex justify-between"
+          >
             <span>{currentUser.fullname}</span>
-            <LogOut/>
+            <LogOut />
           </div>
         ) : (
           <Link href={"/login"}>
             <div className="flex gap-1 h-full items-center">
               <UserIcon />
-              <h2  className="group-data-[collapsible=icon]:hidden">Login</h2>
+              <h2 className="group-data-[collapsible=icon]:hidden">Login</h2>
             </div>
           </Link>
         )}

@@ -27,7 +27,7 @@ import { Order } from "@/interfaces/order";
 
 interface DataTableProps {
   columns: ColumnDef<DataTableFeatures, Order, unknown>[];
-  status: Order["status"]
+  status: Order["status"][];
 }
 
 export default function ListOrderWS({ columns, status }: DataTableProps) {
@@ -39,9 +39,14 @@ export default function ListOrderWS({ columns, status }: DataTableProps) {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["orders"],
+    queryKey: ["orders", status],
     queryFn: () => orderApi.getOrdersByStatus(status),
   });
+
+  console.log("Status:", status);
+  console.log("Data:", data);
+  console.log("Loading:", isLoading);
+  console.log("Error:", isError);
 
   const table = useTable({
     features,
@@ -66,7 +71,9 @@ export default function ListOrderWS({ columns, status }: DataTableProps) {
       <div className="flex items-center pb-4 pt-2 justify-between">
         <Input
           placeholder="Filter user name..."
-          value={(table.getColumn("user.fullname")?.getFilterValue() as string) ?? ""}
+          value={
+            (table.getColumn("user.fullname")?.getFilterValue() as string) ?? ""
+          }
           onChange={(event) =>
             table.getColumn("user.fullname")?.setFilterValue(event.target.value)
           }

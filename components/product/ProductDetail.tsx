@@ -17,20 +17,39 @@ import { useEffect, useState } from "react";
 import { ProductImage } from "@/interfaces/product";
 import cartApi from "@/api/routes/cartApi";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
+import { useAuth } from "../auth/AuthContext";
 
 export default function ProductDetail({ id }: { id: string }) {
+  const { currentUser, isLoading: authLoading } = useAuth();
+
+  const [selectedImage, setSelectedImage] = useState<ProductImage | null>(null);
+  const [quantity, setQuantity] = useState(1);
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const queryString = searchParams.toString();
+
+  const currentUrl = queryString ? `${pathname}?${queryString}` : pathname;
+
+  const requireLogin = () => {
+    if (authLoading) return false;
+
+    if (!currentUser) {
+      router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+      return false;
+    }
+
+    return true;
+  };
+
   const { data, isLoading, isError } = useQuery({
     queryKey: ["products", id],
     queryFn: () => productApi.getProductById(Number(id)),
   });
-
-  const [selectedImage, setSelectedImage] = useState<ProductImage | null>(null);
-
-  const [quantity, setQuantity] = useState(1);
-
-  const router = useRouter();
 
   useEffect(() => {
     setSelectedImage(data?.images?.[0] ?? null);
@@ -58,10 +77,14 @@ export default function ProductDetail({ id }: { id: string }) {
     onError: (error) => {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
-          router.push("/login");
-          toast.error("Chưa đăng nhập");
+          toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+
+          router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+          return;
         }
       }
+
+      toast.error("Không thể thêm sản phẩm vào giỏ hàng");
       console.error("Add to cart error:", error);
     },
   });
@@ -76,15 +99,21 @@ export default function ProductDetail({ id }: { id: string }) {
     setQuantity((prev) => prev + 1);
   };
 
-  const handleAddToCart = async () => {
-    if (!data) return;
+  const handleAddToCart = async (): Promise<boolean> => {
+    if (!requireLogin()) return false;
+    if (!data) return false;
 
     await addToCartMutation.mutateAsync();
+
+    return true;
   };
 
   const handleBuy = async () => {
     try {
-      await handleAddToCart();
+      const success = await handleAddToCart();
+
+      if (!success) return;
+
       router.push("/cart");
     } catch (error) {
       console.error(error);
@@ -170,7 +199,9 @@ export default function ProductDetail({ id }: { id: string }) {
                 variant="outline"
                 className="rounded-md"
                 onClick={handleIncrease}
-                disabled={!data || data.quantity <= 0}
+                disabled={
+                  !data || data.quantity <= 0 || quantity >= data.quantity
+                }
               >
                 <PlusIcon />
               </Button>

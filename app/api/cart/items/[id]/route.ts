@@ -2,24 +2,20 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    // 1. Lấy token từ cookie
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const user = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-    const userId = decoded.userId;
+    const userId = user.userId;
 
     // 3. Lấy cartItemId từ URL
     const { id } = await params;
@@ -104,18 +100,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    // 1. Lấy token từ cookie
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const user = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-    const userId = decoded.userId;
+    const userId = user.userId;
 
     // 3. Lấy cartItemId từ URL
     const { id } = await params;
@@ -128,13 +119,21 @@ export async function DELETE(
       );
     }
 
-    // 5. Tìm CartItem thuộc user hiện tại
-    await prisma.cartItem.delete({
+    const result = await prisma.cartItem.deleteMany({
       where: {
         id: cartItemId,
+        cart: {
+          userId: user.userId,
+        },
       },
     });
 
+    if (result.count === 0) {
+      return NextResponse.json(
+        { message: "Không tìm thấy sản phẩm trong giỏ hàng của bạn" },
+        { status: 404 },
+      );
+    }
     // 8. Trả response
     return NextResponse.json({
       message: "Cart item deleted successfully",

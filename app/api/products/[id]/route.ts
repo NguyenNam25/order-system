@@ -1,29 +1,44 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { getAuthenticatedUser } from "@/lib/auth";
 import path from "path";
 import fs from "fs/promises";
 
+// GET /api/products/[id]
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
+    const productId = Number(id);
+
+    if (!Number.isInteger(productId) || productId <= 0) {
+      return NextResponse.json(
+        { message: "Invalid product ID" },
+        { status: 400 },
+      );
+    }
 
     const product = await prisma.product.findUnique({
-      where: {
-        id: Number(id),
-      },
+      where: { id: productId },
       include: {
         category: true,
         images: true,
       },
     });
 
+    if (!product) {
+      return NextResponse.json(
+        { message: "Product not found" },
+        { status: 404 },
+      );
+    }
+
     return NextResponse.json(product, { status: 200 });
   } catch (error) {
+    console.error("Get product error:", error);
+
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 },
@@ -31,50 +46,23 @@ export async function GET(
   }
 }
 
+// PUT /api/products/[id]
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params;
-    const body = await request.json();
+    // 1. Xác thực người dùng
+    const authUser = await getAuthenticatedUser();
 
-    const token = (await cookies()).get("token")?.value;
-
-    if (!token) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
-
-    let decoded: { userId: number };
-
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-        userId: number;
-      };
-    } catch {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
-
+    // 2. Kiểm tra quyền ADMIN
     const user = await prisma.user.findUnique({
-      where: {
-        id: decoded.userId,
-      },
-      select: {
-        id: true,
-        role: true,
-      },
+      where: { id: authUser.userId },
+      select: { id: true, role: true },
     });
 
     if (!user) {
@@ -85,20 +73,94 @@ export async function PUT(
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    const product = await prisma.product.update({
+    // 3. Kiểm tra ID sản phẩm
+    const { id } = await params;
+    const productId = Number(id);
+
+    if (!Number.isInteger(productId) || productId <= 0) {
+      return NextResponse.json(
+        { message: "Invalid product ID" },
+        { status: 400 },
+      );
+    }
+
+    const existingProduct = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!existingProduct) {
+      return NextResponse.json(
+        { message: "Product not found" },
+        { status: 404 },
+      );
+    }
+
+    // 4. Kiểm tra dữ liệu đầu vào
+    const body = await request.json();
+    const { name, price, quantity, categoryId, description } = body;
+
+    if (
+      typeof name !== "string" ||
+      !name.trim() ||
+      typeof price !== "number" ||
+      !Number.isFinite(price) ||
+      price < 0 ||
+      !Number.isInteger(quantity) ||
+      quantity < 0 ||
+      !Number.isInteger(categoryId) ||
+      categoryId <= 0 ||
+      (description !== undefined && typeof description !== "string")
+    ) {
+      return NextResponse.json(
+        { message: "Invalid product data" },
+        { status: 400 },
+      );
+    }
+
+    // 5. Kiểm tra tên trùng với sản phẩm khác
+    const duplicateProduct = await prisma.product.findFirst({
       where: {
-        id: Number(id),
-      },
-      data: {
-        name: body.name,
-        price: body.price,
-        quantity: body.quantity,
-        categoryId: body.categoryId,
-        description: body.description,
+        name: name.trim(),
+        NOT: { id: productId },
       },
     });
+
+    if (duplicateProduct) {
+      return NextResponse.json(
+        { message: "Product already exists" },
+        { status: 400 },
+      );
+    }
+
+    // 6. Kiểm tra danh mục tồn tại
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
+      select: { id: true },
+    });
+
+    if (!category) {
+      return NextResponse.json(
+        { message: "Category not found" },
+        { status: 400 },
+      );
+    }
+
+    // 7. Cập nhật sản phẩm
+    const product = await prisma.product.update({
+      where: { id: productId },
+      data: {
+        name: name.trim(),
+        price,
+        quantity,
+        categoryId,
+        description,
+      },
+    });
+
     return NextResponse.json(product, { status: 200 });
   } catch (error) {
+    console.error("Update product error:", error);
+
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 },
@@ -106,50 +168,23 @@ export async function PUT(
   }
 }
 
+// DELETE /api/products/[id]
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params;
+    // 1. Xác thực người dùng
+    const authUser = await getAuthenticatedUser();
 
-    const productId = Number(id);
-    const token = (await cookies()).get("token")?.value;
-
-    if (!token) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
-
-    let decoded: { userId: number };
-
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-        userId: number;
-      };
-    } catch {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
-
+    // 2. Kiểm tra quyền ADMIN
     const user = await prisma.user.findUnique({
-      where: {
-        id: decoded.userId,
-      },
-      select: {
-        id: true,
-        role: true,
-      },
+      where: { id: authUser.userId },
+      select: { id: true, role: true },
     });
 
     if (!user) {
@@ -160,20 +195,41 @@ export async function DELETE(
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    const images = await prisma.productImage.findMany({
-      where: {
-        productId,
-      },
+    // 3. Kiểm tra ID sản phẩm
+    const { id } = await params;
+    const productId = Number(id);
+
+    if (!Number.isInteger(productId) || productId <= 0) {
+      return NextResponse.json(
+        { message: "Invalid product ID" },
+        { status: 400 },
+      );
+    }
+
+    // 4. Lấy thông tin ảnh trước khi xóa sản phẩm
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      include: { images: true },
     });
 
+    if (!product) {
+      return NextResponse.json(
+        { message: "Product not found" },
+        { status: 404 },
+      );
+    }
+
+    // 5. Xóa sản phẩm trong database
+    // Lưu ý: nếu sản phẩm đã nằm trong đơn hàng, database có thể từ chối xóa.
     await prisma.product.delete({
-      where: {
-        id: Number(id),
-      },
+      where: { id: productId },
     });
 
-    for (const image of images) {
-      const filename = path.basename(image.imageUrl);
+    // 6. Xóa các file ảnh lưu trên local
+    for (const image of product.images) {
+      const filename = path.basename(
+        new URL(image.imageUrl, "http://localhost").pathname,
+      );
 
       const filePath = path.join(
         process.cwd(),
@@ -194,6 +250,8 @@ export async function DELETE(
       { status: 200 },
     );
   } catch (error) {
+    console.error("Delete product error:", error);
+
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 },

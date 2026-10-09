@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -30,6 +30,11 @@ export default function Login() {
 
   const { login } = useAuth();
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const redirect = searchParams.get("redirect");
+
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       authApi.login(email, password),
@@ -39,10 +44,22 @@ export default function Login() {
 
       toast.success("Login successfully");
 
+      // Nếu có đường dẫn redirect hợp lệ thì quay lại trang trước
+      if (
+        redirect &&
+        redirect.startsWith("/") &&
+        !redirect.startsWith("//") &&
+        !redirect.includes("\\")
+      ) {
+        router.replace(redirect);
+        return;
+      }
+
+      // Nếu không có redirect thì dùng trang mặc định theo role
       if (data.user.role === "ADMIN") {
-        router.push("/admin");
+        router.replace("/admin");
       } else {
-        router.push("/");
+        router.replace("/");
       }
     },
 
@@ -50,8 +67,6 @@ export default function Login() {
       toast.error("Failed to login");
     },
   });
-
-  const router = useRouter();
 
   const onSubmit = (data: LoginForm) => {
     loginMutation.mutate({
@@ -110,7 +125,13 @@ export default function Login() {
               >
                 {loginMutation.isPending ? "Logging in..." : "Login"}
               </Button>
-              <Button type="button" className="w-full" onClick={() => router.push("/register")}>Sign up</Button>
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => router.push("/register")}
+              >
+                Sign up
+              </Button>
             </div>
           </CardFooter>
         </form>

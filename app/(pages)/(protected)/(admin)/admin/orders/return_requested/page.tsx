@@ -10,7 +10,7 @@ export default function page() {
     <div className="my-6 px-4">
       <CustomBreadcrumb prop="Orders" />
       <h2 className="text-2xl my-5">List of Return requested</h2>
-      <ListOrderWS columns={getColumns(false)} status="RETURN_REQUESTED"/>
+      <ListOrderWS columns={getColumns(false)} status={["RETURN_REQUESTED"]}/>
     </div>
   );
 }

@@ -2,11 +2,12 @@ import { User, UserRegister } from "@/interfaces/user";
 import axiosClient from "../axiosConfiguration";
 import { Order } from "@/interfaces/order";
 
-export interface CreateOrderRequest {
+interface CreateOrderData {
   receiverName: string;
   phone: string;
   address: string;
   note?: string;
+  itemIds: number[];
 }
 
 const orderApi = {
@@ -15,10 +16,10 @@ const orderApi = {
 
     return response.data.orders;
   },
-  getOrdersByStatus: async (status: Order["status"]): Promise<Order[]> => {
+  getOrdersByStatus: async (status: Order["status"][]) => {
     const response = await axiosClient.get("/orders", {
       params: {
-        status,
+        status: status.join(","),
       },
     });
 
@@ -29,11 +30,12 @@ const orderApi = {
 
     return response.data.orders;
   },
-  createOrder: async (data: CreateOrderRequest): Promise<Order> => {
+  createOrder: async (data: CreateOrderData) => {
     const response = await axiosClient.post("/orders", data);
 
-    return response.data.order;
+    return response.data;
   },
+
   deleteOrder: async (id: number): Promise<Order> => {
     const response = await axiosClient.delete(`/orders/${id}`);
 
@@ -43,13 +45,16 @@ const orderApi = {
   updateOrderStatus: async (
     id: number,
     status: Order["status"],
-    cancelNote: string,
-    role: Order["role"],
+    data?: {
+      cancelNote?: string;
+      returnNote?: string;
+      returnMethod?: "REFUND" | "EXCHANGE";
+      returnRejectNote?: string;
+    },
   ) => {
     const response = await axiosClient.patch(`/orders/${id}`, {
       status,
-      cancelNote,
-      role,
+      ...data,
     });
 
     return response.data;

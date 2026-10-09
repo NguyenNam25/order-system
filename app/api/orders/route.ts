@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
 import { generateOrderCode } from "@/lib/generate-code";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 interface JwtPayload {
   userId: number;
@@ -14,29 +15,27 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const token = (await cookies()).get("token")?.value;
+    const authUser = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
+    const userId = authUser.userId;
 
-    const status = searchParams.get("status");
+    const statusParam = searchParams.get("status");
+
+    const statuses = statusParam ? statusParam.split(",") : [];
 
     const orders = await prisma.order.findMany({
-      where: status
-        ? {
-            status: status as OrderStatus,
-          }
-        : undefined,
+      where:
+        statuses.length > 0
+          ? {
+              status: {
+                in: statuses as OrderStatus[],
+              },
+            }
+          : undefined,
       include: {
         user: true,
         items: {
@@ -73,21 +72,18 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    // 1. Lấy token
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const authUser = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Decode JWT
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    const userId = authUser.userId;
 
     // 3. Lấy dữ liệu checkout
     const body = await request.json();
 
-    const { receiverName, phone, address, note } = body;
+    const { receiverName, phone, address, note, itemIds } = body;
 
     if (!phone || !address) {
       return NextResponse.json(
@@ -98,13 +94,27 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!itemIds || itemIds.length === 0) {
+      return NextResponse.json(
+        {
+          message: "No items selected",
+        },
+        { status: 400 },
+      );
+    }
+
     // 4. Lấy cart của user
     const cart = await prisma.cart.findUnique({
       where: {
-        userId: decoded.userId,
+        userId: userId,
       },
       include: {
         items: {
+          where: {
+            id: {
+              in: itemIds,
+            },
+          },
           include: {
             product: true,
           },
@@ -139,7 +149,7 @@ export async function POST(request: Request) {
     const order = await prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
-          userId: decoded.userId,
+          userId: userId,
           orderCode: "",
           receiverName,
           phone,
@@ -177,6 +187,9 @@ export async function POST(request: Request) {
       // 7. Xóa CartItem sau khi tạo Order
       await tx.cartItem.deleteMany({
         where: {
+          id: {
+            in: itemIds,
+          },
           cartId: cart.id,
         },
       });

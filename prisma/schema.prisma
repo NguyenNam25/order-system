@@ -18,7 +18,13 @@ enum OrderStatus {
   COMPLETED
   CANCELLED
   RETURN_REQUESTED
-  RETURNED
+  RETURN_APPROVED
+  RETURN_REJECTED
+}
+
+enum ReturnMethod {
+  REFUND
+  EXCHANGE
 }
 
 enum Role {
@@ -100,6 +106,9 @@ model Order {
   address  String
   note          String?
   cancelNote String?
+  returnNote   String?
+  returnRejectNote String?
+  returnMethod ReturnMethod?
   status        OrderStatus
   role    Role?
   total         Float

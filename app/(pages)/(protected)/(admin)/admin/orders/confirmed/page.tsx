@@ -9,7 +9,7 @@ export default function page() {
     <div className="my-6 px-4">
       <CustomBreadcrumb prop="Orders" />
       <h2 className="text-2xl my-5">List of Confirmed orders</h2>
-      <ListOrderWS columns={getColumns(false)} status="CONFIRMED"/>
+      <ListOrderWS columns={getColumns(false)} status={["CONFIRMED", "SHIPPING"]}/>
     </div>
   );
 }

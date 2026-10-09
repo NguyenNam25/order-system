@@ -46,7 +46,7 @@ export default function OrderDetail({
           <>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between">
-                <p>Mã đơn hàng: {order.id}</p>
+                <p>Mã đơn hàng: {order.orderCode}</p>
                 <p>Trạng thái: {order.status}</p>
               </div>
 
@@ -86,7 +86,7 @@ export default function OrderDetail({
             <h2>Thông tin giao hàng</h2>
 
             <p>
-              {order.user?.fullname} - {order.phone} - {order.address}
+              {order.receiverName} - {order.phone} - {order.address}
             </p>
 
             {order.status === "COMPLETED" ? (
@@ -101,6 +101,26 @@ export default function OrderDetail({
                 <div className="flex gap-2">
                   <h1>Lí do:</h1>
                   <p>{order.cancelNote}</p>
+                </div>
+              </>
+            )}
+
+            {order.returnNote && (
+              <>
+                <Separator />
+                <div className="flex gap-2">
+                  <h1>Lý do hoàn hàng:</h1>
+                  <p>{order.returnNote}</p>
+                </div>
+              </>
+            )}
+
+            {order.returnRejectNote && (
+              <>
+                <Separator />
+                <div className="flex gap-2">
+                  <h1>Lý do từ chối:</h1>
+                  <p>{order.returnRejectNote}</p>
                 </div>
               </>
             )}

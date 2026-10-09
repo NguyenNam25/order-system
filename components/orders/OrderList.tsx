@@ -21,15 +21,6 @@ export default function OrderList({
   onSelect: (order: Order) => void;
   value: string;
 }) {
-  const soLuongSanPham = orders.reduce((total, order) => {
-    return (
-      total +
-      order.items.reduce((sum, item) => {
-        return sum + item.quantity;
-      }, 0)
-    );
-  }, 0);
-
   if (orders.length === 0) {
     return (
       <Empty>
@@ -69,6 +60,10 @@ export default function OrderList({
       {orders.map((order) => {
         const { items } = order;
         const { product } = items[0];
+        const totalQuantity = items.reduce(
+          (sum, item) => sum + item.quantity,
+          0,
+        );
 
         return (
           <Card
@@ -93,11 +88,9 @@ export default function OrderList({
                     <span className="text-xs">x{item.quantity}</span>
                   </div>
                 ))}
-
-                
               </div>
 
-              <span className="w-36 text-center">{soLuongSanPham}</span>
+              <span className="w-36 text-center">{totalQuantity}</span>
 
               <h1 className="w-36">{formatDate(order.createdAt)}</h1>
 

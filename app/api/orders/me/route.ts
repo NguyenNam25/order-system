@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 interface JwtPayload {
   userId: number;
@@ -10,24 +11,17 @@ interface JwtPayload {
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const authUser = await getAuthenticatedUser();
 
-    if (!token) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 },
-      );
+    if (!authUser) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!,
-    ) as JwtPayload;
+    const userId = authUser.userId;
 
     const orders = await prisma.order.findMany({
       where: {
-        userId: decoded.userId,
+        userId: userId,
       },
       include: {
         user: true,

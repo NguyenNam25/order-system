@@ -11,15 +11,17 @@ import orderApi from "@/api/routes/orderApi";
 import { Order } from "@/interfaces/order";
 
 export interface SideMenuItemProps {
-  status: Order["status"];
-  url: string
-  title: string
+  status: Order["status"] | Order["status"][];
+  url: string;
+  title: string;
 }
 
 export default function AppSideMenuItem({ status, url, title }: SideMenuItemProps) {
+  const statuses = Array.isArray(status) ? status : [status];
+
   const { data, isLoading, isError } = useQuery({
     queryKey: ["orders", status],
-    queryFn: () => orderApi.getOrdersByStatus(status),
+    queryFn: () => orderApi.getOrdersByStatus(statuses),
   });
 
   return (

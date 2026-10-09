@@ -3,7 +3,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 const validStatuses = [
   "PENDING",
@@ -12,8 +13,20 @@ const validStatuses = [
   "COMPLETED",
   "CANCELLED",
   "RETURN_REQUESTED",
-  "RETURNED",
+  "RETURN_APPROVED",
+  "RETURN_REJECTED",
 ] as const;
+
+const allowedTransitions: Record<string, string[]> = {
+  PENDING: ["CONFIRMED", "CANCELLED"],
+  CONFIRMED: ["SHIPPING"],
+  SHIPPING: ["COMPLETED"],
+  COMPLETED: ["RETURN_REQUESTED"],
+  CANCELLED: [],
+  RETURN_REQUESTED: ["RETURN_APPROVED", "RETURN_REJECTED"],
+  RETURN_APPROVED: [],
+  RETURN_REJECTED: [],
+};
 
 const validRoles = ["ADMIN", "USER"] as const;
 
@@ -22,23 +35,34 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const token = (await cookies()).get("token")?.value;
+    const authUser = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
+    const userId = authUser.userId;
+
+    if (!userId) {
       return NextResponse.json(
-        { message: "Invalid or expired token" },
+        { message: "Invalid token payload" },
         { status: 401 },
       );
     }
+    const user = await prisma.user.findUnique({
+      where: {
+        id: Number(userId),
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
 
     const { id } = await params;
-
     const orderId = Number(id);
 
     if (Number.isNaN(orderId)) {
@@ -49,19 +73,12 @@ export async function PATCH(
     }
 
     const body = await request.json();
-
-    const { status, cancelNote, role } = body;
+    const { status, cancelNote, returnNote, returnMethod, returnRejectNote } =
+      body;
 
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
         { message: "Invalid order status" },
-        { status: 400 },
-      );
-    }
-
-    if (!validRoles.includes(role)) {
-      return NextResponse.json(
-        { message: "Invalid order role" },
         { status: 400 },
       );
     }
@@ -76,9 +93,14 @@ export async function PATCH(
         },
       });
       if (!currentOrder) {
-        throw new Error("Order not found");
+        throw new Error("ORDER_NOT_FOUND");
       }
+      const allowedStatuses = allowedTransitions[currentOrder.status];
 
+      if (!allowedStatuses.includes(status)) {
+        throw new Error("INVALID_STATUS_TRANSITION");
+      }
+      // Khi CONFIRMED → trừ stock
       if (currentOrder.status === "PENDING" && status === "CONFIRMED") {
         for (const item of currentOrder.items) {
           const product = await tx.product.findUnique({
@@ -86,9 +108,15 @@ export async function PATCH(
               id: item.productId,
             },
           });
-          if ((product?.quantity ?? 0) < item.quantity) {
-            throw new Error(`Out of Stock: ${product?.name}`);
+
+          if (!product) {
+            throw new Error("PRODUCT_NOT_FOUND");
           }
+
+          if (product.quantity < item.quantity) {
+            throw new Error(`OUT_OF_STOCK:${product.name}`);
+          }
+
           await tx.product.update({
             where: {
               id: item.productId,
@@ -101,14 +129,35 @@ export async function PATCH(
           });
         }
       }
+      // Update Order
       return tx.order.update({
         where: {
           id: orderId,
         },
         data: {
           status,
-          cancelNote,
-          role,
+          // Chỉ lưu cancelNote khi huỷ
+          ...(status === "CANCELLED"
+            ? {
+                cancelNote: cancelNote ?? null,
+                role: user.role,
+              }
+            : {}),
+          ...(status === "RETURN_REQUESTED"
+            ? {
+                returnNote: returnNote ?? null,
+              }
+            : {}),
+          ...(status === "RETURN_APPROVED"
+            ? {
+                returnMethod: returnMethod ?? null,
+              }
+            : {}),
+          ...(status === "RETURN_REJECTED"
+            ? {
+                returnRejectNote: returnRejectNote ?? null,
+              }
+            : {}),
         },
       });
     });
@@ -135,6 +184,13 @@ export async function PATCH(
         return NextResponse.json(
           { message: "Product not found" },
           { status: 404 },
+        );
+      }
+
+      if (error.message === "INVALID_STATUS_TRANSITION") {
+        return NextResponse.json(
+          { message: "Invalid status transition" },
+          { status: 400 },
         );
       }
 

@@ -43,7 +43,7 @@ export default function OrderTabs({ orders, onSelect }: OrderTabsProps) {
 
   const returnedOrderQuantity = orders.filter(
     (order) =>
-      order.status === "RETURNED" || order.status === "RETURN_REQUESTED",
+      order.status === "RETURN_APPROVED" || order.status === "RETURN_REQUESTED" || order.status === "RETURN_REJECTED",
   ).length;
 
   const cancelledOrderQuantity = orders.filter(
@@ -111,8 +111,9 @@ export default function OrderTabs({ orders, onSelect }: OrderTabsProps) {
         <OrderSection
           orders={orders.filter(
             (order) =>
-              order.status === "RETURNED" ||
-              order.status === "RETURN_REQUESTED",
+              order.status === "RETURN_APPROVED" ||
+              order.status === "RETURN_REQUESTED" ||
+              order.status === "RETURN_REJECTED",
           )}
           onSelect={onSelect}
           value={value}

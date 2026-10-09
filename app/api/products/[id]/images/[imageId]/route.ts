@@ -2,8 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 export async function DELETE(
   request: Request,
@@ -17,38 +16,17 @@ export async function DELETE(
   },
 ) {
   try {
-    const { id, imageId } = await params;
-    const token = (await cookies()).get("token")?.value;
+    // 1. Xác thực người dùng
+    const authUser = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
-
-    let decoded: { userId: number };
-
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-        userId: number;
-      };
-    } catch {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
-    }
-
+    // 2. Kiểm tra quyền ADMIN
     const user = await prisma.user.findUnique({
       where: {
-        id: decoded.userId,
+        id: authUser.userId,
       },
       select: {
         id: true,
@@ -64,10 +42,24 @@ export async function DELETE(
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
+    // 3. Kiểm tra ID
+    const { id, imageId } = await params;
     const productId = Number(id);
     const productImageId = Number(imageId);
 
-    // 1. Tìm image
+    if (
+      !Number.isInteger(productId) ||
+      productId <= 0 ||
+      !Number.isInteger(productImageId) ||
+      productImageId <= 0
+    ) {
+      return NextResponse.json(
+        { message: "Invalid product or image ID" },
+        { status: 400 },
+      );
+    }
+
+    // 4. Tìm ảnh thuộc đúng sản phẩm
     const image = await prisma.productImage.findFirst({
       where: {
         id: productImageId,
@@ -76,36 +68,32 @@ export async function DELETE(
     });
 
     if (!image) {
-      return NextResponse.json(
-        { message: "Image not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ message: "Image not found" }, { status: 404 });
     }
 
-    // 2. Xóa record trong database
+    // 5. Xóa bản ghi trong database
     await prisma.productImage.delete({
       where: {
         id: productImageId,
       },
     });
 
-    // 3. Xóa file vật lý
-    const filename = path.basename(image.imageUrl);
-
-    const filePath = path.join(
-      process.cwd(),
-      "uploads",
-      "products",
-      filename,
-    );
-
+    // 6. Xóa file ảnh local
     try {
-      await fs.unlink(filePath);
-    } catch (error) {
-      console.error(
-        `Cannot delete image file: ${filePath}`,
-        error,
+      const filename = path.basename(
+        new URL(image.imageUrl, "http://localhost").pathname,
       );
+
+      const uploadDir = path.resolve(process.cwd(), "uploads", "products");
+
+      const filePath = path.resolve(uploadDir, filename);
+
+      // Đảm bảo file nằm trực tiếp trong thư mục uploads/products
+      if (path.dirname(filePath) === uploadDir) {
+        await fs.unlink(filePath);
+      }
+    } catch (error) {
+      console.error("Cannot delete local image file:", error);
     }
 
     return NextResponse.json(
@@ -113,7 +101,7 @@ export async function DELETE(
       { status: 200 },
     );
   } catch (error) {
-    console.error(error);
+    console.error("Delete product image error:", error);
 
     return NextResponse.json(
       { message: "Internal server error" },

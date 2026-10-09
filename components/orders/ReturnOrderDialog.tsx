@@ -15,14 +15,14 @@ import { Order } from "@/interfaces/order";
 import { useForm } from "react-hook-form";
 
 interface ReturnOrderForm {
-  cancelNote: string;
+  returnNote: string;
 }
 
 interface ReturnOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   order: Order | null;
-  onSubmit: (cancelNote: string) => void;
+  onSubmit: (returnNote: string) => void;
 }
 
 export default function ReturnOrderDialog({
@@ -34,7 +34,7 @@ export default function ReturnOrderDialog({
   const { register, handleSubmit, reset } = useForm<ReturnOrderForm>();
 
   const handleFormSubmit = (values: ReturnOrderForm) => {
-    onSubmit(values.cancelNote);
+    onSubmit(values.returnNote);
     reset();
   };
 
@@ -42,15 +42,17 @@ export default function ReturnOrderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Xác nhận hoàn đơn hàng?</DialogTitle>
+          <DialogTitle>Yêu cầu hoàn hàng</DialogTitle>
 
           {order && (
             <form onSubmit={handleSubmit(handleFormSubmit)}>
               <Field>
-                <FieldLabel htmlFor="return-note">Lí do</FieldLabel>
+                <FieldLabel htmlFor="return-note">
+                  Lý do hoàn hàng
+                </FieldLabel>
 
                 <Input
-                  {...register("cancelNote")}
+                  {...register("returnNote")}
                   id="return-note"
                   type="text"
                   className="h-12 rounded-lg bg-white border-gray-300"
@@ -58,7 +60,7 @@ export default function ReturnOrderDialog({
               </Field>
 
               <Button type="submit" className="rounded-lg mt-4">
-                Hoàn đơn hàng
+                Gửi yêu cầu
               </Button>
             </form>
           )}

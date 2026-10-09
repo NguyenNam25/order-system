@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -18,19 +19,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const token = (await cookies()).get("token")?.value;
+    const user = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!user) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
     }
 
     const body = await request.json();

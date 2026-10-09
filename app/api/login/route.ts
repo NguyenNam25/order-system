@@ -49,6 +49,7 @@ export async function POST(request: Request) {
         id: user.id,
         fullname: user.fullname,
         email: user.email,
+        role: user.role,
       },
     });
 
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
+      maxAge: 60 * 60 * 24,
     });
 
     return res;
