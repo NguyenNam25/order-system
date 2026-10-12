@@ -48,13 +48,13 @@ model User {
 
 model Category {
   id       Int       @id @default(autoincrement())
-  name     String
+  name     String    @unique
   products Product[]
 }
 
 model Product {
   id          Int    @id @default(autoincrement())
-  name        String
+  name        String @unique
   price       Float
   quantity    Int
   categoryId  Int

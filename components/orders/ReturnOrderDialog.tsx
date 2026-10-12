@@ -56,6 +56,7 @@ export default function ReturnOrderDialog({
                   id="return-note"
                   type="text"
                   className="h-12 rounded-lg bg-white border-gray-300"
+                  required
                 />
               </Field>
 

@@ -6,11 +6,6 @@ import { OrderStatus } from "@prisma/client";
 import { generateOrderCode } from "@/lib/generate-code";
 import { getAuthenticatedUser } from "@/lib/auth";
 
-interface JwtPayload {
-  userId: number;
-  email: string;
-}
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

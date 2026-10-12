@@ -54,6 +54,7 @@ export default function CancelOrderDialog({
                   id="cancel-note"
                   type="text"
                   className="h-12 rounded-lg bg-white border-gray-300"
+                  required
                 />
               </Field>
 

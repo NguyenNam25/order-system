@@ -57,6 +57,7 @@ export default function ReturnRejectDialog({
                 id="return-reject-note"
                 type="text"
                 className="h-12 rounded-lg bg-white border-gray-300"
+                required
               />
             </Field>
 
