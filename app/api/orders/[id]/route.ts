@@ -1,9 +1,5 @@
-// app/api/orders/[id]/status/route.ts
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { getAuthenticatedUser } from "@/lib/auth";
 
 const validStatuses = [
@@ -27,8 +23,6 @@ const allowedTransitions: Record<string, string[]> = {
   RETURN_APPROVED: [],
   RETURN_REJECTED: [],
 };
-
-const validRoles = ["ADMIN", "USER"] as const;
 
 export async function PATCH(
   request: Request,
@@ -124,6 +118,34 @@ export async function PATCH(
             data: {
               quantity: {
                 decrement: item.quantity,
+              },
+            },
+          });
+        }
+      }
+      // Khi RETURN APPROVE → cộng stock
+      if (
+        currentOrder.status === "RETURN_REQUESTED" &&
+        status === "RETURN_APPROVED"
+      ) {
+        for (const item of currentOrder.items) {
+          const product = await tx.product.findUnique({
+            where: {
+              id: item.productId,
+            },
+          });
+
+          if (!product) {
+            throw new Error("PRODUCT_NOT_FOUND");
+          }
+
+          await tx.product.update({
+            where: {
+              id: item.productId,
+            },
+            data: {
+              quantity: {
+                increment: item.quantity,
               },
             },
           });
