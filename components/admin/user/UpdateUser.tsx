@@ -35,7 +35,7 @@ export default function UpdateUser({
   } = useForm<UserUpdate>({
     defaultValues: {
       fullname: data.fullname,
-      email: data.email
+      email: data.email,
     },
     resolver: zodResolver(updateUserSchema),
   });
@@ -61,63 +61,107 @@ export default function UpdateUser({
       user: {
         fullname: formdata.fullname,
         email: formdata.email,
-        phone: formdata.phone
+        phone: formdata.phone,
       },
     });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl!">
-        <DialogHeader>
-          <DialogTitle>Update User</DialogTitle>
-          <DialogDescription>Update information of user</DialogDescription>
+      <DialogContent className="max-h-[90vh] max-w-md! gap-6 overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-xl">
+        <DialogHeader className="gap-1">
+          <DialogTitle className="text-xl font-semibold tracking-tight">
+            Chỉnh sửa người dùng
+          </DialogTitle>
+          <DialogDescription className="text-sm leading-5 text-muted-foreground">
+            Cập nhật thông tin tài khoản người dùng.
+          </DialogDescription>
         </DialogHeader>
+
         <form onSubmit={handleSubmit(onUpdate)}>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="fullname">Full Name</FieldLabel>
+          <FieldGroup className="gap-5">
+            <Field className="gap-2">
+              <FieldLabel
+                htmlFor="fullname"
+                className="text-sm font-medium"
+              >
+                Họ và tên
+              </FieldLabel>
               <Input
                 {...register("fullname")}
                 id="fullname"
                 type="text"
-                placeholder="Enter Full Name"
+                placeholder="Nhập họ và tên"
+                className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
               />
 
               {errors.fullname && (
-                <p className="text-red-500 text-sm">{errors.fullname.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.fullname.message}
+                </p>
               )}
             </Field>
-            <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+
+            <Field className="gap-2">
+              <FieldLabel
+                htmlFor="email"
+                className="text-sm font-medium"
+              >
+                Email
+              </FieldLabel>
               <Input
                 {...register("email")}
                 id="email"
                 type="email"
                 placeholder="example@gmail.com"
+                className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
               />
+
               {errors.email && (
-                <p className="text-red-500 text-sm">{errors.email.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.email.message}
+                </p>
               )}
             </Field>
-            <Field>
-              <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
+
+            <Field className="gap-2">
+              <FieldLabel
+                htmlFor="phone"
+                className="text-sm font-medium"
+              >
+                Số điện thoại
+              </FieldLabel>
               <Input
                 {...register("phone")}
                 id="phone"
                 type="text"
-                placeholder="Enter Phone number"
+                placeholder="Nhập số điện thoại"
+                className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
               />
 
               {errors.phone && (
-                <p className="text-red-500 text-sm">{errors.phone.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.phone.message}
+                </p>
               )}
             </Field>
-            <div className="flex justify-end">
-              <Button type="button" onClick={() => reset()}>
-                Reset
+
+            <div className="flex justify-end gap-2 border-t border-border pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => reset()}
+                className="h-10 rounded-lg border-input px-4"
+              >
+                Đặt lại
               </Button>
-              <Button type="submit">Submit</Button>
+
+              <Button
+                type="submit"
+                className="h-10 rounded-lg px-4 shadow-sm"
+              >
+                Lưu thay đổi
+              </Button>
             </div>
           </FieldGroup>
         </form>

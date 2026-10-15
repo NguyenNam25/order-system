@@ -76,7 +76,7 @@ export default function ChangePassword({
       if (axios.isAxiosError(error)) {
         toast.error(error.response?.data.message);
       }
-    }
+    },
   });
 
   const onUpdate = (formdata: ChangePassForm) => {
@@ -91,104 +91,145 @@ export default function ChangePassword({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl!">
-        <DialogHeader>
-          <DialogTitle>Update User</DialogTitle>
-          <DialogDescription>Update information of user</DialogDescription>
+      <DialogContent className="max-h-[90vh] max-w-md! gap-6 overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-xl">
+        <DialogHeader className="gap-1">
+          <DialogTitle className="text-xl font-semibold tracking-tight">
+            Đổi mật khẩu
+          </DialogTitle>
+          <DialogDescription className="text-sm leading-5 text-muted-foreground">
+            Nhập mật khẩu hiện tại và thiết lập mật khẩu mới cho tài khoản.
+          </DialogDescription>
         </DialogHeader>
+
         <form onSubmit={handleSubmit(onUpdate)}>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="password">Currnent Password</FieldLabel>
+          <FieldGroup className="gap-5">
+            <Field className="gap-2">
+              <FieldLabel
+                htmlFor="currentPassword"
+                className="text-sm font-medium"
+              >
+                Mật khẩu hiện tại
+              </FieldLabel>
+
               <div className="relative">
                 <Input
                   type={showCurrentPassword ? "text" : "password"}
-                  className="pr-10"
+                  className="h-10 rounded-lg border-input bg-background pr-10 shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
                   {...register("currentPassword")}
                   id="currentPassword"
-                  placeholder="Enter Current Password"
+                  placeholder="Nhập mật khẩu hiện tại"
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {showCurrentPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="size-4" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="size-4" />
                   )}
                 </button>
               </div>
+
               {errors.currentPassword && (
-                <p className="text-red-500 text-sm">
+                <p className="text-sm text-destructive">
                   {errors.currentPassword.message}
                 </p>
               )}
             </Field>
-            <Field>
-              <FieldLabel htmlFor="password">New Password</FieldLabel>
+
+            <Field className="gap-2">
+              <FieldLabel
+                htmlFor="password"
+                className="text-sm font-medium"
+              >
+                Mật khẩu mới
+              </FieldLabel>
+
               <div className="relative">
                 <Input
                   type={showNewPassword ? "text" : "password"}
-                  className="pr-10"
+                  className="h-10 rounded-lg border-input bg-background pr-10 shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
                   {...register("newPassword")}
                   id="password"
-                  placeholder="Enter Password"
+                  placeholder="Nhập mật khẩu mới"
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowNewPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {showNewPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="size-4" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="size-4" />
                   )}
                 </button>
               </div>
+
               {errors.newPassword && (
-                <p className="text-red-500 text-sm">
+                <p className="text-sm text-destructive">
                   {errors.newPassword.message}
                 </p>
               )}
             </Field>
-            <Field>
-              <FieldLabel htmlFor="confirmPassword">
-                Confirm Password
+
+            <Field className="gap-2">
+              <FieldLabel
+                htmlFor="confirmPassword"
+                className="text-sm font-medium"
+              >
+                Xác nhận mật khẩu mới
               </FieldLabel>
+
               <div className="relative">
                 <Input
                   type={showConfirmPassword ? "text" : "password"}
-                  className="pr-10"
+                  className="h-10 rounded-lg border-input bg-background pr-10 shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
                   {...register("confirmPassword")}
                   id="confirmPassword"
-                  placeholder="Enter Password"
+                  placeholder="Nhập lại mật khẩu mới"
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="size-4" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="size-4" />
                   )}
                 </button>
               </div>
+
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">
+                <p className="text-sm text-destructive">
                   {errors.confirmPassword.message}
                 </p>
               )}
             </Field>
-            <div className="flex justify-end">
-              <Button type="button" onClick={() => reset()}>
-                Reset
+
+            <div className="flex justify-end gap-2 border-t border-border pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => reset()}
+                className="h-10 rounded-lg border-input px-4"
+              >
+                Đặt lại
               </Button>
-              <Button type="submit">Submit</Button>
+
+              <Button
+                type="submit"
+                className="h-10 rounded-lg px-4 shadow-sm"
+              >
+                Đổi mật khẩu
+              </Button>
             </div>
           </FieldGroup>
         </form>

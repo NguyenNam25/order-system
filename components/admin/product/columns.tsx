@@ -15,17 +15,22 @@ export const columns = columnHelper.columns([
       return (
         <Button
           variant="ghost"
+          className="h-9 px-2 font-semibold text-muted-foreground hover:text-foreground"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           ID
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
       const id = parseInt(row.getValue("id"));
 
-      return <div className="text-left ml-2">{id}</div>;
+      return (
+        <div className="ml-2 font-medium tabular-nums text-muted-foreground">
+          {id}
+        </div>
+      );
     },
   }),
   columnHelper.accessor("name", {
@@ -33,17 +38,22 @@ export const columns = columnHelper.columns([
       return (
         <Button
           variant="ghost"
+          className="h-9 px-2 font-semibold text-muted-foreground hover:text-foreground"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          Tên sản phẩm
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
       const name = String(row.getValue("name") ?? "");
 
-      return <div className="text-left ml-2">{name}</div>;
+      return (
+        <div className="ml-2 font-medium text-foreground">
+          {name}
+        </div>
+      );
     },
   }),
   columnHelper.accessor("category.name", {
@@ -51,16 +61,21 @@ export const columns = columnHelper.columns([
       return (
         <Button
           variant="ghost"
+          className="h-9 px-2 font-semibold text-muted-foreground hover:text-foreground"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Category
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          Danh mục
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
       const categoryName = row.original.category.name;
-      return <div className="text-left ml-2">{categoryName}</div>;
+      return (
+        <div className="ml-2 text-sm text-muted-foreground">
+          {categoryName}
+        </div>
+      );
     },
   }),
   columnHelper.accessor("price", {
@@ -68,10 +83,11 @@ export const columns = columnHelper.columns([
       return (
         <Button
           variant="ghost"
+          className="h-9 px-2 font-semibold text-muted-foreground hover:text-foreground"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Price
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          Giá bán
+          <ArrowUpDown className="ml-2 size-4" />
         </Button>
       );
     },
@@ -82,7 +98,12 @@ export const columns = columnHelper.columns([
         style: "currency",
         currency: "VND",
       }).format(price);
-      return <div className="text-left ml-2">{formatted}</div>;
+
+      return (
+        <div className="ml-2 whitespace-nowrap font-medium tabular-nums text-foreground">
+          {formatted}
+        </div>
+      );
     },
   }),
   columnHelper.display({

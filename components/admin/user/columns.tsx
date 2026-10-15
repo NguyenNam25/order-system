@@ -11,31 +11,38 @@ const columnHelper = createColumnHelper<DataTableFeatures, User>();
 
 export const columns = columnHelper.columns([
   columnHelper.accessor("id", {
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            ID
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const id = parseInt(row.getValue("id"))
-  
-        return <div className="text-left ml-2">{id}</div>
-      },
-    }),
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="h-9 px-2 font-semibold text-muted-foreground hover:text-foreground"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          ID
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const id = parseInt(row.getValue("id"));
+
+      return (
+        <div className="ml-2 font-medium tabular-nums text-muted-foreground">
+          {id}
+        </div>
+      );
+    },
+  }),
+
   columnHelper.accessor("fullname", {
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
+          className="h-9 px-2 font-semibold text-muted-foreground hover:text-foreground"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Full Name
+          Họ và tên
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -45,24 +52,37 @@ export const columns = columnHelper.columns([
 
       const formatted = name.charAt(0).toUpperCase() + name.slice(1);
 
-      return <div className="text-left ml-2">{name}</div>;
+      return (
+        <div className="ml-2 font-medium text-foreground">
+          {name}
+        </div>
+      );
     },
   }),
+
   columnHelper.accessor("email", {
-    header: () => <div className="text-left">Email</div>,
+    header: () => (
+      <div className="px-2 font-semibold text-muted-foreground">
+        Email
+      </div>
+    ),
     cell: ({ row }) => {
       const email = String(row.getValue("email") ?? "");
 
-      return <div className="text-left">{email}</div>;
+      return (
+        <div className="px-2 text-sm text-muted-foreground">
+          {email}
+        </div>
+      );
     },
   }),
+
   columnHelper.display({
     id: "actions",
     cell: ({ row }) => {
       const user = row.original;
-      return (
-        <UserActions user={user}/>
-      );
+
+      return <UserActions user={user} />;
     },
   }),
 ]);

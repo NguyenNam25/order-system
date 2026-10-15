@@ -1,3 +1,4 @@
+
 "use client";
 
 import { createColumnHelper } from "@tanstack/react-table";
@@ -15,6 +16,7 @@ export const columns = columnHelper.columns([
       return (
         <Button
           variant="ghost"
+          className="h-9 px-2 font-semibold text-muted-foreground hover:text-foreground"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           ID
@@ -23,19 +25,25 @@ export const columns = columnHelper.columns([
       );
     },
     cell: ({ row }) => {
-      const id = parseInt(row.getValue("id"))
+      const id = parseInt(row.getValue("id"));
 
-      return <div className="text-left ml-2">{id}</div>
+      return (
+        <div className="ml-2 font-medium tabular-nums text-muted-foreground">
+          {id}
+        </div>
+      );
     },
   }),
+
   columnHelper.accessor("name", {
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
+          className="h-9 px-2 font-semibold text-muted-foreground hover:text-foreground"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Name
+          Tên danh mục
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -43,16 +51,20 @@ export const columns = columnHelper.columns([
     cell: ({ row }) => {
       const name = String(row.getValue("name") ?? "");
 
-      return <div className="text-left ml-2">{name}</div>;
+      return (
+        <div className="ml-2 font-medium text-foreground">
+          {name}
+        </div>
+      );
     },
   }),
+
   columnHelper.display({
     id: "actions",
     cell: ({ row }) => {
       const category = row.original;
-      return (
-        <CategoryActions category={category}/>
-      );
+
+      return <CategoryActions category={category} />;
     },
   }),
 ]);

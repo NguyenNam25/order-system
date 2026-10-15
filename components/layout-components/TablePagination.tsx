@@ -25,17 +25,19 @@ export function DataTablePagination<TData extends RowData>({
   table,
 }: DataTablePaginationProps<TData>) {
   return (
-    <div className="flex items-center justify-end px-2 my-4">
-      <div className="flex items-center space-x-6 lg:space-x-8">
-        <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium">Rows per page</p>
+    <div className="my-4 flex items-center justify-end border-t px-2 pt-4">
+      <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
+        <div className="flex items-center gap-2">
+          <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+            Số dòng mỗi trang
+          </p>
           <Select
             value={`${table.state.pagination.pageSize}`}
             onValueChange={(value) => {
               table.setPageSize(Number(value))
             }}
           >
-            <SelectTrigger className="h-8 w-17.5">
+            <SelectTrigger className="h-8 w-[72px] rounded-md">
               <SelectValue placeholder={table.state.pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
@@ -47,49 +49,54 @@ export function DataTablePagination<TData extends RowData>({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex w-25 items-center justify-center text-sm font-medium">
-          Page {table.state.pagination.pageIndex + 1} of {table.getPageCount()}
+
+        <div className="flex w-28 items-center justify-center whitespace-nowrap text-sm font-medium text-muted-foreground">
+          Trang {table.state.pagination.pageIndex + 1} / {table.getPageCount()}
         </div>
-        <div className="flex items-center space-x-2">
+
+        <div className="flex items-center gap-1">
           <Button
             variant="outline"
             size="icon"
-            className="hidden size-8 lg:flex"
+            className="hidden size-8 rounded-md sm:flex"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className="sr-only">Go to first page</span>
-            <ChevronsLeft />
+            <span className="sr-only">Đến trang đầu</span>
+            <ChevronsLeft className="size-4" />
           </Button>
+
           <Button
             variant="outline"
             size="icon"
-            className="size-8"
+            className="size-8 rounded-md"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className="sr-only">Go to previous page</span>
-            <ChevronLeft />
+            <span className="sr-only">Đến trang trước</span>
+            <ChevronLeft className="size-4" />
           </Button>
+
           <Button
             variant="outline"
             size="icon"
-            className="size-8"
+            className="size-8 rounded-md"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            <span className="sr-only">Go to next page</span>
-            <ChevronRight />
+            <span className="sr-only">Đến trang sau</span>
+            <ChevronRight className="size-4" />
           </Button>
+
           <Button
             variant="outline"
             size="icon"
-            className="hidden size-8 lg:flex"
+            className="hidden size-8 rounded-md sm:flex"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
           >
-            <span className="sr-only">Go to last page</span>
-            <ChevronsRight />
+            <span className="sr-only">Đến trang cuối</span>
+            <ChevronsRight className="size-4" />
           </Button>
         </div>
       </div>

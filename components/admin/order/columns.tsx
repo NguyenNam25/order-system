@@ -19,71 +19,78 @@ const columnHelper = createColumnHelper<DataTableFeatures, Order>();
 export const getColumns = (showCancelRole = false) =>
   columnHelper.columns([
     columnHelper.accessor("orderCode", {
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Order Code
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const orderCode = String(row.getValue("orderCode"));
-
-        return <div className="text-left ml-2">{orderCode}</div>;
-      },
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="h-9 gap-2 rounded-lg px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          Mã đơn hàng
+          <ArrowUpDown className="size-3.5" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="ml-2 whitespace-nowrap text-sm font-semibold text-foreground">
+          {String(row.getValue("orderCode"))}
+        </div>
+      ),
     }),
+
     columnHelper.accessor("user.fullname", {
       id: "user.fullname",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            User
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <div className="ml-2 text-left">{row.original.user.fullname}</div>
-        );
-      },
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="h-9 gap-2 rounded-lg px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          Người đặt
+          <ArrowUpDown className="size-3.5" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="ml-2 min-w-32 text-sm font-medium">
+          {row.original.user.fullname}
+        </div>
+      ),
     }),
+
     columnHelper.accessor("items", {
       id: "productName",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Product Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="h-9 gap-2 rounded-lg px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          Sản phẩm
+          <ArrowUpDown className="size-3.5" />
+        </Button>
+      ),
       cell: ({ row }) => {
         const items = row.original.items;
 
         return (
-          <div className="ml-2 text-left">
+          <div className="ml-2 min-w-52 space-y-3 py-2">
             {items.map((item) => (
-              <div key={item.id} className="flex gap-4 items-center">
-                <Image
-                  src={item.product.images[0].imageUrl}
-                  alt={item.product.name}
-                  width={48}
-                  height={48}
-                  className="object-contain"
-                />
-                <span>{item.product.name}</span>
-                <span>x{item.quantity}</span>
+              <div key={item.id} className="flex items-center gap-3">
+                <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-border bg-muted/30">
+                  <Image
+                    src={item.product.images[0].imageUrl}
+                    alt={item.product.name}
+                    fill
+                    sizes="48px"
+                    className="object-contain p-1"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 text-sm font-medium leading-5">
+                    {item.product.name}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Số lượng: {item.quantity}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -97,54 +104,30 @@ export const getColumns = (showCancelRole = false) =>
             id: "role",
             header: "Người hủy",
             cell: ({ row }) => (
-              <div className="text-left">{row.original.role}</div>
+              <div className="text-sm font-medium">
+                {row.original.role}
+              </div>
             ),
           }),
         ]
       : []),
 
     columnHelper.accessor("total", {
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Total
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <div className="ml-2 text-left">{formatVND(row.original.total)}</div>
-        );
-      },
-    }),
-    columnHelper.accessor("items.quantity", {
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Số lượng
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const quantity = row.original.items.reduce(
-          (total, item) => total + item.quantity,
-          0,
-        );
-
-        return (
-          <div className="pr-2 text-left flex w-full items-center justify-center">
-            {quantity}
-          </div>
-        );
-      },
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="h-9 gap-2 rounded-lg px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          Tổng tiền
+          <ArrowUpDown className="size-3.5" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="ml-2 whitespace-nowrap text-sm font-semibold tabular-nums">
+          {formatVND(row.original.total)}
+        </div>
+      ),
     }),
 
     columnHelper.display({

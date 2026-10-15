@@ -1,44 +1,45 @@
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
+import type {
   FieldErrors,
   UseFormRegister,
-  UseFormReset,
 } from "react-hook-form";
-import { CategoryForm } from "@/interfaces/category";
+import type { CategoryForm } from "@/interfaces/category";
 
 type FormProp = {
   register: UseFormRegister<CategoryForm>;
   errors: FieldErrors<CategoryForm>;
-  reset: UseFormReset<CategoryForm>;
 };
 
 export default function CategoryField({
   register,
   errors,
-  reset,
 }: FormProp) {
   return (
-      <FieldGroup>
-        <Field>
-          <FieldLabel htmlFor="name">Category Name</FieldLabel>
-          <Input
-            {...register("name")}
-            id="name"
-            type="text"
-            placeholder="name"
-          />
-          {errors.name && (
-            <p className="text-red-500 text-sm">{errors.name.message}</p>
-          )}
-        </Field>
-        <div className="flex justify-end">
-          <Button type="button" onClick={() => reset()}>
-            Reset
-          </Button>
-          <Button type="submit">Submit</Button>
-        </div>
-      </FieldGroup>
+    <FieldGroup className="gap-5">
+      <Field className="gap-2">
+        <FieldLabel
+          htmlFor="name"
+          className="text-sm font-medium"
+        >
+          Tên danh mục
+        </FieldLabel>
+
+        <Input
+          {...register("name")}
+          id="name"
+          type="text"
+          placeholder="Nhập tên danh mục"
+          aria-invalid={!!errors.name}
+          className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
+        />
+
+        {errors.name && (
+          <p className="text-sm text-destructive">
+            {errors.name.message}
+          </p>
+        )}
+      </Field>
+    </FieldGroup>
   );
 }

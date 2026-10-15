@@ -11,18 +11,23 @@ import { ProductForm } from "@/interfaces/product";
 import { useQuery } from "@tanstack/react-query";
 import { Control, Controller } from "react-hook-form";
 
-export default function CategorySelect({control} : {control: Control<ProductForm>}) {
+export default function CategorySelect({
+  control,
+}: {
+  control: Control<ProductForm>;
+}) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["categories"],
     queryFn: categoryApi.getAllCategories,
   });
 
-  console.log(data)
+  console.log(data);
 
   const categorySelectItem = (data ?? []).map((category) => ({
     label: category.name,
     value: String(category.id),
   }));
+
   return (
     <Controller
       name="categoryId"
@@ -37,14 +42,20 @@ export default function CategorySelect({control} : {control: Control<ProductForm
             value={field.value != null ? String(field.value) : ""}
             onValueChange={(value) => field.onChange(Number(value))}
           >
-            <SelectTrigger>
-              <SelectValue>{selectedLabel ?? "Select Category"}</SelectValue>
+            <SelectTrigger className="h-10 w-full rounded-lg border-input bg-background px-3 text-sm shadow-none transition-colors hover:border-muted-foreground/50 focus:border-ring focus:ring-2 focus:ring-ring/20">
+              <SelectValue>
+                {selectedLabel ?? "Chọn danh mục"}
+              </SelectValue>
             </SelectTrigger>
 
-            <SelectContent>
+            <SelectContent className="rounded-lg border border-border bg-popover p-1 shadow-lg">
               <SelectGroup>
                 {categorySelectItem.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
+                  <SelectItem
+                    key={item.value}
+                    value={item.value}
+                    className="cursor-pointer rounded-md text-sm"
+                  >
                     {item.label}
                   </SelectItem>
                 ))}

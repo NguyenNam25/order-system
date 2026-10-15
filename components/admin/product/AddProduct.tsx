@@ -72,18 +72,23 @@ export default function AddProduct() {
       console.error(error);
     }
   };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen} > 
-      <DialogTrigger
-        className={"border py-1 px-2 rounded-lg text-white bg-black"}
-      >
-        Add
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98]">
+        + Thêm sản phẩm
       </DialogTrigger>
-      <DialogContent className="max-w-2xl! max-h-[95vh] overflow-y-auto ">
-        <DialogHeader>
-          <DialogTitle>New Product</DialogTitle>
-          <DialogDescription>Add new product</DialogDescription>
+
+      <DialogContent className="max-h-[90vh] max-w-2xl! gap-6 overflow-y-auto rounded-xl border bg-background p-6 shadow-xl">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-xl font-semibold tracking-tight">
+            Thêm sản phẩm mới
+          </DialogTitle>
+          <DialogDescription className="text-sm leading-6 text-muted-foreground">
+            Điền thông tin chi tiết và hình ảnh cho sản phẩm của bạn.
+          </DialogDescription>
         </DialogHeader>
+
         <form onSubmit={handleSubmit(onSubmit)}>
           <ProductField
             register={register}

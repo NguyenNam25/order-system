@@ -117,159 +117,266 @@ export default function OrderDetail({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="h-xl overflow-y-auto gap-4">
-          <DialogHeader>
-            <DialogTitle>Chi tiết đơn hàng</DialogTitle>
+        <DialogContent className="max-h-[90vh] max-w-2xl! gap-6 overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-xl">
+          <DialogHeader className="gap-1">
+            <DialogTitle className="text-xl font-semibold tracking-tight">
+              Chi tiết đơn hàng
+            </DialogTitle>
+            <DialogDescription className="text-sm leading-5 text-muted-foreground">
+              Xem thông tin sản phẩm, giao hàng và cập nhật trạng thái đơn hàng.
+            </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between">
-              <p>Mã đơn hàng: {data.id}</p>
-              <p>Trạng thái: {data.status}</p>
-            </div>
 
-            <p>Ngày đặt: {formatDate(data.createdAt)}</p>
-          </div>
-          <div className="flex flex-col gap-2 ">
-            {data.items.map((item) => (
-              <Card key={item.id} className="rounded-xl py-3">
-                <CardContent className="flex items-center justify-between px-3">
-                  <div className="flex items-center gap-4 w-full">
-                    <Image
-                      src={item.product.images[0].imageUrl}
-                      alt={item.product.name}
-                      width={64}
-                      height={64}
-                      className="object-contain"
-                    />
+          <div className="space-y-4">
+            <div className="rounded-xl border border-border bg-muted/20 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Mã đơn hàng
+                  </p>
+                  <p className="text-base font-semibold">#{data.id}</p>
+                </div>
 
-                    <h1 className="flex-1">{item.product.name}</h1>
-
-                    <h2>x{item.quantity}</h2>
-
-                    <h2 className="text-red-600">
-                      {formatVND(item.priceAtPurchase)}
-                    </h2>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <h1>Tổng tiền: {formatVND(data.total)}</h1>
-          <Separator />
-
-          <h2>Thông tin giao hàng</h2>
-
-          <p>
-            {data.receiverName} - {data.phone} - {data.address}
-          </p>
-
-          <p>Thanh toán khi nhận hàng</p>
-
-          {data.cancelNote && (
-            <>
-              <Separator />
-              <div className="flex gap-2">
-                <h1>Lý do hủy:</h1>
-                <p>{data.cancelNote}</p>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Trạng thái
+                  </p>
+                  <span className="inline-flex rounded-md border border-border bg-background px-2.5 py-1 text-sm font-medium">
+                    {data.status}
+                  </span>
+                </div>
               </div>
-            </>
-          )}
 
-          {data.returnNote && (
-            <>
-              <Separator />
-              <div className="flex gap-2">
-                <h1>Lý do hoàn hàng:</h1>
-                <p>{data.returnNote}</p>
-              </div>
-            </>
-          )}
+              <Separator className="my-4" />
 
-          {data.returnRejectNote && (
-            <>
-              <Separator />
-              <div className="flex gap-2">
-                <h1>Lý do từ chối:</h1>
-                <p>{data.returnRejectNote}</p>
-              </div>
-            </>
-          )}
-
-          {data.status === "PENDING" && (
-            <div>
-              <Separator />
-              <div className="flex flex-col gap-2 mt-2">
-                <Button
-                  variant="destructive"
-                  onClick={() => setOpenCancelDialog(true)}
-                  disabled={handleChangeStatus.isPending}
-                >
-                  {handleChangeStatus.isPending
-                    ? "Đang hủy..."
-                    : "Xác nhận hủy đơn hàng"}
-                </Button>
-                <Button
-                  onClick={onConfirm}
-                  disabled={handleChangeStatus.isPending}
-                >
-                  {handleChangeStatus.isPending
-                    ? "Đang xác nhận..."
-                    : "Xác nhận đơn hàng"}
-                </Button>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Ngày đặt hàng
+                </p>
+                <p className="text-sm font-medium">
+                  {formatDate(data.createdAt)}
+                </p>
               </div>
             </div>
-          )}
 
-          {data.status === "CONFIRMED" && (
-            <>
-              <Separator />
-              <Button
-                onClick={onShipping}
-                disabled={handleChangeStatus.isPending}
-              >
-                {handleChangeStatus.isPending
-                  ? "Đang xác nhận..."
-                  : "Xác nhận dang giao hàng"}
-              </Button>
-            </>
-          )}
-
-          {data.status === "SHIPPING" && (
-            <>
-              <Separator />
-              <Button
-                onClick={onComplete}
-                disabled={handleChangeStatus.isPending}
-              >
-                {handleChangeStatus.isPending
-                  ? "Đang xác nhận..."
-                  : "Đã giao hàng"}
-              </Button>
-            </>
-          )}
-
-          {data.status === "RETURN_REQUESTED" && (
-            <>
-              <Separator />
-
-              <div className="flex flex-col gap-2 mt-2">
-                <Button
-                  onClick={() => setOpenApproveReturn(true)}
-                  disabled={handleChangeStatus.isPending}
-                >
-                  Duyệt hoàn hàng
-                </Button>
-
-                <Button
-                  variant="destructive"
-                  onClick={() => setOpenRejectReturn(true)}
-                  disabled={handleChangeStatus.isPending}
-                >
-                  Từ chối hoàn hàng
-                </Button>
+            <section className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Sản phẩm đã đặt</h3>
+                <span className="text-xs text-muted-foreground">
+                  {data.items.length} sản phẩm
+                </span>
               </div>
-            </>
-          )}
+
+              <div className="space-y-3">
+                {data.items.map((item) => (
+                  <Card
+                    key={item.id}
+                    className="rounded-xl border-border py-3 shadow-none"
+                  >
+                    <CardContent className="flex items-center gap-3 px-3 sm:gap-4 sm:px-4">
+                      <div className="relative size-16 shrink-0 overflow-hidden rounded-lg border border-border bg-muted/30">
+                        <Image
+                          src={item.product.images[0].imageUrl}
+                          alt={item.product.name}
+                          fill
+                          sizes="64px"
+                          className="object-contain p-1"
+                        />
+                      </div>
+
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="line-clamp-2 text-sm font-medium leading-5">
+                          {item.product.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Số lượng: {item.quantity}
+                        </p>
+                      </div>
+
+                      <p className="shrink-0 text-right text-sm font-semibold tabular-nums text-primary">
+                        {formatVND(item.priceAtPurchase)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-border p-4">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Tổng thanh toán
+                </span>
+                <span className="text-lg font-semibold tabular-nums text-primary">
+                  {formatVND(data.total)}
+                </span>
+              </div>
+            </section>
+
+            <Separator />
+
+            <section className="space-y-3">
+              <h3 className="text-sm font-semibold">Thông tin giao hàng</h3>
+
+              <div className="space-y-3 rounded-xl border border-border p-4">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Người nhận
+                  </p>
+                  <p className="text-sm font-medium">{data.receiverName}</p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Số điện thoại
+                  </p>
+                  <p className="text-sm">{data.phone}</p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Địa chỉ
+                  </p>
+                  <p className="break-words text-sm leading-6">
+                    {data.address}
+                  </p>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Phương thức thanh toán
+                  </p>
+                  <p className="text-sm font-medium">Thanh toán khi nhận hàng</p>
+                </div>
+              </div>
+            </section>
+
+            {data.cancelNote && (
+              <>
+                <Separator />
+                <section className="space-y-2 rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+                  <h3 className="text-sm font-semibold text-destructive">
+                    Lý do hủy đơn hàng
+                  </h3>
+                  <p className="whitespace-pre-wrap break-words text-sm leading-6">
+                    {data.cancelNote}
+                  </p>
+                </section>
+              </>
+            )}
+
+            {data.returnNote && (
+              <>
+                <Separator />
+                <section className="space-y-2 rounded-xl border border-border bg-muted/20 p-4">
+                  <h3 className="text-sm font-semibold">Lý do yêu cầu hoàn hàng</h3>
+                  <p className="whitespace-pre-wrap break-words text-sm leading-6">
+                    {data.returnNote}
+                  </p>
+                </section>
+              </>
+            )}
+
+            {data.returnRejectNote && (
+              <>
+                <Separator />
+                <section className="space-y-2 rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+                  <h3 className="text-sm font-semibold text-destructive">
+                    Lý do từ chối hoàn hàng
+                  </h3>
+                  <p className="whitespace-pre-wrap break-words text-sm leading-6">
+                    {data.returnRejectNote}
+                  </p>
+                </section>
+              </>
+            )}
+
+            {data.status === "PENDING" && (
+              <>
+                <Separator />
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setOpenCancelDialog(true)}
+                    disabled={handleChangeStatus.isPending}
+                    className="h-10 rounded-lg border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    {handleChangeStatus.isPending
+                      ? "Đang hủy..."
+                      : "Hủy đơn hàng"}
+                  </Button>
+
+                  <Button
+                    onClick={onConfirm}
+                    disabled={handleChangeStatus.isPending}
+                    className="h-10 rounded-lg"
+                  >
+                    {handleChangeStatus.isPending
+                      ? "Đang xác nhận..."
+                      : "Xác nhận đơn hàng"}
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {data.status === "CONFIRMED" && (
+              <>
+                <Separator />
+                <Button
+                  onClick={onShipping}
+                  disabled={handleChangeStatus.isPending}
+                  className="h-10 w-full rounded-lg"
+                >
+                  {handleChangeStatus.isPending
+                    ? "Đang cập nhật..."
+                    : "Xác nhận đang giao hàng"}
+                </Button>
+              </>
+            )}
+
+            {data.status === "SHIPPING" && (
+              <>
+                <Separator />
+                <Button
+                  onClick={onComplete}
+                  disabled={handleChangeStatus.isPending}
+                  className="h-10 w-full rounded-lg"
+                >
+                  {handleChangeStatus.isPending
+                    ? "Đang cập nhật..."
+                    : "Xác nhận đã giao hàng"}
+                </Button>
+              </>
+            )}
+
+            {data.status === "RETURN_REQUESTED" && (
+              <>
+                <Separator />
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <Button
+                    onClick={() => setOpenApproveReturn(true)}
+                    disabled={handleChangeStatus.isPending}
+                    className="h-10 rounded-lg"
+                  >
+                    Duyệt hoàn hàng
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    onClick={() => setOpenRejectReturn(true)}
+                    disabled={handleChangeStatus.isPending}
+                    className="h-10 rounded-lg"
+                  >
+                    Từ chối hoàn hàng
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -279,6 +386,7 @@ export default function OrderDetail({
         order={data}
         onSubmit={onCancel}
       />
+
       <ReturnApproveDialog
         open={openApproveReturn}
         onOpenChange={setOpenApproveReturn}

@@ -1,13 +1,21 @@
-
 import CustomBreadcrumb from "@/components/layout-components/CustomBreadcrumb";
 import { columns } from "@/components/admin/category/columns";
 import ListCategory from "@/components/admin/category/ListCategory";
 
 export default function Category() {
   return (
-    <div className="my-6 px-4">
+    <div className="space-y-5 px-4 py-6 sm:px-6">
       <CustomBreadcrumb prop="Category" />
-      <h2 className="text-2xl my-5">List of Category</h2>
+
+      <div className="flex flex-col gap-1">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Danh sách danh mục
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Quản lý danh mục sản phẩm trong hệ thống.
+        </p>
+      </div>
+
       <ListCategory columns={columns} />
     </div>
   );

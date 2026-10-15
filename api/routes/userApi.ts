@@ -41,17 +41,17 @@ const userApi = {
       throw error;
     }
   },
-  // ChangePassword: async (
-  //   id: number,
-  //   password: PasswordUpdate, 
-  // ): Promise<User> => {
-  //   try {
-  //     const response = await axiosClient.patch(`/users/${id}/password`, password);
-  //     return response.data;
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // },
+  ChangePassword: async (
+    id: number,
+    password: PasswordUpdate, 
+  ): Promise<User> => {
+    try {
+      const response = await axiosClient.patch(`/users/${id}/password`, password);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
 };
 

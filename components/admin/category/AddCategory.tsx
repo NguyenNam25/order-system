@@ -8,14 +8,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useState } from "react";
-import type { Category, CategoryForm } from "@/interfaces/category";
+import type { CategoryForm } from "@/interfaces/category";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import categoryApi from "@/api/routes/categoryApi";
 import { categorySchema } from "@/schemas/categoryShema";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus } from "lucide-react";
 import CategoryField from "./CategoryField";
 
 export default function AddCategory() {
@@ -28,6 +30,9 @@ export default function AddCategory() {
     formState: { errors },
   } = useForm<CategoryForm>({
     resolver: zodResolver(categorySchema),
+    defaultValues: {
+      name: "",
+    },
   });
 
   const queryClient = useQueryClient();
@@ -39,36 +44,74 @@ export default function AddCategory() {
       queryClient.invalidateQueries({
         queryKey: ["categories"],
       });
-      toast.success("Category added successfully");
+
+      toast.success("Thêm danh mục thành công");
       reset();
       setOpen(false);
     },
 
     onError: () => {
-      toast.error("Failed to add category");
+      toast.error("Không thể thêm danh mục. Vui lòng thử lại.");
     },
   });
 
-  const onSubmit = async (data: CategoryForm) => {
+  const onSubmit = (data: CategoryForm) => {
     createCategoryMutation.mutate({
       name: data.name,
     });
   };
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (createCategoryMutation.isPending) return;
+
+    setOpen(nextOpen);
+
+    if (!nextOpen) {
+      reset();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        className={"border py-1 px-2 rounded-lg text-white bg-black"}
-      >
-        Add
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
+        <Plus className="h-4 w-4" />
+        Thêm danh mục
       </DialogTrigger>
-      <DialogContent className="max-w-2xl!">
+
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>New Category</DialogTitle>
-          <DialogDescription>Add new category</DialogDescription>
+          <DialogTitle className="text-lg font-semibold">
+            Thêm danh mục mới
+          </DialogTitle>
+
+          <DialogDescription>
+            Nhập tên danh mục bạn muốn thêm vào hệ thống.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CategoryField register={register} errors={errors} reset={reset} />
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <CategoryField register={register} errors={errors}/>
+
+          <div className="flex justify-end gap-2 border-t pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+              disabled={createCategoryMutation.isPending}
+            >
+              Hủy
+            </Button>
+
+            <Button
+              type="submit"
+              disabled={createCategoryMutation.isPending}
+              className="min-w-28"
+            >
+              {createCategoryMutation.isPending
+                ? "Đang lưu..."
+                : "Lưu danh mục"}
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

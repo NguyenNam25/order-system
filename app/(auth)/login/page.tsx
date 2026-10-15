@@ -2,23 +2,16 @@
 
 import authApi from "@/api/routes/authApi";
 import { useAuth } from "@/components/auth/AuthContext";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useMutation } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import Link from "next/link";
+import { LockKeyhole, ShieldCheck } from "lucide-react";
+import Image from "next/image";
+import logo from "@/public/asus-rog-1-logo-svgrepo-com.png";
+import LoginBg from "@/components/login/LoginBg";
+import LoginForm from "@/components/login/LoginForm";
 
 type LoginForm = {
   email: string;
@@ -26,25 +19,26 @@ type LoginForm = {
 };
 
 export default function Login() {
-  const { register, handleSubmit } = useForm<LoginForm>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>();
 
   const { login } = useAuth();
-
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const redirect = searchParams.get("redirect");
 
   const loginMutation = useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
+    mutationFn: ({ email, password }: LoginForm) =>
       authApi.login(email, password),
 
     onSuccess: (data) => {
       login(data.user);
+      toast.success("Đăng nhập thành công!");
 
-      toast.success("Login successfully");
-
-      // Nếu có đường dẫn redirect hợp lệ thì quay lại trang trước
       if (
         redirect &&
         redirect.startsWith("/") &&
@@ -55,87 +49,62 @@ export default function Login() {
         return;
       }
 
-      // Nếu không có redirect thì dùng trang mặc định theo role
-      if (data.user.role === "ADMIN") {
-        router.replace("/admin");
-      } else {
-        router.replace("/");
-      }
+      router.replace(data.user.role === "ADMIN" ? "/admin" : "/");
     },
 
     onError: () => {
-      toast.error("Failed to login");
+      toast.error("Đăng nhập thất bại. Vui lòng thử lại.");
     },
   });
 
   const onSubmit = (data: LoginForm) => {
-    loginMutation.mutate({
-      email: data.email,
-      password: data.password,
-    });
-    // router.push('/')
+    loginMutation.mutate(data);
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <Card className="w-full max-w-sm">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardHeader>
-            <CardTitle>Login</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#09090B] px-4 py-10 text-white">
+      <LoginBg />
 
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  {...register("email")}
-                />
+      <div className="relative z-10 w-full max-w-110">
+        <Link href="/" className="flex items-center justify-center">
+          <Image src={logo} alt="logo" width={96} />
+        </Link>
+
+        <div className="overflow-hidden rounded-2xl border border-[#29292E] bg-[#111114]/95 shadow-[0_24px_80px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+          <div className="h-1 w-full bg-linear-to-r from-transparent via-[#FF0033] to-transparent" />
+
+          <div className="p-6 sm:p-9">
+            <div className="mb-8">
+              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-[#FF0033]/20 bg-[#FF0033]/10">
+                <LockKeyhole className="h-6 w-6 text-[#FF335C]" />
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-
-                <Input
-                  id="password"
-                  type="password"
-                  {...register("password")}
-                />
-              </div>
+              <h1 className="text-3xl font-extrabold tracking-tight text-white">
+                Đăng nhập
+              </h1>
             </div>
 
-            <div className="mt-3 text-right">
-              <Link
-                href="/forgot-password"
-                className="text-sm underline-offset-4 hover:underline"
-              >
-                Forgot your password?
-              </Link>
+            <LoginForm register={register} errors={errors} loginMutation={loginMutation} onSubmit={onSubmit} handleSubmit={handleSubmit} />
+
+            <div className="mt-7 border-t border-[#29292E] pt-6 text-center">
+              <p className="text-sm text-[#96969F]">
+                Chưa có tài khoản?{" "}
+                <Link
+                  href="/register"
+                  className="font-semibold text-white transition-colors hover:text-[#FF335C]"
+                >
+                  Đăng ký ngay
+                </Link>
+              </p>
             </div>
-          </CardContent>
-          <CardFooter>
-            <div className="flex flex-col w-full gap-2">
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={loginMutation.isPending}
-              >
-                {loginMutation.isPending ? "Logging in..." : "Login"}
-              </Button>
-              <Button
-                type="button"
-                className="w-full"
-                onClick={() => router.push("/register")}
-              >
-                Sign up
-              </Button>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-[#71717A]">
+          <ShieldCheck className="h-4 w-4 text-[#FF0033]" />
+          <span>Đăng nhập an toàn · Trải nghiệm gaming cao cấp</span>
+        </div>
+      </div>
+    </main>
   );
 }

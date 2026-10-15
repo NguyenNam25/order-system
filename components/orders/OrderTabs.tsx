@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,14 +12,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Order } from "@/interfaces/order";
 import OrderList from "@/components/orders/OrderList";
 import TabsBadge from "@/components/layout-components/TabsBadge";
-import { useState } from "react";
+import { Clock3, Truck, CheckCircle2, RotateCcw, XCircle } from "lucide-react";
 
 const menuTabsTrigger = [
-  { value: "pending", title: "Chờ xác nhận" },
-  { value: "shipping", title: "Đang giao hàng" },
-  { value: "completed", title: "Đã giao" },
-  { value: "returned", title: "Trả hàng" },
-  { value: "cancelled", title: "Đã hủy" },
+  {
+    value: "pending",
+    title: "Chờ xác nhận",
+    icon: Clock3,
+  },
+  {
+    value: "shipping",
+    title: "Đang giao",
+    icon: Truck,
+  },
+  {
+    value: "completed",
+    title: "Đã giao",
+    icon: CheckCircle2,
+  },
+  {
+    value: "returned",
+    title: "Trả hàng",
+    icon: RotateCcw,
+  },
+  {
+    value: "cancelled",
+    title: "Đã hủy",
+    icon: XCircle,
+  },
 ];
 
 interface OrderTabsProps {
@@ -43,7 +64,9 @@ export default function OrderTabs({ orders, onSelect }: OrderTabsProps) {
 
   const returnedOrderQuantity = orders.filter(
     (order) =>
-      order.status === "RETURN_APPROVED" || order.status === "RETURN_REQUESTED" || order.status === "RETURN_REJECTED",
+      order.status === "RETURN_APPROVED" ||
+      order.status === "RETURN_REQUESTED" ||
+      order.status === "RETURN_REJECTED",
   ).length;
 
   const cancelledOrderQuantity = orders.filter(
@@ -58,96 +81,114 @@ export default function OrderTabs({ orders, onSelect }: OrderTabsProps) {
     cancelled: cancelledOrderQuantity,
   };
 
-  return (
-    <Tabs value={value} onValueChange={setValue}>
-      <TabsList>
-        {menuTabsTrigger.map((triggerItem) => (
-          <TabsTrigger
-            key={triggerItem.value}
-            value={triggerItem.value}
-            className="flex items-center justify-center gap-1"
-          >
-            <span>{triggerItem.title}</span>
+  const filteredOrders = {
+    pending: orders.filter((order) => order.status === "PENDING"),
 
-            <TabsBadge>
-              {
-                orderQuantities[
-                  triggerItem.value as keyof typeof orderQuantities
-                ]
-              }
-            </TabsBadge>
-          </TabsTrigger>
-        ))}
+    shipping: orders.filter(
+      (order) => order.status === "CONFIRMED" || order.status === "SHIPPING",
+    ),
+
+    completed: orders.filter((order) => order.status === "COMPLETED"),
+
+    returned: orders.filter(
+      (order) =>
+        order.status === "RETURN_APPROVED" ||
+        order.status === "RETURN_REQUESTED" ||
+        order.status === "RETURN_REJECTED",
+    ),
+
+    cancelled: orders.filter((order) => order.status === "CANCELLED"),
+  };
+
+  return (
+    <Tabs value={value} onValueChange={setValue} className="w-full">
+      <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl border border-white/[0.07] bg-[#111114] p-1.5">
+        {menuTabsTrigger.map((triggerItem) => {
+          const Icon = triggerItem.icon;
+
+          return (
+            <TabsTrigger
+              key={triggerItem.value}
+              value={triggerItem.value}
+              className="
+          min-w-fit gap-2 rounded-lg border border-transparent
+          px-3 py-2.5 text-xs font-medium text-zinc-400
+          transition-colors duration-200
+          hover:bg-white/[0.06] hover:text-white
+          data-[state=active]:border-[#FF0033]/30
+          data-[state=active]:bg-[#FF0033]/15
+          data-[state=active]:font-semibold
+          data-[state=active]:text-[#FF4D6D]
+          data-[state=active]:shadow-none
+          focus-visible:ring-2 focus-visible:ring-[#FF0033]/50
+          sm:px-4 sm:text-sm
+        "
+            >
+              <Icon className="size-4 shrink-0" />
+              <span>{triggerItem.title}</span>
+
+              <TabsBadge>
+                {
+                  orderQuantities[
+                    triggerItem.value as keyof typeof orderQuantities
+                  ]
+                }
+              </TabsBadge>
+            </TabsTrigger>
+          );
+        })}
       </TabsList>
 
-      <TabsContent value="pending">
-        <OrderSection
-          orders={orders.filter((order) => order.status === "PENDING")}
-          onSelect={onSelect}
-          value={value}
-        />
-      </TabsContent>
-
-      <TabsContent value="shipping">
-        <OrderSection
-          orders={orders.filter(
-            (order) =>
-              order.status === "CONFIRMED" || order.status === "SHIPPING",
-          )}
-          onSelect={onSelect}
-          value={value}
-        />
-      </TabsContent>
-
-      <TabsContent value="completed">
-        <OrderSection
-          orders={orders.filter((order) => order.status === "COMPLETED")}
-          onSelect={onSelect}
-          value={value}
-        />
-      </TabsContent>
-
-      <TabsContent value="returned">
-        <OrderSection
-          orders={orders.filter(
-            (order) =>
-              order.status === "RETURN_APPROVED" ||
-              order.status === "RETURN_REQUESTED" ||
-              order.status === "RETURN_REJECTED",
-          )}
-          onSelect={onSelect}
-          value={value}
-        />
-      </TabsContent>
-
-      <TabsContent value="cancelled">
-        <OrderSection
-          orders={orders.filter((order) => order.status === "CANCELLED")}
-          onSelect={onSelect}
-          value={value}
-        />
-      </TabsContent>
+      {menuTabsTrigger.map((triggerItem) => (
+        <TabsContent
+          key={triggerItem.value}
+          value={triggerItem.value}
+          className="mt-5"
+        >
+          <OrderSection
+            title={triggerItem.title}
+            orders={
+              filteredOrders[triggerItem.value as keyof typeof filteredOrders]
+            }
+            onSelect={onSelect}
+            value={triggerItem.value}
+          />
+        </TabsContent>
+      ))}
     </Tabs>
   );
 }
 
 function OrderSection({
+  title,
   orders,
   onSelect,
   value,
 }: {
+  title: string;
   orders: Order[];
   onSelect: (order: Order) => void;
   value: string;
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Danh sách</CardTitle>
-        <CardDescription>Nhấn để xem chi tiết</CardDescription>
+    <Card className="gap-0 overflow-hidden rounded-xl border-white/[0.07] bg-[#18181B] py-0 text-zinc-100">
+      <CardHeader className="border-b border-white/[0.06] px-4 py-4 sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <CardTitle className="text-base font-semibold">{title}</CardTitle>
+
+            <CardDescription className="mt-1 text-xs text-zinc-500">
+              Chọn một đơn hàng để xem chi tiết và thực hiện thao tác.
+            </CardDescription>
+          </div>
+
+          <span className="rounded-full border border-white/[0.08] bg-[#242429] px-3 py-1 text-xs text-zinc-300">
+            {orders.length} đơn hàng
+          </span>
+        </div>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-3">
+      <CardContent className="p-3 sm:p-5">
         <OrderList orders={orders} onSelect={onSelect} value={value} />
       </CardContent>
     </Card>

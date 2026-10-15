@@ -1,7 +1,8 @@
+
 "use client";
 
 import categoryApi from "@/api/routes/categoryApi";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { DataTableFeatures, features } from "@/interfaces/data-table-features";
 import { Category } from "@/interfaces/category";
 import {
@@ -22,8 +23,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { DataTablePagination } from "@/components/layout-components/TablePagination";
 import AddCategory from "./AddCategory";
-import { flexRender, Table as ReactTable } from "@tanstack/react-table";
-import TableCategory from "./TableCategory";
+import { flexRender } from "@tanstack/react-table";
 
 interface DataTableProps {
   columns: ColumnDef<DataTableFeatures, Category, unknown>[];
@@ -56,68 +56,81 @@ export default function ListCategory({ columns }: DataTableProps) {
       pagination: {
         pageIndex: 0,
         pageSize: 5,
-      }
-    }
+      },
+    },
   });
 
   return (
-    <div>
-        <div className="flex items-center pb-4 pt-2 justify-between">
-          <Input
-            placeholder="Filter Category Name..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          />
-          <AddCategory />
-        </div>
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
+        <Input
+          placeholder="Tìm theo tên danh mục..."
+          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("name")?.setFilterValue(event.target.value)
+          }
+          className="h-9 w-full bg-background sm:max-w-sm"
+        />
+
+        <AddCategory />
+      </div>
+
+      <div className="overflow-hidden rounded-lg border bg-background">
         <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id}>
-            {headerGroup.headers.map((header) => {
-              return (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
+          <TableHeader className="bg-muted/40">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className="h-11 whitespace-nowrap"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className="transition-colors hover:bg-muted/40"
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="py-3">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
                       )}
-                </TableHead>
-              );
-            })}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {table.getRowModel().rows?.length ? (
-          table.getRowModel().rows.map((row) => (
-            <TableRow
-              key={row.id}
-              data-state={row.getIsSelected() && "selected"}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={table.getAllColumns().length}
+                  className="h-28 text-center text-sm text-muted-foreground"
+                >
+                  Không có dữ liệu danh mục.
                 </TableCell>
-              ))}
-            </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell
-              colSpan={table.getAllColumns().length}
-              className="h-24 text-center"
-            >
-              No results.
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
       <DataTablePagination table={table} />
     </div>
   );

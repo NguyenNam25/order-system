@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import type { Category, CategoryForm } from "@/interfaces/category";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -47,12 +48,13 @@ export default function UpdateCategory({
       queryClient.invalidateQueries({
         queryKey: ["categories"],
       });
-      toast.success("Category added successfully");
+
+      toast.success("Cập nhật danh mục thành công");
       onOpenChange(false);
     },
 
     onError: () => {
-      toast.error("Failed to add category");
+      toast.error("Không thể cập nhật danh mục. Vui lòng thử lại.");
     },
   });
 
@@ -60,20 +62,57 @@ export default function UpdateCategory({
     updateCategoryMutation.mutate({
       id: data.id,
       category: {
-        name: formData.name,
+        name: formData.name.trim(),
       },
     });
   };
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (updateCategoryMutation.isPending) return;
+
+    onOpenChange(nextOpen);
+
+    if (!nextOpen) {
+      reset({ name: data.name });
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl!">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Update Category</DialogTitle>
-          <DialogDescription>Update information of category</DialogDescription>
+          <DialogTitle className="text-lg font-semibold">
+            Chỉnh sửa danh mục
+          </DialogTitle>
+
+          <DialogDescription>
+            Cập nhật tên danh mục #{data.id}.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onUpdate)}>
-          <CategoryField register={register} errors={errors} reset={reset} />
+
+        <form onSubmit={handleSubmit(onUpdate)} className="space-y-4">
+          <CategoryField register={register} errors={errors} />
+
+          <div className="flex justify-end gap-2 border-t pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
+              disabled={updateCategoryMutation.isPending}
+            >
+              Hủy
+            </Button>
+
+            <Button
+              type="submit"
+              disabled={updateCategoryMutation.isPending}
+              className="min-w-32"
+            >
+              {updateCategoryMutation.isPending
+                ? "Đang cập nhật..."
+                : "Lưu thay đổi"}
+            </Button>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

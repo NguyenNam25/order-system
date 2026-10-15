@@ -111,12 +111,12 @@ export default function FastActions({ order }: FastActionsProps) {
         switch (order.status) {
           case "PENDING":
             return (
-              <div className="flex flex-col gap-2">
+              <div className="flex min-w-28 flex-col gap-2">
                 <Button
-                  variant="destructive"
+                  variant="outline"
                   onClick={() => setOpenCancelDialog(true)}
                   disabled={handleChangeStatus.isPending}
-                  className="w-28 rounded-lg"
+                  className="h-9 w-28 rounded-lg border-destructive/30 text-destructive shadow-none transition-colors hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
                 >
                   {handleChangeStatus.isPending
                     ? "Đang xử lý..."
@@ -125,14 +125,10 @@ export default function FastActions({ order }: FastActionsProps) {
 
                 <Button
                   onClick={() => handleStatusChange("CONFIRMED")}
-                  disabled={
-                    handleChangeStatus.isPending || isOutOfStock
-                  }
-                  className="w-28 rounded-lg"
+                  disabled={handleChangeStatus.isPending || isOutOfStock}
+                  className="h-9 w-28 rounded-lg shadow-none transition-colors"
                 >
-                  {handleChangeStatus.isPending
-                    ? "Đang xử lý..."
-                    : "Xác nhận"}
+                  {handleChangeStatus.isPending ? "Đang xử lý..." : "Xác nhận"}
                 </Button>
               </div>
             );
@@ -142,7 +138,7 @@ export default function FastActions({ order }: FastActionsProps) {
               <Button
                 onClick={() => handleStatusChange("SHIPPING")}
                 disabled={handleChangeStatus.isPending}
-                className="w-28 rounded-lg"
+                className="h-9 w-28 rounded-lg shadow-none transition-colors"
               >
                 {handleChangeStatus.isPending
                   ? "Đang xử lý..."
@@ -155,7 +151,7 @@ export default function FastActions({ order }: FastActionsProps) {
               <Button
                 onClick={() => handleStatusChange("COMPLETED")}
                 disabled={handleChangeStatus.isPending}
-                className="w-28 rounded-lg"
+                className="h-9 w-28 rounded-lg shadow-none transition-colors"
               >
                 {handleChangeStatus.isPending
                   ? "Đang xử lý..."
@@ -165,20 +161,20 @@ export default function FastActions({ order }: FastActionsProps) {
 
           case "RETURN_REQUESTED":
             return (
-              <div className="flex flex-col gap-2">
+              <div className="flex min-w-28 flex-col gap-2">
                 <Button
                   onClick={() => setOpenApproveReturn(true)}
                   disabled={handleChangeStatus.isPending}
-                  className="w-28 rounded-lg"
+                  className="h-9 w-28 rounded-lg shadow-none transition-colors"
                 >
                   Duyệt hoàn hàng
                 </Button>
 
                 <Button
-                  variant="destructive"
+                  variant="outline"
                   onClick={() => setOpenRejectReturn(true)}
                   disabled={handleChangeStatus.isPending}
-                  className="w-28 rounded-lg"
+                  className="h-9 w-28 rounded-lg border-destructive/30 text-destructive shadow-none transition-colors hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
                 >
                   Từ chối
                 </Button>
