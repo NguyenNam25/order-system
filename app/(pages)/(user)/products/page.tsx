@@ -8,14 +8,15 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Check, Heart, Phone, ShoppingCart, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
-
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthContext";
-import productApi from "@/api/routes/productApi";
 import cartApi from "@/api/routes/cartApi";
 import { formatVND } from "@/lib/format";
+import ProductLoadingState from "@/components/product/ProductLoadingState";
+import ProductErrorState from "@/components/product/ProductErrorState";
+import useProducts from "@/hooks/products/queries/useProducts";
 
 export default function Products() {
   const [addingProductId, setAddingProductId] = useState<number | null>(null);
@@ -39,10 +40,7 @@ export default function Products() {
     return true;
   };
 
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["products"],
-    queryFn: productApi.getAllProducts,
-  });
+  const { data, isLoading, isError, refetch } = useProducts()
 
   const addToCartMutation = useMutation({
     mutationFn: async ({
@@ -90,49 +88,15 @@ export default function Products() {
     }
   };
 
-  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {Array.from({ length: 10 }).map((_, index) => (
-          <div
-            key={index}
-            className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#111114] p-2.5 sm:p-3"
-          >
-            <div className="aspect-square animate-pulse rounded-xl bg-zinc-800" />
-            <div className="mt-4 h-4 animate-pulse rounded bg-zinc-800" />
-            <div className="mt-2 h-4 w-3/4 animate-pulse rounded bg-zinc-800" />
-            <div className="mt-5 h-6 w-1/2 animate-pulse rounded bg-zinc-800" />
-            <div className="mt-4 h-9 animate-pulse rounded-lg bg-zinc-800" />
-          </div>
-        ))}
-      </div>
+      <ProductLoadingState />
     );
   }
 
-  // Error state
   if (isError) {
     return (
-      <div className="rounded-2xl border border-zinc-800 bg-[#111114] px-4 py-16 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 text-[#FF0033]">
-          <ShoppingCart className="h-6 w-6" />
-        </div>
-
-        <h3 className="mt-4 font-semibold text-white">
-          Không thể tải sản phẩm
-        </h3>
-        <p className="mt-2 text-sm text-zinc-400">
-          Đã xảy ra lỗi khi kết nối. Vui lòng thử lại.
-        </p>
-
-        <Button
-          variant="outline"
-          className="mt-5 rounded-xl border-zinc-700 bg-zinc-900 text-white hover:border-[#FF0033] hover:bg-red-500/10 hover:text-white"
-          onClick={() => refetch()}
-        >
-          Thử lại
-        </Button>
-      </div>
+      <ProductErrorState refetch={refetch}/>
     );
   }
 
@@ -168,7 +132,7 @@ export default function Products() {
               className="flex flex-1 flex-col"
             >
               {/* Product image */}
-              <div className="relative m-2.5 mb-0 aspect-square overflow-hidden rounded-xl border border-white/[0.06] bg-[#242429] sm:m-3.5 sm:mb-0"  >
+              <div className="relative m-2.5 mb-0 aspect-square overflow-hidden rounded-xl border border-white/6 bg-[#242429] sm:m-3.5 sm:mb-0"  >
                 {product.images[0]?.imageUrl ? (
                   <Image
                     src={product.images[0].imageUrl}

@@ -30,14 +30,7 @@ import {
 } from "../ui/dropdown-menu";
 import Image from "next/image";
 import logo from "@/public/asus-rog-1-logo-svgrepo-com.png";
-
-const navItems = [
-  { label: "Danh mục", href: "/categories" },
-  { label: "Sản phẩm mới", href: "/products?sort=newest" },
-  { label: "Bán chạy", href: "/products?sort=bestseller" },
-  { label: "Ưu đãi", href: "/products?filter=sale" },
-  { label: "Tất cả sản phẩm", href: "/products" },
-];
+import { navItems } from "@/constants/nav-menu-items";
 
 export default function NavigationBar() {
   const { currentUser, isLoading, logout } = useAuth();

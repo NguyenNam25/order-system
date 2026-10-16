@@ -1,11 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import userApi from "@/api/routes/userApi";
 import {
   ColumnDef,
   ColumnFiltersState,
-  RowData,
   SortingState,
   useTable,
 } from "@tanstack/react-table";
@@ -25,8 +22,7 @@ import { DataTablePagination } from "@/components/layout-components/TablePaginat
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import AddUser from "./AddUser";
-
-import TableUser from "./TableUser";
+import useUsers from "@/hooks/users/queries/useUsers";
 
 interface DataTableProps {
   columns: ColumnDef<DataTableFeatures, User, unknown>[];
@@ -36,14 +32,7 @@ export default function ListUser({ columns }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const {
-    data = [],
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["users"],
-    queryFn: userApi.getAllUsers,
-  });
+  const { data = [], isLoading, isError } = useUsers();
 
   const table = useTable({
     features,

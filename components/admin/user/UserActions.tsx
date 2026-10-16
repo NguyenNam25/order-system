@@ -5,40 +5,22 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import AlertDialogDelete from "@/components/layout-components/AlertDialogDelete";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import userApi from "@/api/routes/userApi";
-import { toast } from "sonner";
 import UpdateUser from "./UpdateUser";
 import ChangePassword from "./ChangePassword";
+import useDeleteUser from "@/hooks/users/mutations/useDeleteUser";
 
 export default function UserActions({ user }: { user: User }) {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openChangePass, setOpenChangePass] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  const deleteUserMutation = useMutation({
-    mutationFn: userApi.deleteUser,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["users"],
-      });
-      toast.success("Deleted succesfully");
-    },
-
-    onError: (error) => {
-      toast.error("Deleted failed");
-    },
-  });
+  const deleteUserMutation = useDeleteUser();
 
   const handleDeleteUser = (id: number) => {
     deleteUserMutation.mutate(id);

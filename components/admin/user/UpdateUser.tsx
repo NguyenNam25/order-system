@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -7,26 +8,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import type { User, UserRegister, UserUpdate } from "@/interfaces/user";
+import type { User, UserUpdate } from "@/interfaces/user";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import userApi from "@/api/routes/userApi";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { updateUserSchema, userSchema } from "@/schemas/userSchema";
+import { updateUserSchema } from "@/schemas/userSchema";
+import { useUpdateUser } from "@/hooks/users/mutations/useUpdateUser";
+import UserFormFields from "./UserForm";
+
+
+interface UpdateUserProps {
+  data: User;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
 export default function UpdateUser({
   data,
   open,
   onOpenChange,
-}: {
-  data: User;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
+}: UpdateUserProps) {
   const {
     register,
     handleSubmit,
@@ -36,121 +38,86 @@ export default function UpdateUser({
     defaultValues: {
       fullname: data.fullname,
       email: data.email,
+      phone: data.phone ?? "",
     },
     resolver: zodResolver(updateUserSchema),
   });
 
-  const queryClient = useQueryClient();
+  const updateUserMutation = useUpdateUser();
 
-  const updateUserMutation = useMutation({
-    mutationFn: ({ id, user }: { id: number; user: UserUpdate }) =>
-      userApi.updateUser(id, user),
+  useEffect(() => {
+    if (!open) return;
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["users"],
-      });
-      toast.success("Update successfully");
-      onOpenChange(false);
-    },
-  });
+    reset({
+      fullname: data.fullname,
+      email: data.email,
+      phone: data.phone ?? "",
+    });
+  }, [
+    open,
+    data.id,
+    data.fullname,
+    data.email,
+    data.phone,
+    reset,
+  ]);
 
-  const onUpdate = (formdata: UserUpdate) => {
-    updateUserMutation.mutate({
-      id: data.id,
-      user: {
-        fullname: formdata.fullname,
-        email: formdata.email,
-        phone: formdata.phone,
+  const onUpdate = (formData: UserUpdate) => {
+    updateUserMutation.mutate(
+      {
+        id: data.id,
+        user: formData,
       },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
+      },
+    );
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (updateUserMutation.isPending) return;
+    onOpenChange(nextOpen);
+  };
+
+  const handleReset = () => {
+    reset({
+      fullname: data.fullname,
+      email: data.email,
+      phone: data.phone ?? "",
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+    >
       <DialogContent className="max-h-[90vh] max-w-md! gap-6 overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-xl">
         <DialogHeader className="gap-1">
           <DialogTitle className="text-xl font-semibold tracking-tight">
             Chỉnh sửa người dùng
           </DialogTitle>
+
           <DialogDescription className="text-sm leading-5 text-muted-foreground">
             Cập nhật thông tin tài khoản người dùng.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onUpdate)}>
-          <FieldGroup className="gap-5">
-            <Field className="gap-2">
-              <FieldLabel
-                htmlFor="fullname"
-                className="text-sm font-medium"
-              >
-                Họ và tên
-              </FieldLabel>
-              <Input
-                {...register("fullname")}
-                id="fullname"
-                type="text"
-                placeholder="Nhập họ và tên"
-                className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
-              />
-
-              {errors.fullname && (
-                <p className="text-sm text-destructive">
-                  {errors.fullname.message}
-                </p>
-              )}
-            </Field>
-
-            <Field className="gap-2">
-              <FieldLabel
-                htmlFor="email"
-                className="text-sm font-medium"
-              >
-                Email
-              </FieldLabel>
-              <Input
-                {...register("email")}
-                id="email"
-                type="email"
-                placeholder="example@gmail.com"
-                className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
-              />
-
-              {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
-            </Field>
-
-            <Field className="gap-2">
-              <FieldLabel
-                htmlFor="phone"
-                className="text-sm font-medium"
-              >
-                Số điện thoại
-              </FieldLabel>
-              <Input
-                {...register("phone")}
-                id="phone"
-                type="text"
-                placeholder="Nhập số điện thoại"
-                className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
-              />
-
-              {errors.phone && (
-                <p className="text-sm text-destructive">
-                  {errors.phone.message}
-                </p>
-              )}
-            </Field>
+          <div className="space-y-5">
+            <UserFormFields
+              register={register}
+              errors={errors}
+            />
 
             <div className="flex justify-end gap-2 border-t border-border pt-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => reset()}
+                onClick={handleReset}
+                disabled={updateUserMutation.isPending}
                 className="h-10 rounded-lg border-input px-4"
               >
                 Đặt lại
@@ -158,12 +125,15 @@ export default function UpdateUser({
 
               <Button
                 type="submit"
+                disabled={updateUserMutation.isPending}
                 className="h-10 rounded-lg px-4 shadow-sm"
               >
-                Lưu thay đổi
+                {updateUserMutation.isPending
+                  ? "Đang lưu..."
+                  : "Lưu thay đổi"}
               </Button>
             </div>
-          </FieldGroup>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

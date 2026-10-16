@@ -4,39 +4,21 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import AlertDialogDelete from "@/components/layout-components/AlertDialogDelete";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Category } from "@/interfaces/category";
 import UpdateCategory from "./UpdateCategory";
-import categoryApi from "@/api/routes/categoryApi";
+import { useDeleteCategory } from "@/hooks/categories/mutations/useDeleteCategory";
 
 export default function CategoryActions({ category }: { category: Category }) {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  const deleteCategoryMutation = useMutation({
-    mutationFn: categoryApi.deleteCategory,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["categories"],
-      });
-      toast.success("Deleted succesfully");
-    },
-
-    onError: (error) => {
-      toast.error("Deleted failed");
-    },
-  });
+  const deleteCategoryMutation = useDeleteCategory();
 
   const handleDeleteCategory = (id: number) => {
     deleteCategoryMutation.mutate(id);
@@ -72,7 +54,11 @@ export default function CategoryActions({ category }: { category: Category }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <UpdateCategory data={category} open={openUpdate} onOpenChange={setOpenUpdate} />
+      <UpdateCategory
+        data={category}
+        open={openUpdate}
+        onOpenChange={setOpenUpdate}
+      />
 
       <AlertDialogDelete
         id={category.id}

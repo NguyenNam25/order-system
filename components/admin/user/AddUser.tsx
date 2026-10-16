@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -13,14 +12,10 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { useState } from "react";
-import type { User, UserRegister } from "@/interfaces/user";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { UserRegister } from "@/interfaces/user";
 import { userSchema } from "@/schemas/userSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
-import authApi from "@/api/routes/authApi";
 import {
   Select,
   SelectContent,
@@ -28,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCreateUser } from "@/hooks/users/mutations/useCreateUser";
+import UserForm from "./UserForm";
 
 export default function AddUser() {
   const [open, setOpen] = useState(false);
@@ -37,6 +34,7 @@ export default function AddUser() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<UserRegister>({
     resolver: zodResolver(userSchema),
@@ -45,34 +43,14 @@ export default function AddUser() {
     },
   });
 
-  const queryClient = useQueryClient();
-
-  const addUserMutation = useMutation({
-    mutationFn: authApi.register,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["users"],
-      });
-      toast.success("Create succesfully");
-      reset();
-      setOpen(false);
-    },
-
-    onError: (error) => {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data.message);
-      }
-    },
-  });
+  const createUserMutation = useCreateUser();
 
   const onSubmit = (data: UserRegister) => {
-    addUserMutation.mutate({
-      fullname: data.fullname,
-      email: data.email,
-      password: data.password,
-      phone: data.phone,
-      role: data.role,
+    createUserMutation.mutate(data, {
+      onSuccess: () => {
+        reset({ role: "USER" });
+        setOpen(false);
+      },
     });
   };
 
@@ -94,83 +72,32 @@ export default function AddUser() {
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <FieldGroup className="gap-5">
+            <UserForm register={register} errors={errors} />
+
+            {/* Trường riêng của AddUser */}
             <Field className="gap-2">
-              <FieldLabel
-                htmlFor="fullname"
-                className="text-sm font-medium"
-              >
-                Họ và tên
-              </FieldLabel>
-              <Input
-                {...register("fullname")}
-                id="fullname"
-                type="text"
-                placeholder="Nhập họ và tên"
-                className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
-              />
-
-              {errors.fullname && (
-                <p className="text-sm text-destructive">
-                  {errors.fullname.message}
-                </p>
-              )}
-            </Field>
-
-            <Field className="gap-2">
-              <FieldLabel
-                htmlFor="phone"
-                className="text-sm font-medium"
-              >
-                Số điện thoại
-              </FieldLabel>
-              <Input
-                {...register("phone")}
-                id="phone"
-                type="text"
-                placeholder="Nhập số điện thoại"
-                className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
-              />
-
-              {errors.phone && (
-                <p className="text-sm text-destructive">
-                  {errors.phone.message}
-                </p>
-              )}
-            </Field>
-
-            <Field className="gap-2">
-              <FieldLabel className="text-sm font-medium">
-                Vai trò
-              </FieldLabel>
+              <FieldLabel htmlFor="role">Vai trò</FieldLabel>
 
               <Select
+                value={watch("role")}
                 onValueChange={(value) =>
                   setValue("role", value as "USER" | "ADMIN", {
                     shouldValidate: true,
+                    shouldDirty: true,
                   })
                 }
               >
-                <SelectTrigger className="h-10 w-full rounded-lg border-input bg-background px-3 text-sm shadow-none transition-colors hover:border-muted-foreground/50 focus:border-ring focus:ring-2 focus:ring-ring/20">
+                <SelectTrigger id="role" className="w-full">
                   <SelectValue placeholder="Chọn vai trò" />
                 </SelectTrigger>
 
-                <SelectContent className="rounded-lg border border-border bg-popover p-1 shadow-lg">
-                  <SelectItem
-                    value="USER"
-                    className="cursor-pointer rounded-md text-sm"
-                  >
-                    Người dùng
-                  </SelectItem>
-                  <SelectItem
-                    value="ADMIN"
-                    className="cursor-pointer rounded-md text-sm"
-                  >
-                    Quản trị viên
-                  </SelectItem>
+                <SelectContent>
+                  <SelectItem value="USER">Người dùng</SelectItem>
+                  <SelectItem value="ADMIN">Quản trị viên</SelectItem>
                 </SelectContent>
               </Select>
 
-              {errors.role && (
+              {errors.role?.message && (
                 <p className="text-sm text-destructive">
                   {errors.role.message}
                 </p>
@@ -178,65 +105,34 @@ export default function AddUser() {
             </Field>
 
             <Field className="gap-2">
-              <FieldLabel
-                htmlFor="email"
-                className="text-sm font-medium"
-              >
-                Email
-              </FieldLabel>
-              <Input
-                {...register("email")}
-                id="email"
-                type="email"
-                placeholder="example@gmail.com"
-                className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
-              />
+              <FieldLabel htmlFor="password">Mật khẩu</FieldLabel>
 
-              {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
-            </Field>
-
-            <Field className="gap-2">
-              <FieldLabel
-                htmlFor="password"
-                className="text-sm font-medium"
-              >
-                Mật khẩu
-              </FieldLabel>
               <Input
                 {...register("password")}
                 id="password"
-                type="text"
+                type="password"
                 placeholder="Nhập mật khẩu"
-                className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
               />
 
-              {errors.password && (
+              {errors.password?.message && (
                 <p className="text-sm text-destructive">
                   {errors.password.message}
                 </p>
               )}
             </Field>
 
-            <div className="flex justify-end gap-2 border-t border-border pt-4">
+            <div className="flex justify-end gap-2 border-t pt-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => reset()}
-                className="h-10 rounded-lg border-input px-4"
+                onClick={() => reset({ role: "USER" })}
+                disabled={createUserMutation.isPending}
               >
                 Đặt lại
               </Button>
 
-              <Button
-                type="submit"
-                disabled={addUserMutation.isPending}
-                className="h-10 rounded-lg px-4 shadow-sm"
-              >
-                {addUserMutation.isPending
+              <Button type="submit" disabled={createUserMutation.isPending}>
+                {createUserMutation.isPending
                   ? "Đang tạo..."
                   : "Tạo người dùng"}
               </Button>

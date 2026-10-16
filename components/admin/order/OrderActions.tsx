@@ -4,31 +4,18 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import OrderDetail from "./OrderDetail";
 import { Order } from "@/interfaces/order";
-import orderApi from "@/api/routes/orderApi";
+import useDeleteOrder from "@/hooks/orders/mutations/useDeleteOrder";
 
 export default function OrderActions({ order }: { order: Order }) {
   const [openDetails, setOpenDetails] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  const deleteOrderMutation = useMutation({
-    mutationFn: orderApi.deleteOrder,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["orders"],
-      });
-    },
-  });
+  const deleteOrderMutation = useDeleteOrder();
 
   const onDeleteOrder = (id: number) => {
     deleteOrderMutation.mutate(id);

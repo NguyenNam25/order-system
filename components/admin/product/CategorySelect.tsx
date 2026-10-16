@@ -1,4 +1,3 @@
-import categoryApi from "@/api/routes/categoryApi";
 import {
   Select,
   SelectContent,
@@ -7,8 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import useCategories from "@/hooks/categories/queries/useCategories";
 import { ProductForm } from "@/interfaces/product";
-import { useQuery } from "@tanstack/react-query";
 import { Control, Controller } from "react-hook-form";
 
 export default function CategorySelect({
@@ -16,10 +15,7 @@ export default function CategorySelect({
 }: {
   control: Control<ProductForm>;
 }) {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["categories"],
-    queryFn: categoryApi.getAllCategories,
-  });
+  const { data, isLoading, isError } = useCategories()
 
   console.log(data);
 

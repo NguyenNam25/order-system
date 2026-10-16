@@ -9,14 +9,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { useState } from "react";
 import type { ProductForm } from "@/interfaces/product";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import productApi from "@/api/routes/productApi";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productSchema } from "@/schemas/productSchema";
 import ProductField from "./ProductField";
+import { useCreateProduct } from "@/hooks/products/mutations/useCreateProduct";
 
 export default function AddProduct() {
   const [open, setOpen] = useState(false);
@@ -35,39 +33,18 @@ export default function AddProduct() {
     resolver: zodResolver(productSchema),
   });
 
-  const queryClient = useQueryClient();
-
-  const createProductMutation = useMutation({
-    mutationFn: productApi.createProduct,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["products"],
-      });
-      toast.success("Product add succesfully");
-      reset();
-      setImages([]);
-      setOpen(false);
-    },
-
-    onError: (error) => {
-      toast.error("Failed to add new product");
-    },
-  });
+  const createProductMutation = useCreateProduct();
 
   const onSubmit = async (data: ProductForm) => {
     try {
-      const product = await createProductMutation.mutateAsync({
-        name: data.name,
-        price: data.price,
-        quantity: data.quantity,
-        categoryId: data.categoryId,
-        description: data.description,
+      await createProductMutation.mutateAsync({
+        data,
+        images,
       });
 
-      for (const file of images) {
-        await productApi.addProductImageFile(product.id, file);
-      }
+      reset();
+      setImages([]);
+      setOpen(false);
     } catch (error) {
       console.error(error);
     }

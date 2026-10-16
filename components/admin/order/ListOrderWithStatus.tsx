@@ -1,9 +1,6 @@
 "use client";
 
-import categoryApi from "@/api/routes/categoryApi";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DataTableFeatures, features } from "@/interfaces/data-table-features";
-import { Category } from "@/interfaces/category";
 import {
   Table,
   TableBody,
@@ -22,8 +19,8 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { DataTablePagination } from "@/components/layout-components/TablePagination";
 import { flexRender, Table as ReactTable } from "@tanstack/react-table";
-import orderApi from "@/api/routes/orderApi";
 import { Order } from "@/interfaces/order";
+import useOrdersByStatus from "@/hooks/orders/queries/useOrdersByStatus";
 
 interface DataTableProps {
   columns: ColumnDef<DataTableFeatures, Order, unknown>[];
@@ -34,19 +31,7 @@ export default function ListOrderWS({ columns, status }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const {
-    data = [],
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["orders", status],
-    queryFn: () => orderApi.getOrdersByStatus(status),
-  });
-
-  console.log("Status:", status);
-  console.log("Data:", data);
-  console.log("Loading:", isLoading);
-  console.log("Error:", isError);
+  const { data = [], isLoading, isError } = useOrdersByStatus(status);
 
   const table = useTable({
     features,

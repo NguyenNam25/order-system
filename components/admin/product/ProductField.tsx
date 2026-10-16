@@ -38,9 +38,7 @@ export default function ProductField({
   images,
   onImagesChange,
 }: FormProp) {
-  const handleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
 
     onImagesChange([...images, ...files]);
@@ -49,9 +47,7 @@ export default function ProductField({
   };
 
   const removeImage = (index: number) => {
-    onImagesChange(
-      images.filter((_, imageIndex) => imageIndex !== index),
-    );
+    onImagesChange(images.filter((_, imageIndex) => imageIndex !== index));
   };
 
   return (
@@ -140,9 +136,7 @@ export default function ProductField({
           className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
         />
         {errors.name && (
-          <p className="text-sm text-destructive">
-            {errors.name.message}
-          </p>
+          <p className="text-sm text-destructive">{errors.name.message}</p>
         )}
       </Field>
 
@@ -158,9 +152,7 @@ export default function ProductField({
           className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
         />
         {errors.price && (
-          <p className="text-sm text-destructive">
-            {errors.price.message}
-          </p>
+          <p className="text-sm text-destructive">{errors.price.message}</p>
         )}
       </Field>
 
@@ -186,17 +178,12 @@ export default function ProductField({
           className="h-10 rounded-lg border-input bg-background shadow-none transition-colors hover:border-muted-foreground/50 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
         />
         {errors.quantity && (
-          <p className="text-sm text-destructive">
-            {errors.quantity.message}
-          </p>
+          <p className="text-sm text-destructive">{errors.quantity.message}</p>
         )}
       </Field>
 
       <Field className="gap-2">
-        <FieldLabel
-          htmlFor="description"
-          className="text-sm font-medium"
-        >
+        <FieldLabel htmlFor="description" className="text-sm font-medium">
           Mô tả sản phẩm
         </FieldLabel>
         <Textarea
@@ -217,15 +204,10 @@ export default function ProductField({
           <RotateCcw className="size-4" />
           Đặt lại
         </Button>
-        <Button
-          type="submit"
-          className="h-10 rounded-lg px-5 shadow-sm"
-        >
+        <Button type="submit" className="h-10 rounded-lg px-5 shadow-sm">
           Thêm sản phẩm
         </Button>
       </div>
     </FieldGroup>
   );
 }
-
-

@@ -1,7 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import productApi from "@/api/routes/productApi";
 import { useState } from "react";
 import {
   ColumnDef,
@@ -23,7 +21,7 @@ import { DataTableFeatures, features } from "@/interfaces/data-table-features";
 import { Input } from "@/components/ui/input";
 import { DataTablePagination } from "@/components/layout-components/TablePagination";
 import AddProduct from "./AddProduct";
-import TableProduct from "./TableProduct";
+import useProducts from "@/hooks/products/queries/useProducts";
 
 interface DataTableProps {
   columns: ColumnDef<DataTableFeatures, ProductDisplay, unknown>[];
@@ -33,14 +31,7 @@ export default function ListProduct({ columns }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const {
-    data = [],
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["products"],
-    queryFn: productApi.getAllProducts,
-  });
+  const { data = [], isLoading, isError } = useProducts();
 
   const table = useTable({
     features,
@@ -56,8 +47,8 @@ export default function ListProduct({ columns }: DataTableProps) {
       pagination: {
         pageIndex: 0,
         pageSize: 5,
-      }
-    }
+      },
+    },
   });
 
   return (
@@ -79,10 +70,7 @@ export default function ListProduct({ columns }: DataTableProps) {
         <Table>
           <TableHeader className="bg-muted/40">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow
-                key={headerGroup.id}
-                className="hover:bg-transparent"
-              >
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead

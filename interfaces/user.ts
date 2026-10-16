@@ -24,3 +24,9 @@ export interface PasswordUpdate {
   currentPassword: string;
   newPassword: string;
 }
+
+export type ChangePassForm = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};

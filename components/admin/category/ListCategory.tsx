@@ -1,8 +1,5 @@
-
 "use client";
 
-import categoryApi from "@/api/routes/categoryApi";
-import { useQuery } from "@tanstack/react-query";
 import { DataTableFeatures, features } from "@/interfaces/data-table-features";
 import { Category } from "@/interfaces/category";
 import {
@@ -24,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { DataTablePagination } from "@/components/layout-components/TablePagination";
 import AddCategory from "./AddCategory";
 import { flexRender } from "@tanstack/react-table";
+import useCategories from "@/hooks/categories/queries/useCategories";
 
 interface DataTableProps {
   columns: ColumnDef<DataTableFeatures, Category, unknown>[];
@@ -33,14 +31,7 @@ export default function ListCategory({ columns }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const {
-    data = [],
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["categories"],
-    queryFn: categoryApi.getAllCategories,
-  });
+  const { data = [], isLoading, isError } = useCategories();
 
   const table = useTable({
     features,

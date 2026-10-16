@@ -10,15 +10,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { useState } from "react";
 import type { CategoryForm } from "@/interfaces/category";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import categoryApi from "@/api/routes/categoryApi";
 import { categorySchema } from "@/schemas/categoryShema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import CategoryField from "./CategoryField";
+import { useCreateCategory } from "@/hooks/categories/mutations/useCreateCategory";
 
 export default function AddCategory() {
   const [open, setOpen] = useState(false);
@@ -35,30 +33,18 @@ export default function AddCategory() {
     },
   });
 
-  const queryClient = useQueryClient();
-
-  const createCategoryMutation = useMutation({
-    mutationFn: categoryApi.createCategory,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["categories"],
-      });
-
-      toast.success("Thêm danh mục thành công");
-      reset();
-      setOpen(false);
-    },
-
-    onError: () => {
-      toast.error("Không thể thêm danh mục. Vui lòng thử lại.");
-    },
-  });
+  const createCategoryMutation = useCreateCategory();
 
   const onSubmit = (data: CategoryForm) => {
-    createCategoryMutation.mutate({
-      name: data.name,
-    });
+    createCategoryMutation.mutate(
+      { name: data.name },
+      {
+        onSuccess: () => {
+          reset();
+          setOpen(false);
+        },
+      },
+    );
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -90,7 +76,7 @@ export default function AddCategory() {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <CategoryField register={register} errors={errors}/>
+          <CategoryField register={register} errors={errors} />
 
           <div className="flex justify-end gap-2 border-t pt-4">
             <Button

@@ -4,47 +4,31 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import AlertDialogDelete from "@/components/layout-components/AlertDialogDelete";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Product, ProductDisplay } from "@/interfaces/product";
-import productApi from "@/api/routes/productApi";
 import UpdateProduct from "./UpdateProduct";
 import ProductDetails from "./ProductDetails";
+import { useDeleteProduct } from "@/hooks/products/mutations/useDeleteProduct";
 
-export default function ProductActions({ product }: { product: ProductDisplay}) {
+export default function ProductActions({
+  product,
+}: {
+  product: ProductDisplay;
+}) {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openDetails, setOpenDetails] = useState(false);
 
-  const queryClient = useQueryClient();
-
-  const deleteProductMutation = useMutation({
-    mutationFn: productApi.deleteProduct,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["products"],
-      });
-      toast.success("Deleted succesfully");
-    },
-
-    onError: (error) => {
-      toast.error("Deleted failed");
-    },
-  });
+  const deleteProductMutation = useDeleteProduct();
 
   const handleDeleteProduct = (id: number) => {
     deleteProductMutation.mutate(id);
   };
-
-  console.log(product)
 
   return (
     <>
@@ -84,9 +68,17 @@ export default function ProductActions({ product }: { product: ProductDisplay}) 
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <UpdateProduct data={product} open={openUpdate} onOpenChange={setOpenUpdate} />
+      <UpdateProduct
+        data={product}
+        open={openUpdate}
+        onOpenChange={setOpenUpdate}
+      />
 
-      <ProductDetails data={product} open={openDetails} onOpenChange={setOpenDetails}/>
+      <ProductDetails
+        data={product}
+        open={openDetails}
+        onOpenChange={setOpenDetails}
+      />
 
       <AlertDialogDelete
         id={product.id}
