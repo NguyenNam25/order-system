@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 export async function GET(
   request: Request,
@@ -140,20 +141,15 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    // const token = (await cookies()).get("token")?.value;
+    const authUser = await getAuthenticatedUser();
 
-    // if (!token) {
-    //   return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    // }
+    if (!authUser) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
-    // try {
-    //   jwt.verify(token, process.env.JWT_SECRET!);
-    // } catch (error) {
-    //   return NextResponse.json(
-    //     { message: "Invalid or expired token" },
-    //     { status: 401 },
-    //   );
-    // }
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
 
     await prisma.user.delete({
       where: {
