@@ -86,9 +86,33 @@ export async function PATCH(
           items: true,
         },
       });
+
       if (!currentOrder) {
         throw new Error("ORDER_NOT_FOUND");
       }
+
+      // Chỉ cho phép USER và ADMIN thực hiện thao tác
+      if (user.role !== "USER" && user.role !== "ADMIN") {
+        throw new Error("FORBIDDEN");
+      }
+
+      // USER chỉ được thao tác trên đơn hàng của chính mình
+      if (user.role === "USER" && currentOrder.userId !== user.id) {
+        throw new Error("ORDER_FORBIDDEN");
+      }
+
+      if (user.role === "USER") {
+        const isAllowedUserTransition =
+          (currentOrder.status === "PENDING" && status === "CANCELLED") ||
+          (currentOrder.status === "COMPLETED" &&
+            status === "RETURN_REQUESTED") ||
+          (currentOrder.status === "SHIPPING" && status === "COMPLETED");
+
+        if (!isAllowedUserTransition) {
+          throw new Error("FORBIDDEN_STATUS_TRANSITION");
+        }
+      }
+
       const allowedStatuses = allowedTransitions[currentOrder.status];
 
       if (!allowedStatuses.includes(status)) {
@@ -224,6 +248,24 @@ export async function PATCH(
             message: `Sản phẩm "${productName}" không đủ số lượng`,
           },
           { status: 400 },
+        );
+      }
+
+      if (error.message === "FORBIDDEN") {
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      }
+
+      if (error.message === "ORDER_FORBIDDEN") {
+        return NextResponse.json(
+          { message: "Bạn không có quyền thao tác đơn hàng này" },
+          { status: 403 },
+        );
+      }
+
+      if (error.message === "FORBIDDEN_STATUS_TRANSITION") {
+        return NextResponse.json(
+          { message: "Bạn không có quyền thực hiện thao tác này" },
+          { status: 403 },
         );
       }
     }
