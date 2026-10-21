@@ -1,4 +1,3 @@
-import axios from "axios";
 import type {
   Product,
   ProductDisplay,
@@ -6,7 +5,6 @@ import type {
   ProductImage,
   UploadImageResponse,
 } from "@/interfaces/product";
-import type { Category } from "@/interfaces/category";
 import axiosClient from "../axiosConfiguration";
 
 const productApi = {

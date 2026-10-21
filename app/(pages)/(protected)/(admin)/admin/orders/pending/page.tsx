@@ -1,7 +1,6 @@
 "use client";
 
 import CustomBreadcrumb from "@/components//layout-components/CustomBreadcrumb";
-import { getColumns } from "@/components/admin/order/columns";
 import ListOrderWS from "@/components/admin/order/ListOrderWithStatus";
 
 export default function Page() {
@@ -27,7 +26,6 @@ export default function Page() {
 
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
         <ListOrderWS
-          columns={getColumns(false)}
           status={["PENDING"]}
         />
       </div>

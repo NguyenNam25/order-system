@@ -21,13 +21,15 @@ import { DataTablePagination } from "@/components/layout-components/TablePaginat
 import { flexRender, Table as ReactTable } from "@tanstack/react-table";
 import { Order } from "@/interfaces/order";
 import useOrdersByStatus from "@/hooks/orders/queries/useOrdersByStatus";
+import { getColumns } from "@/components/admin/order/columns";
 
 interface DataTableProps {
-  columns: ColumnDef<DataTableFeatures, Order, unknown>[];
+
   status: Order["status"][];
 }
 
-export default function ListOrderWS({ columns, status }: DataTableProps) {
+export default function ListOrderWS({ status }: DataTableProps) {
+  const columns = getColumns(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
