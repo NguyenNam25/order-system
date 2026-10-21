@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 
 export interface JwtPayload {
   userId: number;
+  role: "ADMIN" | "USER";
 }
 
 export async function getAuthenticatedUser(): Promise<JwtPayload | null> {
@@ -21,6 +22,7 @@ export async function getAuthenticatedUser(): Promise<JwtPayload | null> {
 
     return {
       userId: decoded.userId,
+      role: decoded.role,
     };
   } catch {
     return null;

@@ -33,10 +33,17 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const user = await getAuthenticatedUser();
+    const authUser = await getAuthenticatedUser();
 
-    if (!user) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "Forbidden" },
+        { status: 403 },
+      );
     }
 
     const category = await prisma.category.update({
@@ -62,10 +69,17 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const user = await getAuthenticatedUser();
+    const authUser = await getAuthenticatedUser();
 
-    if (!user) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "Forbidden" },
+        { status: 403 },
+      );
     }
 
     await prisma.category.delete({

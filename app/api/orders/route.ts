@@ -32,7 +32,14 @@ export async function GET(request: Request) {
             }
           : undefined,
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
         items: {
           include: {
             product: {
@@ -71,6 +78,13 @@ export async function POST(request: Request) {
 
     if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "Forbidden" },
+        { status: 403 },
+      );
     }
 
     const userId = authUser.userId;

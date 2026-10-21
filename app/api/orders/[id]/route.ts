@@ -240,6 +240,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const authUser = await getAuthenticatedUser();
+
+    if (!authUser) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
     const { id } = await params;
 
     const orderId = Number(id);

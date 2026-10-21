@@ -19,10 +19,17 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const user = await getAuthenticatedUser();
+    const authUser = await getAuthenticatedUser();
 
-    if (!user) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json(
+        { message: "Forbidden" },
+        { status: 403 },
+      );
     }
 
     const body = await request.json();
