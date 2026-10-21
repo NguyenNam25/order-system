@@ -1,4 +1,4 @@
-import { readFile } from "fs/promises";
+import { readFile, realpath } from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
 
@@ -8,23 +8,28 @@ interface RouteContext {
   }>;
 }
 
-export async function GET(
-  request: Request,
-  { params }: RouteContext,
-) {
+export async function GET(request: Request, { params }: RouteContext) {
   try {
     const { filename } = await params;
 
-    const filePath = path.join(
-      process.cwd(),
-      "uploads",
-      "products",
-      filename,
-    );
+    const safeFilename = path.basename(filename);
 
-    const file = await readFile(filePath);
+    if (
+      !filename ||
+      safeFilename !== filename ||
+      filename === "." ||
+      filename === ".."
+    ) {
+      return NextResponse.json(
+        { message: "Không tìm thấy ảnh" },
+        { status: 404 },
+      );
+    }
 
-    const extension = path.extname(filename).toLowerCase();
+    const uploadDir = path.resolve(process.cwd(), "uploads", "products");
+    const filePath = path.resolve(uploadDir, safeFilename);
+
+    const extension = path.extname(safeFilename).toLowerCase();
 
     const contentTypes: Record<string, string> = {
       ".jpg": "image/jpeg",
@@ -34,12 +39,32 @@ export async function GET(
       ".gif": "image/gif",
     };
 
-    const contentType =
-      contentTypes[extension] ?? "application/octet-stream";
+    const contentType = contentTypes[extension];
+
+    if (!contentType) {
+      return NextResponse.json(
+        { message: "Không tìm thấy ảnh" },
+        { status: 404 },
+      );
+    }
+
+    const realUploadDir = await realpath(uploadDir);
+    const realFilePath = await realpath(filePath);
+
+    if (path.dirname(realFilePath) !== realUploadDir) {
+      return NextResponse.json(
+        { message: "Không tìm thấy ảnh" },
+        { status: 404 },
+      );
+    }
+
+    const file = await readFile(realFilePath);
 
     return new NextResponse(file, {
       headers: {
         "Content-Type": contentType,
+        "X-Content-Type-Options": "nosniff",
+        "Cache-Control": "public, max-age=3600",
       },
     });
   } catch {
