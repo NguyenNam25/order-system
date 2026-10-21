@@ -1,4 +1,3 @@
-import { PasswordUpdate } from "./../interfaces/user";
 import z from "zod";
 
 const fullname = z
@@ -20,7 +19,11 @@ const phone = z
   .regex(/^0\d{9}$/, "Phone must be a valid phone number");
 const role = z.enum(["USER", "ADMIN"]);
 
-export const userSchema = z.object({ fullname, email, password, phone, role });
+export const userSchema = z.object({ fullname, email, password, phone});
+
+export const userCreateSchema = userSchema.extend({
+  role,
+});
 
 export const updateUserSchema = z.object({ fullname, email, phone });
 

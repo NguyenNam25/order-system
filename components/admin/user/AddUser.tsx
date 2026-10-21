@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import type { UserRegister } from "@/interfaces/user";
-import { userSchema } from "@/schemas/userSchema";
+import type { UserCreate, UserRegister } from "@/interfaces/user";
+import { userCreateSchema, userSchema } from "@/schemas/userSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Select,
@@ -36,8 +36,8 @@ export default function AddUser() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<UserRegister>({
-    resolver: zodResolver(userSchema),
+  } = useForm<UserCreate>({
+    resolver: zodResolver(userCreateSchema),
     defaultValues: {
       role: "USER",
     },
@@ -45,7 +45,7 @@ export default function AddUser() {
 
   const createUserMutation = useCreateUser();
 
-  const onSubmit = (data: UserRegister) => {
+  const onSubmit = (data: UserCreate) => {
     createUserMutation.mutate(data, {
       onSuccess: () => {
         reset({ role: "USER" });

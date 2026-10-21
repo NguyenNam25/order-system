@@ -1,12 +1,10 @@
-import axios from "axios";
 import axiosClient from "../axiosConfiguration";
 import type {
   PasswordUpdate,
   User,
-  UserRegister,
+  UserCreate,
   UserUpdate,
 } from "@/interfaces/user";
-// import ChangePassword from "@/components/user/ChangePassword";
 
 const userApi = {
   getAllUsers: async (): Promise<User[]> => {
@@ -17,7 +15,7 @@ const userApi = {
     const response = await axiosClient.get(`/users/${id}`);
     return response.data;
   },
-  createUser: async (user: User): Promise<User> => {
+  createUser: async (user: UserCreate): Promise<User> => {
     try {
       const response = await axiosClient.post("/users", user);
       return response.data;
@@ -43,16 +41,18 @@ const userApi = {
   },
   ChangePassword: async (
     id: number,
-    password: PasswordUpdate, 
+    password: PasswordUpdate,
   ): Promise<User> => {
     try {
-      const response = await axiosClient.patch(`/users/${id}/password`, password);
+      const response = await axiosClient.patch(
+        `/users/${id}/password`,
+        password,
+      );
       return response.data;
     } catch (error) {
       throw error;
     }
   },
-
 };
 
 export default userApi;

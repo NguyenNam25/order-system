@@ -27,7 +27,7 @@ export async function POST(request: Request) {
         email: body.email,
         password: hashedPassword,
         phone: body.phone,
-        role: body.role,
+        role: "USER",
       },
       select: {
         id: true,
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -18,12 +18,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import {
-  UserPlus,
-  ArrowLeft,
-  LoaderCircle,
-  ShieldCheck,
-} from "lucide-react";
+import { UserPlus, ArrowLeft, LoaderCircle, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import logo from "@/public/asus-rog-1-logo-svgrepo-com.png";
 import RegisterBg from "@/components/register/RegisterBg";
@@ -37,9 +32,6 @@ export default function Register() {
     formState: { errors },
   } = useForm<UserRegister>({
     resolver: zodResolver(userSchema),
-    defaultValues: {
-      role: "USER",
-    },
   });
 
   const queryClient = useQueryClient();
@@ -76,7 +68,6 @@ export default function Register() {
       email: data.email,
       password: data.password,
       phone: data.phone,
-      role: "USER",
     });
   };
 
@@ -106,8 +97,8 @@ export default function Register() {
             </CardHeader>
 
             <CardContent className="px-5 pt-5 sm:px-7">
-              <RegisterFieldGroup register={register} errors={errors}/>
-              
+              <RegisterFieldGroup register={register} errors={errors} />
+
               <div className="mt-5 flex items-start gap-2 rounded-xl border border-white/6 bg-white/2.5 p-3">
                 <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-400" />
                 <p className="text-xs leading-5 text-zinc-400">

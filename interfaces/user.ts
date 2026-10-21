@@ -6,12 +6,16 @@ export interface User {
   password: string;
   phone: string;
 }
+
 export interface UserRegister {
   fullname: string;
   email: string;
-  role: "USER" | "ADMIN";
   password: string;
   phone: string;
+}
+
+export interface UserCreate extends UserRegister {
+  role: "USER" | "ADMIN";
 }
 
 export interface UserUpdate {

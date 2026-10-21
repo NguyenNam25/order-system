@@ -1,14 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import axios from "axios";
-
-import authApi from "@/api/routes/authApi";
+import userApi from "@/api/routes/userApi";
 
 export function useCreateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: authApi.register,
+    mutationFn: userApi.createUser,
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
