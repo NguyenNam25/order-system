@@ -1,24 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { getAuthenticatedUser } from "@/lib/auth";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+const allowedMimeTypes: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+};
 
 export async function POST(request: NextRequest) {
   try {
-    const token = (await cookies()).get("token")?.value;
+    //token
+    const authUser = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
+    // 2. Kiểm tra quyền ADMIN
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const formData = await request.formData();
@@ -37,17 +41,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Kiểm tra loại file
-    if (!file.type.startsWith("image/")) {
+    const extension = allowedMimeTypes[file.type];
+
+    if (!extension) {
       return NextResponse.json(
-        {
-          message: "File phải là hình ảnh",
-        },
-        {
-          status: 400,
-        },
+        { message: "Chỉ chấp nhận file JPG, JPEG, PNG hoặc WEBP" },
+        { status: 400 },
       );
     }
 
+    //Giới hạn dung lượng
+    if (file.size === 0 || file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { message: "File phải có dung lượng từ 1 byte đến 5 MB" },
+        { status: 400 },
+      );
+    }
+
+    // Đọc nội dung file
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
@@ -59,10 +70,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Tạo tên file mới
-    const extension = path.extname(file.name);
-
-    const fileName = `${Date.now()}-${crypto.randomUUID()}${extension}`;
-
+    const fileName = `${crypto.randomUUID()}${extension}`;
     const filePath = path.join(uploadDir, fileName);
 
     // Lưu file

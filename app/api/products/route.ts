@@ -33,36 +33,11 @@ export async function POST(request: Request) {
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 },
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Lấy thông tin người dùng từ database
-    const user = await prisma.user.findUnique({
-      where: {
-        id: authUser.userId,
-      },
-      select: {
-        id: true,
-        role: true,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { message: "User not found" },
-        { status: 401 },
-      );
-    }
-
-    // 3. Chỉ ADMIN được thêm sản phẩm
-    if (user.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Forbidden" },
-        { status: 403 },
-      );
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     // 4. Lấy dữ liệu từ request

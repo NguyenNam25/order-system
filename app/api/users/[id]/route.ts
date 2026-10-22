@@ -10,19 +10,15 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const token = (await cookies()).get("token")?.value;
 
-    if (!token) {
+    const authUser = await getAuthenticatedUser();
+
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const user = await prisma.user.findUnique({
@@ -50,22 +46,26 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params;
-    const body = await request.json();
-    const token = (await cookies()).get("token")?.value;
+    // 1. Xác thực người dùng
+    const authUser = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
+    // 2. Kiểm tra quyền ADMIN
+    if (authUser.role !== "ADMIN" && authUser.role !== "USER") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
+
+    const { id } = await params;
+    const userId = Number(id);
+
+    if (authUser.role === "USER" && authUser.userId !== userId) {
+      throw new Error("USER_FORBIDDEN");
+    }
+
+    const body = await request.json();
 
     const user = await prisma.user.update({
       where: {
@@ -95,22 +95,26 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params;
-    const body = await request.json();
-    const token = (await cookies()).get("token")?.value;
+    // 1. Xác thực người dùng
+    const authUser = await getAuthenticatedUser();
 
-    if (!token) {
+    if (!authUser) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return NextResponse.json(
-        { message: "Invalid or expired token" },
-        { status: 401 },
-      );
+    // 2. Kiểm tra quyền ADMIN
+    if (authUser.role !== "ADMIN" && authUser.role !== "USER") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
+
+    const { id } = await params;
+    const userId = Number(id);
+
+    if (authUser.role === "USER" && authUser.userId !== userId) {
+      throw new Error("USER_FORBIDDEN");
+    }
+
+    const body = await request.json();
 
     const user = await prisma.user.update({
       where: {

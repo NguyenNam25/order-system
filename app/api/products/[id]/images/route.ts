@@ -14,30 +14,12 @@ export async function POST(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 },
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     // 2. Kiểm tra quyền ADMIN
-    const user = await prisma.user.findUnique({
-      where: { id: authUser.userId },
-      select: { id: true, role: true },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { message: "User not found" },
-        { status: 401 },
-      );
-    }
-
-    if (user.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Forbidden" },
-        { status: 403 },
-      );
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     // 3. Kiểm tra productId
@@ -66,10 +48,7 @@ export async function POST(
     // 4. Kiểm tra imageUrl
     const body = await request.json();
 
-    if (
-      typeof body.imageUrl !== "string" ||
-      !body.imageUrl.trim()
-    ) {
+    if (typeof body.imageUrl !== "string" || !body.imageUrl.trim()) {
       return NextResponse.json(
         { message: "Invalid image URL" },
         { status: 400 },

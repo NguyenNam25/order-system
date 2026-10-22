@@ -24,21 +24,7 @@ export async function DELETE(
     }
 
     // 2. Kiểm tra quyền ADMIN
-    const user = await prisma.user.findUnique({
-      where: {
-        id: authUser.userId,
-      },
-      select: {
-        id: true,
-        role: true,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 401 });
-    }
-
-    if (user.role !== "ADMIN") {
+    if (authUser.role !== "ADMIN") {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
