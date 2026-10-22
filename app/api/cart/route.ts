@@ -115,42 +115,72 @@ export async function POST(request: Request) {
       );
     }
 
-    // Tìm Cart, nếu chưa có thì tạo
-    const cart = await prisma.cart.upsert({
-      where: {
-        userId,
-      },
-      update: {},
-      create: {
-        userId,
-      },
-    });
+    const cartItem = await prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({
+        where: { id: productId },
+        select: {
+          id: true,
+          quantity: true,
+        },
+      });
 
-    // Thêm CartItem hoặc tăng quantity
-    const cartItem = await prisma.cartItem.upsert({
-      where: {
-        cartId_productId: {
-          cartId: cart.id,
-          productId,
+      if (!product) {
+        throw new Error("PRODUCT_NOT_FOUND");
+      }
+
+      const cart = await tx.cart.upsert({
+        where: {
+          userId: user.userId,
         },
-      },
-      update: {
-        quantity: {
-          increment: quantity,
+        update: {},
+        create: {
+          userId: user.userId,
         },
-      },
-      create: {
-        cartId: cart.id,
-        productId,
-        quantity,
-      },
-      include: {
-        product: {
-          include: {
-            images: true,
+      });
+
+      const existingItem = await tx.cartItem.findUnique({
+        where: {
+          cartId_productId: {
+            cartId: cart.id,
+            productId,
           },
         },
-      },
+        select: {
+          quantity: true,
+        },
+      });
+
+      const totalQuantity = (existingItem?.quantity ?? 0) + quantity;
+
+      if (totalQuantity > product.quantity) {
+        throw new Error("INSUFFICIENT_STOCK");
+      }
+
+      return tx.cartItem.upsert({
+        where: {
+          cartId_productId: {
+            cartId: cart.id,
+            productId,
+          },
+        },
+        update: {
+          quantity: {
+            increment: quantity,
+          },
+        },
+        create: {
+          cartId: cart.id,
+          productId,
+          quantity,
+        },
+        include: {
+          product: {
+            include: {
+              images: true,
+            },
+          },
+        },
+      });
     });
 
     return NextResponse.json(
@@ -161,7 +191,21 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Add to cart error:", error);
+    if (error instanceof Error) {
+      if (error.message === "PRODUCT_NOT_FOUND") {
+        return NextResponse.json(
+          { message: "Product not found" },
+          { status: 404 },
+        );
+      }
+
+      if (error.message === "INSUFFICIENT_STOCK") {
+        return NextResponse.json(
+          { message: "Số lượng vượt quá tồn kho" },
+          { status: 400 },
+        );
+      }
+    }
 
     return NextResponse.json(
       { message: "Internal server error" },

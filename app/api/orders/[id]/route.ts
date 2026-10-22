@@ -156,7 +156,7 @@ export async function PATCH(
       // Khi RETURN APPROVE → cộng stock
       if (
         currentOrder.status === "RETURN_REQUESTED" &&
-        status === "RETURN_APPROVED"
+        status === "RETURN_APPROVED" && returnMethod === "REFUND"
       ) {
         for (const item of currentOrder.items) {
           const product = await tx.product.findUnique({
