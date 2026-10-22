@@ -121,23 +121,12 @@ export async function PATCH(
       // Khi CONFIRMED → trừ stock
       if (currentOrder.status === "PENDING" && status === "CONFIRMED") {
         for (const item of currentOrder.items) {
-          const product = await tx.product.findUnique({
+          const result = await tx.product.updateMany({
             where: {
               id: item.productId,
-            },
-          });
-
-          if (!product) {
-            throw new Error("PRODUCT_NOT_FOUND");
-          }
-
-          if (product.quantity < item.quantity) {
-            throw new Error(`OUT_OF_STOCK:${product.name}`);
-          }
-
-          await tx.product.update({
-            where: {
-              id: item.productId,
+              quantity: {
+                gte: item.quantity,
+              },
             },
             data: {
               quantity: {
@@ -145,6 +134,23 @@ export async function PATCH(
               },
             },
           });
+
+          if (result.count === 0) {
+            const product = await tx.product.findUnique({
+              where: {
+                id: item.productId,
+              },
+              select: {
+                name: true,
+              },
+            });
+
+            if (!product) {
+              throw new Error("PRODUCT_NOT_FOUND");
+            }
+
+            throw new Error(`OUT_OF_STOCK:${product.name}`);
+          }
         }
       }
       // Khi RETURN APPROVE → cộng stock
@@ -156,6 +162,9 @@ export async function PATCH(
           const product = await tx.product.findUnique({
             where: {
               id: item.productId,
+            },
+            select: {
+              id: true,
             },
           });
 
