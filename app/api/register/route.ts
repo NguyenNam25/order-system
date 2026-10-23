@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "Email already exists" },
+        { message: "Email đã được sử dụng" },
         { status: 400 },
       );
     }
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

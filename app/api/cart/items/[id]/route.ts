@@ -10,7 +10,7 @@ export async function PUT(
     const user = await getAuthenticatedUser();
 
     if (!user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     const userId = user.userId;
@@ -83,10 +83,8 @@ export async function PUT(
       cartItem: updatedCartItem,
     });
   } catch (error) {
-    console.error("Update cart item error:", error);
-
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -100,10 +98,8 @@ export async function DELETE(
     const user = await getAuthenticatedUser();
 
     if (!user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
-
-    const userId = user.userId;
 
     // 3. Lấy cartItemId từ URL
     const { id } = await params;
@@ -133,13 +129,11 @@ export async function DELETE(
     }
     // 8. Trả response
     return NextResponse.json({
-      message: "Cart item deleted successfully",
+      message: "Xóa khỏi giỏ hàng thành công",
     });
   } catch (error) {
-    console.error("Update cart item error:", error);
-
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

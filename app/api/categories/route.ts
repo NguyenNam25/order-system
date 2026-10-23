@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     return NextResponse.json(categories, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -20,11 +20,11 @@ export async function POST(request: Request) {
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     if (existingCategory) {
       return NextResponse.json(
-        { message: "Category already exists" },
+        { message: "Danh mục đã tòn tại" },
         { status: 400 },
       );
     }
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

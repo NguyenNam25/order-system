@@ -12,12 +12,12 @@ export async function POST(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     // 2. Kiểm tra quyền ADMIN
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     // 3. Kiểm tra productId
@@ -26,7 +26,7 @@ export async function POST(
 
     if (!Number.isInteger(productId) || productId <= 0) {
       return NextResponse.json(
-        { message: "Invalid product ID" },
+        { message: "ID sản phẩm không hợp lệ" },
         { status: 400 },
       );
     }
@@ -38,7 +38,7 @@ export async function POST(
 
     if (!product) {
       return NextResponse.json(
-        { message: "Product not found" },
+        { message: "Không tìm thấy sản phẩm" },
         { status: 404 },
       );
     }
@@ -48,7 +48,7 @@ export async function POST(
 
     if (typeof body.imageUrl !== "string" || !body.imageUrl.trim()) {
       return NextResponse.json(
-        { message: "Invalid image URL" },
+        { message: "URL ảnh không hợp lệ" },
         { status: 400 },
       );
     }
@@ -63,10 +63,8 @@ export async function POST(
 
     return NextResponse.json(image, { status: 201 });
   } catch (error) {
-    console.error("Create product image error:", error);
-
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

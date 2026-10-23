@@ -11,11 +11,11 @@ export async function GET(request: Request) {
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     const statusParam = searchParams.get("status");
@@ -63,10 +63,8 @@ export async function GET(request: Request) {
       { status: 200 },
     );
   } catch (error) {
-    console.error("Get all orders error:", error);
-
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -77,11 +75,11 @@ export async function POST(request: Request) {
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     if (authUser.role !== "USER" && authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     const userId = authUser.userId;
@@ -101,14 +99,14 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         {
-          message: "Receiver name, phone and address are required",
+          message: "Tên người nhận, số điện thoại và địa chỉ không được trống",
         },
         { status: 400 },
       );
     }
 
     if (note !== undefined && note !== null && typeof note !== "string") {
-      return NextResponse.json({ message: "Invalid note" }, { status: 400 });
+      return NextResponse.json({ message: "Ghi chú không hợp lệ" }, { status: 400 });
     }
 
     if (
@@ -117,13 +115,13 @@ export async function POST(request: Request) {
       !itemIds.every((id) => Number.isInteger(id) && id > 0) ||
       new Set(itemIds).size !== itemIds.length
     ) {
-      return NextResponse.json({ message: "Invalid itemIds" }, { status: 400 });
+      return NextResponse.json({ message: "ID sản phẩm trong giỏ hàng không hợp lệ" }, { status: 400 });
     }
 
     if (!itemIds || itemIds.length === 0) {
       return NextResponse.json(
         {
-          message: "No items selected",
+          message: "Không có sản phẩm nào trong giỏ hàng",
         },
         { status: 400 },
       );
@@ -224,7 +222,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        message: "Order created successfully",
+        message: "Tạo đơn hàng thành công",
         order,
       },
       { status: 201 },
@@ -257,7 +255,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        message: "Internal server error",
+        message: "Đã xảy ra lỗi máy chủ",
       },
       { status: 500 },
     );

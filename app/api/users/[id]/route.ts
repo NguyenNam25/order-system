@@ -12,11 +12,17 @@ export async function GET(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { status: 403 },
+      );
     }
 
     const user = await prisma.user.findUnique({
@@ -33,7 +39,7 @@ export async function GET(
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -48,12 +54,18 @@ export async function PUT(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
     }
 
     // 2. Kiểm tra quyền ADMIN
     if (authUser.role !== "ADMIN" && authUser.role !== "USER") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { status: 403 },
+      );
     }
 
     const { id } = await params;
@@ -81,8 +93,15 @@ export async function PUT(
     });
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
+    if (error instanceof Error && error.message === "USER_FORBIDDEN") {
+      return NextResponse.json(
+        { message: "Bạn không có quyền cập nhật thông tin người dùng khác" },
+        { status: 403 },
+      );
+    }
+
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -97,12 +116,18 @@ export async function PATCH(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
     }
 
     // 2. Kiểm tra quyền ADMIN
     if (authUser.role !== "ADMIN" && authUser.role !== "USER") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { status: 403 },
+      );
     }
 
     const { id } = await params;
@@ -130,8 +155,15 @@ export async function PATCH(
     });
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
+    if (error instanceof Error && error.message === "USER_FORBIDDEN") {
+      return NextResponse.json(
+        { message: "Bạn không có quyền cập nhật thông tin người dùng khác" },
+        { status: 403 },
+      );
+    }
+
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -146,11 +178,17 @@ export async function DELETE(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { status: 403 },
+      );
     }
 
     await prisma.user.delete({
@@ -160,12 +198,12 @@ export async function DELETE(
     });
 
     return NextResponse.json(
-      { message: "User deleted successfully" },
+      { message: "Xóa người dùng thành công" },
       { status: 200 },
     );
   } catch (error) {
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

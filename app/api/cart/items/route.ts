@@ -8,7 +8,7 @@ export async function DELETE(request: Request) {
     const user = await getAuthenticatedUser();
 
     if (!user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     const userId = user.userId;
@@ -21,7 +21,7 @@ export async function DELETE(request: Request) {
     });
 
     if (!cart) {
-      return NextResponse.json({ message: "Cart not found" }, { status: 404 });
+      return NextResponse.json({ message: "Không tìm thấy giỏ hàng" }, { status: 404 });
     }
 
     // 4. Xóa tất cả CartItem của cart
@@ -34,15 +34,13 @@ export async function DELETE(request: Request) {
     // 5. Trả kết quả
     return NextResponse.json(
       {
-        message: "All products removed from cart successfully",
+        message: "Xóa tất cả sản phẩm khỏi giỏ hàng thành công",
       },
       { status: 200 },
     );
   } catch (error) {
-    console.error("Delete all cart items error:", error);
-
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

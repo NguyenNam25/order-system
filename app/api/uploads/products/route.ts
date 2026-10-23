@@ -17,12 +17,18 @@ export async function POST(request: NextRequest) {
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
     }
 
     // 2. Kiểm tra quyền ADMIN
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { status: 403 },
+      );
     }
 
     const formData = await request.formData();
@@ -84,8 +90,6 @@ export async function POST(request: NextRequest) {
       imageUrl,
     });
   } catch (error) {
-    console.error(error);
-
     return NextResponse.json(
       {
         message: "Upload ảnh thất bại",

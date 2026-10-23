@@ -17,10 +17,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json(products, { status: 200 });
   } catch (error) {
-    console.error("Get products error:", error);
-
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -33,11 +31,11 @@ export async function POST(request: Request) {
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     // 4. Lấy dữ liệu từ request
@@ -57,7 +55,7 @@ export async function POST(request: Request) {
       quantity < 0
     ) {
       return NextResponse.json(
-        { message: "Invalid product data" },
+        { message: "Dữ liệu sản phẩm không hợp lệ" },
         { status: 400 },
       );
     }
@@ -71,7 +69,7 @@ export async function POST(request: Request) {
 
     if (existingProduct) {
       return NextResponse.json(
-        { message: "Product already exists" },
+        { message: "Sản phẩm đã tồn tại" },
         { status: 400 },
       );
     }
@@ -89,10 +87,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
-    console.error("Create product error:", error);
-
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

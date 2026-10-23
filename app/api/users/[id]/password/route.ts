@@ -3,26 +3,35 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params;
-    const token = (await cookies()).get("token")?.value;
+    const authUser = await getAuthenticatedUser();
 
-    if (!token) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    try {
-      jwt.verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
+    if (!authUser) {
       return NextResponse.json(
-        { message: "Invalid or expired token" },
+        { message: "Bạn chưa đăng nhập" },
         { status: 401 },
       );
+    }
+
+    // 2. Kiểm tra quyền ADMIN
+    if (authUser.role !== "ADMIN" && authUser.role !== "USER") {
+      return NextResponse.json(
+        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { status: 403 },
+      );
+    }
+
+    const { id } = await params;
+    const userId = Number(id);
+
+    if (authUser.role === "USER" && authUser.userId !== userId) {
+      throw new Error("USER_FORBIDDEN");
     }
 
     const body = await request.json();
@@ -33,7 +42,7 @@ export async function PATCH(
     });
 
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ message: "Không tìm thấy người dùng" }, { status: 404 });
     }
 
     const isPasswordCorrect = await bcrypt.compare(
@@ -43,7 +52,7 @@ export async function PATCH(
 
     if (!isPasswordCorrect) {
       return NextResponse.json(
-        { message: "Current password is incorrect" },
+        { message: "Mật khẩu hiện tại không đúng" },
         { status: 400 },
       );
     }
@@ -60,12 +69,19 @@ export async function PATCH(
     });
 
     return NextResponse.json(
-      { message: "Password updated successfully" },
+      { message: "Cập nhật mật khẩu mới thành công" },
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof Error && error.message === "USER_FORBIDDEN") {
+      return NextResponse.json(
+        { message: "Bạn không có quyền cập nhật thông tin người dùng khác" },
+        { status: 403 },
+      );
+    }
+
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

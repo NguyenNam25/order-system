@@ -63,10 +63,8 @@ export async function POST(request: Request) {
 
     return res;
   } catch (error) {
-    console.error("LOGIN ERROR:", error);
-    
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

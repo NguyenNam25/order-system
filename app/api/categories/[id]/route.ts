@@ -19,7 +19,7 @@ export async function GET(
     return NextResponse.json(category, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -35,11 +35,11 @@ export async function PUT(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     const category = await prisma.category.update({
@@ -53,7 +53,7 @@ export async function PUT(
     return NextResponse.json(category, { status: 202 });
   } catch (error) {
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -68,11 +68,11 @@ export async function DELETE(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     await prisma.category.delete({
@@ -82,7 +82,7 @@ export async function DELETE(
     });
 
     return NextResponse.json(
-      { message: "Category deleted successfully" },
+      { message: "Xóa danh mục thành công" },
       { status: 200 },
     );
   } catch (error) {
@@ -106,7 +106,7 @@ export async function DELETE(
     }
 
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

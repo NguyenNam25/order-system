@@ -8,11 +8,17 @@ export async function GET(request: Request) {
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { status: 403 },
+      );
     }
 
     const users = await prisma.user.findMany({
@@ -26,7 +32,7 @@ export async function GET(request: Request) {
     return NextResponse.json(users, { status: 200 });
   } catch (error) {
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -37,11 +43,17 @@ export async function POST(request: Request) {
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { status: 403 },
+      );
     }
 
     const body = await request.json();
@@ -54,7 +66,7 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "Email already exists" },
+        { message: "Email đã được sử dụng" },
         { status: 400 },
       );
     }
@@ -81,7 +93,7 @@ export async function POST(request: Request) {
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

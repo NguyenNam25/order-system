@@ -20,12 +20,12 @@ export async function DELETE(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     // 2. Kiểm tra quyền ADMIN
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     // 3. Kiểm tra ID
@@ -40,7 +40,7 @@ export async function DELETE(
       productImageId <= 0
     ) {
       return NextResponse.json(
-        { message: "Invalid product or image ID" },
+        { message: "ID sản phẩm hoặc hình ảnh không hợp lệ" },
         { status: 400 },
       );
     }
@@ -54,7 +54,7 @@ export async function DELETE(
     });
 
     if (!image) {
-      return NextResponse.json({ message: "Image not found" }, { status: 404 });
+      return NextResponse.json({ message: "Không tìm thấy ảnh" }, { status: 404 });
     }
 
     // 5. Xóa bản ghi trong database
@@ -83,14 +83,12 @@ export async function DELETE(
     }
 
     return NextResponse.json(
-      { message: "Image deleted successfully" },
+      { message: "Xóa ảnh thành công" },
       { status: 200 },
     );
   } catch (error) {
-    console.error("Delete product image error:", error);
-
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }

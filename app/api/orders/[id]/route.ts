@@ -32,18 +32,18 @@ export async function PATCH(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     if (authUser.role !== "USER" && authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     const userId = authUser.userId;
 
     if (!userId) {
       return NextResponse.json(
-        { message: "Invalid token payload" },
+        { message: "Dữ liệu trong token không hợp lệ" },
         { status: 401 },
       );
     }
@@ -57,7 +57,7 @@ export async function PATCH(
       },
     });
     if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return NextResponse.json({ message: "Không tìm thấy người dùng" }, { status: 404 });
     }
 
     const { id } = await params;
@@ -65,7 +65,7 @@ export async function PATCH(
 
     if (Number.isNaN(orderId)) {
       return NextResponse.json(
-        { message: "Invalid order id" },
+        { message: "Id đơn hàng không hợp lệ" },
         { status: 400 },
       );
     }
@@ -76,7 +76,7 @@ export async function PATCH(
 
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
-        { message: "Invalid order status" },
+        { message: "Trạng thái đơn hàng không hợp lệ" },
         { status: 400 },
       );
     }
@@ -224,32 +224,30 @@ export async function PATCH(
 
     return NextResponse.json(
       {
-        message: "Order status updated successfully",
+        message: "Cập nhật trạng thái đơn hàng thành công",
         order,
       },
       { status: 200 },
     );
   } catch (error) {
-    console.error("Update order status error:", error);
-
     if (error instanceof Error) {
       if (error.message === "ORDER_NOT_FOUND") {
         return NextResponse.json(
-          { message: "Order not found" },
+          { message: "Không tìm thấy đơn hàng" },
           { status: 404 },
         );
       }
 
       if (error.message === "PRODUCT_NOT_FOUND") {
         return NextResponse.json(
-          { message: "Product not found" },
+          { message: "Không tìm thấy sản phẩm" },
           { status: 404 },
         );
       }
 
       if (error.message === "INVALID_STATUS_TRANSITION") {
         return NextResponse.json(
-          { message: "Invalid status transition" },
+          { message: "Không thể chuyển sang trạng thái này" },
           { status: 400 },
         );
       }
@@ -266,7 +264,7 @@ export async function PATCH(
       }
 
       if (error.message === "FORBIDDEN") {
-        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+        return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
       }
 
       if (error.message === "ORDER_FORBIDDEN") {
@@ -285,7 +283,7 @@ export async function PATCH(
     }
 
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
@@ -299,11 +297,11 @@ export async function DELETE(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
     }
 
     const { id } = await params;
@@ -312,7 +310,7 @@ export async function DELETE(
 
     if (Number.isNaN(orderId)) {
       return NextResponse.json(
-        { message: "Invalid order id" },
+        { message: "Id đơn hàng không hợp lệ" },
         { status: 400 },
       );
     }
@@ -333,16 +331,14 @@ export async function DELETE(
 
     return NextResponse.json(
       {
-        message: "Order status updated successfully",
+        message: "Xóa đơn hàng thành công",
       },
       { status: 200 },
     );
   } catch (error) {
-    console.error("Update order status error:", error);
-
     return NextResponse.json(
       {
-        message: "Internal server error",
+        message: "Đã xảy ra lỗi máy chủ",
       },
       { status: 500 },
     );

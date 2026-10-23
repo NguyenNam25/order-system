@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const user = await getAuthenticatedUser();
 
     if (!user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
     // Lấy itemIds từ URL
     const itemsParam = searchParams.get("items");
@@ -66,11 +66,9 @@ export async function GET(request: Request) {
       { status: 200 },
     );
   } catch (error) {
-    console.error("Get cart error:", error);
-
     return NextResponse.json(
       {
-        message: "Internal server error",
+        message: "Đã xảy ra lỗi máy chủ",
       },
       { status: 500 },
     );
@@ -83,7 +81,7 @@ export async function POST(request: Request) {
     const user = await getAuthenticatedUser();
 
     if (!user) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
     const userId = user.userId;
@@ -94,7 +92,7 @@ export async function POST(request: Request) {
 
     if (!productId || !quantity || quantity <= 0) {
       return NextResponse.json(
-        { message: "Invalid productId or quantity" },
+        { message: "ID sản phẩm không hợp lệ hoặc số lượng sản phamar không đủ" },
         { status: 400 },
       );
     }
@@ -108,7 +106,7 @@ export async function POST(request: Request) {
 
     if (!product) {
       return NextResponse.json(
-        { message: "Product not found" },
+        { message: "Không tìm thấy sản phẩm" },
         { status: 404 },
       );
     }
@@ -183,7 +181,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        message: "Product added to cart successfully",
+        message: "Thêm sản phẩm vào giỏ hàng thành công",
         cartItem,
       },
       { status: 201 },
@@ -192,7 +190,7 @@ export async function POST(request: Request) {
     if (error instanceof Error) {
       if (error.message === "PRODUCT_NOT_FOUND") {
         return NextResponse.json(
-          { message: "Product not found" },
+          { message: "Không tìm thấy sản phẩm" },
           { status: 404 },
         );
       }
@@ -206,7 +204,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { message: "Internal server error" },
+      { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
     );
   }
