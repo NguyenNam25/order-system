@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { ProductImage } from "@/interfaces/product";
 
 export function useProductImages(initialImages: ProductImage[] = []) {
@@ -8,11 +8,11 @@ export function useProductImages(initialImages: ProductImage[] = []) {
   const [newImages, setNewImages] = useState<File[]>([]);
   const [deletedImageIds, setDeletedImageIds] = useState<number[]>([]);
 
-  const resetImages = (images: ProductImage[] = []) => {
+  const resetImages = useCallback((images: ProductImage[]) => {
     setExistingImages(images);
     setNewImages([]);
     setDeletedImageIds([]);
-  };
+  }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;

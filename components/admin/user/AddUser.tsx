@@ -11,7 +11,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useState } from "react";
 import type { UserCreate } from "@/interfaces/user";
 import { userCreateSchema } from "@/schemas/userSchema";
@@ -34,13 +34,18 @@ export default function AddUser() {
     handleSubmit,
     reset,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<UserCreate>({
     resolver: zodResolver(userCreateSchema),
     defaultValues: {
       role: "USER",
     },
+  });
+
+  const role = useWatch({
+    control,
+    name: "role",
   });
 
   const createUserMutation = useCreateUser();
@@ -79,7 +84,7 @@ export default function AddUser() {
               <FieldLabel htmlFor="role">Vai trò</FieldLabel>
 
               <Select
-                value={watch("role")}
+                value={role}
                 onValueChange={(value) =>
                   setValue("role", value as "USER" | "ADMIN", {
                     shouldValidate: true,

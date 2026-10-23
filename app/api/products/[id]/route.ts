@@ -37,7 +37,7 @@ export async function GET(
     }
 
     return NextResponse.json(product, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
@@ -148,7 +148,7 @@ export async function PUT(
     });
 
     return NextResponse.json(product, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

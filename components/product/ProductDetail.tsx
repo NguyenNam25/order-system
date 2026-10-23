@@ -22,7 +22,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ProductImage } from "@/interfaces/product";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -32,8 +32,7 @@ import axios from "axios";
 export default function ProductDetail({ id }: { id: string }) {
   const { currentUser, isLoading: authLoading } = useAuth();
 
-  const [selectedImage, setSelectedImage] =
-    useState<ProductImage | null>(null);
+  const [selectedImage, setSelectedImage] = useState<ProductImage | null>(null);
   const [quantity, setQuantity] = useState(1);
 
   const router = useRouter();
@@ -41,9 +40,7 @@ export default function ProductDetail({ id }: { id: string }) {
   const searchParams = useSearchParams();
 
   const queryString = searchParams.toString();
-  const currentUrl = queryString
-    ? `${pathname}?${queryString}`
-    : pathname;
+  const currentUrl = queryString ? `${pathname}?${queryString}` : pathname;
 
   const requireLogin = () => {
     if (authLoading) return false;
@@ -56,20 +53,20 @@ export default function ProductDetail({ id }: { id: string }) {
     return true;
   };
 
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["products", id],
     queryFn: () => productApi.getProductById(Number(id)),
   });
 
-  useEffect(() => {
-    setSelectedImage(data?.images?.[0] ?? null);
-    setQuantity(data && data.quantity > 0 ? 1 : 0);
-  }, [data]);
+  const displayedImage =
+    selectedImage && data?.images.some((image) => image.id === selectedImage.id)
+      ? selectedImage
+      : (data?.images?.[0] ?? null);
+
+  const selectedQuantity =
+    data && data.quantity > 0
+      ? Math.min(Math.max(quantity, 1), data.quantity)
+      : 0;
 
   const addToCartMutation = useMutation({
     mutationFn: async () => {
@@ -77,7 +74,7 @@ export default function ProductDetail({ id }: { id: string }) {
         throw new Error("Product not found");
       }
 
-      if (data.quantity <= 0 || quantity < 1 || quantity > data.quantity) {
+      if (data.quantity <= 0 || selectedQuantity < 1 || selectedQuantity > data.quantity) {
         throw new Error("Số lượng sản phẩm không hợp lệ");
       }
 
@@ -85,7 +82,7 @@ export default function ProductDetail({ id }: { id: string }) {
 
       return cartApi.addToCart({
         productId: data.id,
-        quantity,
+        quantity: selectedQuantity,
       });
     },
 
@@ -103,7 +100,8 @@ export default function ProductDetail({ id }: { id: string }) {
       }
 
       toast.error(
-        error instanceof Error && error.message === "Số lượng sản phẩm không hợp lệ"
+        error instanceof Error &&
+          error.message === "Số lượng sản phẩm không hợp lệ"
           ? error.message
           : "Không thể thêm sản phẩm vào giỏ hàng",
       );
@@ -209,9 +207,9 @@ export default function ProductDetail({ id }: { id: string }) {
         {/* Product images */}
         <section className="min-w-0 rounded-2xl border border-zinc-800 bg-[#18181B] p-3 sm:p-5">
           <div className="relative h-[300px] overflow-hidden rounded-xl border border-white/[0.05] bg-gradient-to-br from-[#242429] to-[#111114] sm:h-[360px] lg:h-[400px]">
-            {selectedImage ? (
+            {displayedImage ? (
               <Image
-                src={selectedImage.imageUrl}
+                src={displayedImage.imageUrl}
                 alt={data.name}
                 fill
                 priority
@@ -243,7 +241,7 @@ export default function ProductDetail({ id }: { id: string }) {
                       aria-label={`Xem ảnh sản phẩm ${image.id}`}
                       onClick={() => setSelectedImage(image)}
                       className={`relative aspect-square w-full overflow-hidden rounded-xl border bg-[#242429] transition-all ${
-                        selectedImage?.id === image.id
+                        displayedImage?.id === image.id
                           ? "border-[#FF0033] ring-1 ring-[#FF0033]/40"
                           : "border-zinc-700 hover:border-zinc-500"
                       }`}
@@ -328,9 +326,7 @@ export default function ProductDetail({ id }: { id: string }) {
 
           {/* Quantity */}
           <div className="mt-6">
-            <p className="mb-3 text-sm font-semibold text-zinc-200">
-              Số lượng
-            </p>
+            <p className="mb-3 text-sm font-semibold text-zinc-200">Số lượng</p>
 
             <div className="flex items-center gap-4">
               <div className="inline-flex items-center rounded-xl border border-zinc-700 bg-[#111114] p-1">
@@ -347,7 +343,7 @@ export default function ProductDetail({ id }: { id: string }) {
                 </Button>
 
                 <span className="min-w-10 text-center text-sm font-bold text-white">
-                  {quantity}
+                  {selectedQuantity}
                 </span>
 
                 <Button
@@ -357,9 +353,7 @@ export default function ProductDetail({ id }: { id: string }) {
                   aria-label="Tăng số lượng"
                   className="h-9 w-9 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white"
                   onClick={handleIncrease}
-                  disabled={
-                    outOfStock || quantity >= data.quantity
-                  }
+                  disabled={outOfStock || quantity >= data.quantity}
                 >
                   <PlusIcon className="h-4 w-4" />
                 </Button>

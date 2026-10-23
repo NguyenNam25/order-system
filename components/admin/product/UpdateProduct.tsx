@@ -47,7 +47,7 @@ export default function UpdateProduct({
     if (!open) return;
 
     resetImages(data.images ?? []);
-  }, [data, open]);
+  }, [data, open, resetImages]);
 
   const updateProductMutation = useUpdateProduct();
 

@@ -86,7 +86,7 @@ export async function DELETE(
       { message: "Xóa ảnh thành công" },
       { status: 200 },
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { flexRender, Table as ReactTable } from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
 import { DataTableFeatures } from "@/interfaces/data-table-features";
 import { features } from "@/interfaces/data-table-features";
 import { User } from "@/interfaces/user";
@@ -32,7 +32,7 @@ export default function ListUser({ columns }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const { data = [], isLoading, isError } = useUsers();
+  const { data = [] } = useUsers();
 
   const table = useTable({
     features,

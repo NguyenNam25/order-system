@@ -14,7 +14,7 @@ export default function useDeleteUser() {
       toast.success("Deleted succesfully");
     },
 
-    onError: (error) => {
+    onError: () => {
       toast.error("Deleted failed");
     },
   });

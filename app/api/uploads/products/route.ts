@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       message: "Upload ảnh thành công",
       imageUrl,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message: "Upload ảnh thất bại",

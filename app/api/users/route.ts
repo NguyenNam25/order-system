@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const authUser = await getAuthenticatedUser();
 
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(users, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(user, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

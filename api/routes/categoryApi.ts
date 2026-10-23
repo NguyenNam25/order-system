@@ -4,7 +4,7 @@ import axiosClient from "../axiosConfiguration";
 const categoryApi = {
   getAllCategories: async (): Promise<Category[]> => {
     const response = await axiosClient.get("/categories");
-    return response.data.map((category: any) => category);
+    return response.data;
   },
   getCategoryById: async (id: number): Promise<Category> => {
     const response = await axiosClient.get(`/categories/${id}`);

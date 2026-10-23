@@ -15,7 +15,7 @@ export function useDeleteCategory() {
       toast.success("Deleted succesfully");
     },
 
-    onError: (error) => {
+    onError: () => {
       toast.error("Deleted failed");
     },
   });

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/attachment";
 import { XIcon, RotateCcw, Upload } from "lucide-react";
 import CategorySelect from "./CategorySelect";
+import Image from "next/image";
 
 type FormProp = {
   register: UseFormRegister<ProductForm>;
@@ -92,9 +93,12 @@ export default function ProductField({
                   variant="image"
                   className="aspect-square w-full overflow-hidden bg-muted/30"
                 >
-                  <img
+                  <Image
                     src={URL.createObjectURL(file)}
                     alt={file.name}
+                    width={300}
+                    height={300}
+                    unoptimized
                     className="size-full object-cover"
                   />
                 </AttachmentMedia>

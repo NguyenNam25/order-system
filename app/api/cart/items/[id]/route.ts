@@ -82,7 +82,7 @@ export async function PUT(
       message: "Cập nhật số lượng thành công",
       cartItem: updatedCartItem,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
@@ -131,7 +131,7 @@ export async function DELETE(
     return NextResponse.json({
       message: "Xóa khỏi giỏ hàng thành công",
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

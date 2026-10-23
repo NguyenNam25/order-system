@@ -17,13 +17,12 @@ import {
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { DataTablePagination } from "@/components/layout-components/TablePagination";
-import { flexRender, Table as ReactTable } from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
 import { Order } from "@/interfaces/order";
 import useOrdersByStatus from "@/hooks/orders/queries/useOrdersByStatus";
 import { getColumns } from "@/components/admin/order/columns";
 
 interface DataTableProps {
-
   status: Order["status"][];
 }
 
@@ -32,7 +31,7 @@ export default function ListOrderWS({ status }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const { data = [], isLoading, isError } = useOrdersByStatus(status);
+  const { data = [] } = useOrdersByStatus(status);
 
   const table = useTable({
     features,

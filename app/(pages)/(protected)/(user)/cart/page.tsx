@@ -11,7 +11,7 @@ import {
   TrashIcon,
   PackageCheck,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,7 +22,6 @@ import { toast } from "sonner";
 
 export default function Cart() {
   const [checkedProducts, setCheckedProducts] = useState<string[]>([]);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -31,27 +30,19 @@ export default function Cart() {
     queryFn: cartApi.getCart,
   });
 
-  useEffect(() => {
-    if (data?.items) {
-      setCartItems(data.items);
-    }
-  }, [data]);
+  const cartItems: CartItem[] = data?.items ?? [];
 
   // Chỉ giữ các lựa chọn còn tồn tại trong giỏ hàng
-  useEffect(() => {
-    if (data?.items) {
-      const productIds = new Set(
-        data.items.map((item) => String(item.productId)),
-      );
+  const existingProductIds = new Set(
+    cartItems.map((item) => String(item.productId)),
+  );
 
-      setCheckedProducts((prev) =>
-        prev.filter((id) => productIds.has(id)),
-      );
-    }
-  }, [data]);
+  const validCheckedProducts = checkedProducts.filter((id) =>
+    existingProductIds.has(id),
+  );
 
   const selectedItems = cartItems.filter((item) =>
-    checkedProducts.includes(String(item.productId)),
+    validCheckedProducts.includes(String(item.productId)),
   );
 
   const totalQuantity = selectedItems.reduce(
@@ -67,7 +58,7 @@ export default function Cart() {
   const checkedAll =
     cartItems.length > 0 &&
     cartItems.every((item) =>
-      checkedProducts.includes(String(item.productId)),
+      validCheckedProducts.includes(String(item.productId)),
     );
 
   const updateQuantityMutation = useMutation({
@@ -227,9 +218,7 @@ export default function Cart() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={
-                    !checkedAll || deleteAllCartItemMutation.isPending
-                  }
+                  disabled={!checkedAll || deleteAllCartItemMutation.isPending}
                   onClick={onDeleteAllItem}
                   className="rounded-lg border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-[#FF0033]/60 hover:bg-red-500/10 hover:text-[#FF334F] disabled:opacity-40"
                 >
@@ -240,7 +229,7 @@ export default function Cart() {
             </Card>
 
             {cartItems.map((item) => {
-              const selected = checkedProducts.includes(
+              const selected = validCheckedProducts.includes(
                 String(item.productId),
               );
               const noStock = item.product.quantity <= 0;

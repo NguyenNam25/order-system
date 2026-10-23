@@ -1,7 +1,5 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { getAuthenticatedUser } from "@/lib/auth";
 
@@ -42,7 +40,10 @@ export async function PATCH(
     });
 
     if (!user) {
-      return NextResponse.json({ message: "Không tìm thấy người dùng" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Không tìm thấy người dùng" },
+        { status: 404 },
+      );
     }
 
     const isPasswordCorrect = await bcrypt.compare(

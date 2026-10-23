@@ -62,7 +62,7 @@ export async function POST(
     });
 
     return NextResponse.json(image, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

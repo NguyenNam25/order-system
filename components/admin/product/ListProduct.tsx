@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { flexRender, Table as ReactTable } from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
 import { ProductDisplay } from "@/interfaces/product";
 import { DataTableFeatures, features } from "@/interfaces/data-table-features";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ export default function ListProduct({ columns }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const { data = [], isLoading, isError } = useProducts();
+  const { data = [] } = useProducts();
 
   const table = useTable({
     features,

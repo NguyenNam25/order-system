@@ -2,10 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth";
 
-interface JwtPayload {
-  userId: number;
-}
-
 interface AddCartRequest {
   productId: number;
   quantity: number;
@@ -65,7 +61,7 @@ export async function GET(request: Request) {
       },
       { status: 200 },
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         message: "Đã xảy ra lỗi máy chủ",
@@ -83,8 +79,6 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
-
-    const userId = user.userId;
 
     const body = (await request.json()) as AddCartRequest;
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth";
 
-export async function DELETE(request: Request) {
+export async function DELETE() {
   try {
     // 1. Lấy token
     const user = await getAuthenticatedUser();
@@ -38,7 +38,7 @@ export async function DELETE(request: Request) {
       },
       { status: 200 },
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -19,7 +19,7 @@ export function useUpdateProductForm(data: Product, open: boolean) {
 
   const { reset } = form;
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     reset({
       name: data.name,
       price: data.price,
@@ -27,13 +27,13 @@ export function useUpdateProductForm(data: Product, open: boolean) {
       quantity: data.quantity,
       description: data.description,
     });
-  };
+  }, [data, reset]);
 
   useEffect(() => {
-    if (!open) return;
-
-    resetForm();
-  }, [data, open, reset]);
+    if (open) {
+      resetForm();
+    }
+  }, [open, resetForm]);
 
   return {
     ...form,

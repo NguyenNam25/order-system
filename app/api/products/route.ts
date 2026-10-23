@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth";
 
 // GET /api/products
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const products = await prisma.product.findMany({
       orderBy: {
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(products, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(product, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

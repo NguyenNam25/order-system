@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     });
 
     return res;
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

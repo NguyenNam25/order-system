@@ -49,9 +49,6 @@ export const columns = columnHelper.columns([
     },
     cell: ({ row }) => {
       const name = String(row.getValue("fullname") ?? "");
-
-      const formatted = name.charAt(0).toUpperCase() + name.slice(1);
-
       return (
         <div className="ml-2 font-medium text-foreground">
           {name}

@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     return NextResponse.json(user, {
       status: 201,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

@@ -36,7 +36,7 @@ export async function GET() {
     return NextResponse.json({
       user,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ user: null }, { status: 401 });
   }
 }

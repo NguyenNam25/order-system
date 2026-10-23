@@ -37,7 +37,7 @@ export async function GET(
     });
 
     return NextResponse.json(user, { status: 200 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
@@ -201,7 +201,7 @@ export async function DELETE(
       { message: "Xóa người dùng thành công" },
       { status: 200 },
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

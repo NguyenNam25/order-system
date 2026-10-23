@@ -17,7 +17,6 @@ interface OrderStatusActionsProps {
 export default function OrderStatusActions({
   order,
   isPending,
-  isOutOfStock = false,
   onConfirm,
   onShipping,
   onComplete,

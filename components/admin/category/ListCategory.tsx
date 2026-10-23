@@ -31,7 +31,7 @@ export default function ListCategory({ columns }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const { data = [], isLoading, isError } = useCategories();
+  const { data = [] } = useCategories();
 
   const table = useTable({
     features,

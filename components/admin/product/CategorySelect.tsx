@@ -15,7 +15,7 @@ export default function CategorySelect({
 }: {
   control: Control<ProductForm>;
 }) {
-  const { data, isLoading, isError } = useCategories()
+  const { data } = useCategories();
 
   console.log(data);
 
@@ -39,9 +39,7 @@ export default function CategorySelect({
             onValueChange={(value) => field.onChange(Number(value))}
           >
             <SelectTrigger className="h-10 w-full rounded-lg border-input bg-background px-3 text-sm shadow-none transition-colors hover:border-muted-foreground/50 focus:border-ring focus:ring-2 focus:ring-ring/20">
-              <SelectValue>
-                {selectedLabel ?? "Chọn danh mục"}
-              </SelectValue>
+              <SelectValue>{selectedLabel ?? "Chọn danh mục"}</SelectValue>
             </SelectTrigger>
 
             <SelectContent className="rounded-lg border border-border bg-popover p-1 shadow-lg">

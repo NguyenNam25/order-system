@@ -2,11 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth";
 
-interface JwtPayload {
-  userId: number;
-  email: string;
-}
-
 export async function GET() {
   try {
     const authUser = await getAuthenticatedUser();
@@ -56,7 +51,7 @@ export async function GET() {
       },
       { status: 200 },
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
