@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import path from "path";
 import fs from "fs/promises";
 import { Prisma } from "@prisma/client";
@@ -51,16 +51,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    // 1. Xác thực người dùng
-    const authUser = await getAuthenticatedUser();
+    const { response } = await requireAdmin();
 
-    if (!authUser) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
-
-    // 2. Kiểm tra quyền ADMIN
-    if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
+    if (response) {
+      return response;
     }
 
     // 3. Kiểm tra ID sản phẩm
@@ -162,16 +156,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    // 1. Xác thực người dùng
-    const authUser = await getAuthenticatedUser();
+    const { response } = await requireAdmin();
 
-    if (!authUser) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
-
-    // 2. Kiểm tra quyền ADMIN
-    if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
+    if (response) {
+      return response;
     }
 
     // 3. Kiểm tra ID sản phẩm
@@ -206,7 +194,7 @@ export async function DELETE(
 
     // 6. Xóa các file ảnh lưu trên local
     const uploadDir = path.resolve(process.cwd(), "uploads", "products");
-    
+
     for (const image of product.images) {
       try {
         const pathname = new URL(image.imageUrl, "http://localhost").pathname;

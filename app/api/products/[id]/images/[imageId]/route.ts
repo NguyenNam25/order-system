@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 
 export async function DELETE(
   request: Request,
@@ -16,16 +16,10 @@ export async function DELETE(
   },
 ) {
   try {
-    // 1. Xác thực người dùng
-    const authUser = await getAuthenticatedUser();
+    const { response } = await requireAdmin();
 
-    if (!authUser) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
-
-    // 2. Kiểm tra quyền ADMIN
-    if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
+    if (response) {
+      return response;
     }
 
     // 3. Kiểm tra ID
@@ -54,7 +48,10 @@ export async function DELETE(
     });
 
     if (!image) {
-      return NextResponse.json({ message: "Không tìm thấy ảnh" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Không tìm thấy ảnh" },
+        { status: 404 },
+      );
     }
 
     // 5. Xóa bản ghi trong database

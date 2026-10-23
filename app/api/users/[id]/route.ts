@@ -1,29 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { getAuthenticatedUser, requireAdmin } from "@/lib/auth";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { response } = await requireAdmin();
+
+    if (response) {
+      return response;
+    }
+
     const { id } = await params;
-
-    const authUser = await getAuthenticatedUser();
-
-    if (!authUser) {
-      return NextResponse.json(
-        { message: "Bạn chưa đăng nhập" },
-        { status: 401 },
-      );
-    }
-
-    if (authUser.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Bạn không có quyền thực hiện thao tác này" },
-        { status: 403 },
-      );
-    }
 
     const user = await prisma.user.findUnique({
       where: {
@@ -50,7 +40,6 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    // 1. Xác thực người dùng
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
@@ -60,26 +49,48 @@ export async function PUT(
       );
     }
 
-    // 2. Kiểm tra quyền ADMIN
-    if (authUser.role !== "ADMIN" && authUser.role !== "USER") {
-      return NextResponse.json(
-        { message: "Bạn không có quyền thực hiện thao tác này" },
-        { status: 403 },
-      );
-    }
-
     const { id } = await params;
     const userId = Number(id);
 
-    if (authUser.role === "USER" && authUser.userId !== userId) {
-      throw new Error("USER_FORBIDDEN");
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return NextResponse.json(
+        { message: "ID người dùng không hợp lệ" },
+        { status: 400 },
+      );
+    }
+
+    // Lấy role hiện tại từ DB
+    const currentUser = await prisma.user.findUnique({
+      where: { id: authUser.userId },
+      select: {
+        id: true,
+        role: true,
+        isActive: true,
+      },
+    });
+
+    if (!currentUser || !currentUser.isActive) {
+      return NextResponse.json(
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
+    }
+
+    // USER chỉ được cập nhật thông tin của chính mình
+    if (currentUser.role === "USER" && currentUser.id !== userId) {
+      return NextResponse.json(
+        {
+          message: "Bạn không có quyền cập nhật thông tin người dùng khác",
+        },
+        { status: 403 },
+      );
     }
 
     const body = await request.json();
 
     const user = await prisma.user.update({
       where: {
-        id: Number(id),
+        id: userId,
       },
       data: {
         fullname: body.fullname,
@@ -91,15 +102,9 @@ export async function PUT(
         email: true,
       },
     });
-    return NextResponse.json(user, { status: 200 });
-  } catch (error) {
-    if (error instanceof Error && error.message === "USER_FORBIDDEN") {
-      return NextResponse.json(
-        { message: "Bạn không có quyền cập nhật thông tin người dùng khác" },
-        { status: 403 },
-      );
-    }
 
+    return NextResponse.json(user, { status: 200 });
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
@@ -112,7 +117,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    // 1. Xác thực người dùng
+    // 1. Xác thực JWT
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
@@ -122,27 +127,49 @@ export async function PATCH(
       );
     }
 
-    // 2. Kiểm tra quyền ADMIN
-    if (authUser.role !== "ADMIN" && authUser.role !== "USER") {
+    // 2. Lấy role hiện tại từ DB
+    const currentUser = await prisma.user.findUnique({
+      where: { id: authUser.userId },
+      select: {
+        id: true,
+        role: true,
+        isActive: true,
+      },
+    });
+
+    if (!currentUser || !currentUser.isActive) {
       return NextResponse.json(
-        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
+    }
+
+    // 3. Lấy và kiểm tra ID người dùng cần cập nhật
+    const { id } = await params;
+    const userId = Number(id);
+
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return NextResponse.json(
+        { message: "ID người dùng không hợp lệ" },
+        { status: 400 },
+      );
+    }
+
+    // 4. USER chỉ được cập nhật chính mình
+    if (currentUser.role === "USER" && currentUser.id !== userId) {
+      return NextResponse.json(
+        {
+          message: "Bạn không có quyền cập nhật thông tin người dùng khác",
+        },
         { status: 403 },
       );
     }
 
-    const { id } = await params;
-    const userId = Number(id);
-
-    if (authUser.role === "USER" && authUser.userId !== userId) {
-      throw new Error("USER_FORBIDDEN");
-    }
-
+    // 5. Cập nhật thông tin
     const body = await request.json();
 
     const user = await prisma.user.update({
-      where: {
-        id: Number(id),
-      },
+      where: { id: userId },
       data: {
         fullname: body.fullname,
         email: body.email,
@@ -153,15 +180,9 @@ export async function PATCH(
         email: true,
       },
     });
-    return NextResponse.json(user, { status: 200 });
-  } catch (error) {
-    if (error instanceof Error && error.message === "USER_FORBIDDEN") {
-      return NextResponse.json(
-        { message: "Bạn không có quyền cập nhật thông tin người dùng khác" },
-        { status: 403 },
-      );
-    }
 
+    return NextResponse.json(user, { status: 200 });
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
@@ -174,22 +195,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { response } = await requireAdmin();
+
+    if (response) {
+      return response;
+    }
+
     const { id } = await params;
-    const authUser = await getAuthenticatedUser();
-
-    if (!authUser) {
-      return NextResponse.json(
-        { message: "Bạn chưa đăng nhập" },
-        { status: 401 },
-      );
-    }
-
-    if (authUser.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Bạn không có quyền thực hiện thao tác này" },
-        { status: 403 },
-      );
-    }
 
     await prisma.user.delete({
       where: {

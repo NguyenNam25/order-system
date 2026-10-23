@@ -10,10 +10,6 @@ export async function GET() {
       return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
     }
 
-    if (authUser.role !== "USER" && authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
-    }
-
     const userId = authUser.userId;
 
     const orders = await prisma.order.findMany({

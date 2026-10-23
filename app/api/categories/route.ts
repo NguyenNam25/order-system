@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 
 export async function GET() {
   try {
@@ -17,14 +17,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser();
+    const { response } = await requireAdmin();
 
-    if (!authUser) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
-
-    if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
+    if (response) {
+      return response;
     }
 
     const body = await request.json();

@@ -17,31 +17,50 @@ export async function PATCH(
       );
     }
 
-    // 2. Kiểm tra quyền ADMIN
-    if (authUser.role !== "ADMIN" && authUser.role !== "USER") {
+    const { id } = await params;
+    const userId = Number(id);
+
+    if (!Number.isInteger(userId) || userId <= 0) {
       return NextResponse.json(
-        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { message: "ID người dùng không hợp lệ" },
+        { status: 400 },
+      );
+    }
+
+    // Chỉ cho phép đổi mật khẩu của chính mình
+    if (authUser.userId !== userId) {
+      return NextResponse.json(
+        { message: "Bạn không có quyền đổi mật khẩu người dùng khác" },
         { status: 403 },
       );
     }
 
-    const { id } = await params;
-    const userId = Number(id);
+    const body = await request.json();
 
-    if (authUser.role === "USER" && authUser.userId !== userId) {
-      throw new Error("USER_FORBIDDEN");
+    if (
+      typeof body.currentPassword !== "string" ||
+      typeof body.newPassword !== "string" ||
+      !body.currentPassword ||
+      body.newPassword.length < 8
+    ) {
+      return NextResponse.json(
+        { message: "Mật khẩu hiện tại không hợp lệ hoặc mật khẩu mới phải có ít nhất 8 ký tự" },
+        { status: 400 },
+      );
     }
 
-    const body = await request.json();
     const user = await prisma.user.findUnique({
-      where: {
-        id: Number(id),
+      where: { id: userId },
+      select: {
+        id: true,
+        password: true,
+        isActive: true,
       },
     });
 
-    if (!user) {
+    if (!user || !user.isActive) {
       return NextResponse.json(
-        { message: "Không tìm thấy người dùng" },
+        { message: "Không tìm thấy người dùng hoặc tài khoản đã bị khóa" },
         { status: 404 },
       );
     }
@@ -58,29 +77,25 @@ export async function PATCH(
       );
     }
 
+    if (body.currentPassword === body.newPassword) {
+      return NextResponse.json(
+        { message: "Mật khẩu mới phải khác mật khẩu hiện tại" },
+        { status: 400 },
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(body.newPassword, 10);
 
     await prisma.user.update({
-      where: {
-        id: Number(id),
-      },
-      data: {
-        password: hashedPassword,
-      },
+      where: { id: userId },
+      data: { password: hashedPassword },
     });
 
     return NextResponse.json(
       { message: "Cập nhật mật khẩu mới thành công" },
       { status: 200 },
     );
-  } catch (error) {
-    if (error instanceof Error && error.message === "USER_FORBIDDEN") {
-      return NextResponse.json(
-        { message: "Bạn không có quyền cập nhật thông tin người dùng khác" },
-        { status: 403 },
-      );
-    }
-
+  } catch {
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

@@ -2,20 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
 import { generateOrderCode } from "@/lib/generate-code";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { getAuthenticatedUser, requireAdmin } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const authUser = await getAuthenticatedUser();
+    const { response } = await requireAdmin();
 
-    if (!authUser) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
-
-    if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
+    if (response) {
+      return response;
     }
 
     const statusParam = searchParams.get("status");
@@ -75,11 +71,17 @@ export async function POST(request: Request) {
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
+      return NextResponse.json(
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
     }
 
     if (authUser.role !== "USER" && authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
+      return NextResponse.json(
+        { message: "Bạn không có quyền thực hiện thao tác này" },
+        { status: 403 },
+      );
     }
 
     const userId = authUser.userId;
@@ -106,7 +108,10 @@ export async function POST(request: Request) {
     }
 
     if (note !== undefined && note !== null && typeof note !== "string") {
-      return NextResponse.json({ message: "Ghi chú không hợp lệ" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Ghi chú không hợp lệ" },
+        { status: 400 },
+      );
     }
 
     if (
@@ -115,7 +120,10 @@ export async function POST(request: Request) {
       !itemIds.every((id) => Number.isInteger(id) && id > 0) ||
       new Set(itemIds).size !== itemIds.length
     ) {
-      return NextResponse.json({ message: "ID sản phẩm trong giỏ hàng không hợp lệ" }, { status: 400 });
+      return NextResponse.json(
+        { message: "ID sản phẩm trong giỏ hàng không hợp lệ" },
+        { status: 400 },
+      );
     }
 
     if (!itemIds || itemIds.length === 0) {

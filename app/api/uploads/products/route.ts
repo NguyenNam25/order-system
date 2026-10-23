@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -13,22 +13,10 @@ const allowedMimeTypes: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
-    //token
-    const authUser = await getAuthenticatedUser();
+    const { response } = await requireAdmin();
 
-    if (!authUser) {
-      return NextResponse.json(
-        { message: "Bạn chưa đăng nhập" },
-        { status: 401 },
-      );
-    }
-
-    // 2. Kiểm tra quyền ADMIN
-    if (authUser.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Bạn không có quyền thực hiện thao tác này" },
-        { status: 403 },
-      );
+    if (response) {
+      return response;
     }
 
     const formData = await request.formData();

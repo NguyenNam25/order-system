@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { getAuthenticatedUser, requireAdmin } from "@/lib/auth";
 
 const validStatuses = [
   "PENDING",
@@ -32,11 +32,10 @@ export async function PATCH(
     const authUser = await getAuthenticatedUser();
 
     if (!authUser) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
-
-    if (authUser.role !== "USER" && authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
+      return NextResponse.json(
+        { message: "Bạn chưa đăng nhập" },
+        { status: 401 },
+      );
     }
 
     const userId = authUser.userId;
@@ -57,7 +56,10 @@ export async function PATCH(
       },
     });
     if (!user) {
-      return NextResponse.json({ message: "Không tìm thấy người dùng" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Không tìm thấy người dùng" },
+        { status: 404 },
+      );
     }
 
     const { id } = await params;
@@ -264,7 +266,10 @@ export async function PATCH(
       }
 
       if (error.message === "FORBIDDEN") {
-        return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
+        return NextResponse.json(
+          { message: "Bạn không có quyền thực hiện thao tác này" },
+          { status: 403 },
+        );
       }
 
       if (error.message === "ORDER_FORBIDDEN") {
@@ -294,14 +299,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const authUser = await getAuthenticatedUser();
+    const { response } = await requireAdmin();
 
-    if (!authUser) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
-
-    if (authUser.role !== "ADMIN") {
-      return NextResponse.json({ message: "Bạn không có quyền thực hiện thao tác này" }, { status: 403 });
+    if (response) {
+      return response;
     }
 
     const { id } = await params;
