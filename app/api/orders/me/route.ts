@@ -17,6 +17,10 @@ export async function GET() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    if (authUser.role !== "USER" && authUser.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
     const userId = authUser.userId;
 
     const orders = await prisma.order.findMany({

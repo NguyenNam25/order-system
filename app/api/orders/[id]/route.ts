@@ -35,6 +35,10 @@ export async function PATCH(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    if (authUser.role !== "USER" && authUser.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
     const userId = authUser.userId;
 
     if (!userId) {
@@ -156,7 +160,8 @@ export async function PATCH(
       // Khi RETURN APPROVE → cộng stock
       if (
         currentOrder.status === "RETURN_REQUESTED" &&
-        status === "RETURN_APPROVED" && returnMethod === "REFUND"
+        status === "RETURN_APPROVED" &&
+        returnMethod === "REFUND"
       ) {
         for (const item of currentOrder.items) {
           const product = await tx.product.findUnique({

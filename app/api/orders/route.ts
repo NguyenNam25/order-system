@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
 import { generateOrderCode } from "@/lib/generate-code";
@@ -16,7 +14,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = authUser.userId;
+    if (authUser.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
 
     const statusParam = searchParams.get("status");
 
@@ -80,11 +80,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    if (authUser.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Forbidden" },
-        { status: 403 },
-      );
+    if (authUser.role !== "USER" && authUser.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const userId = authUser.userId;
@@ -94,13 +91,33 @@ export async function POST(request: Request) {
 
     const { receiverName, phone, address, note, itemIds } = body;
 
-    if (!phone || !address) {
+    if (
+      typeof receiverName !== "string" ||
+      !receiverName.trim() ||
+      typeof phone !== "string" ||
+      !phone.trim() ||
+      typeof address !== "string" ||
+      !address.trim()
+    ) {
       return NextResponse.json(
         {
-          message: "Phone and address are required",
+          message: "Receiver name, phone and address are required",
         },
         { status: 400 },
       );
+    }
+
+    if (note !== undefined && note !== null && typeof note !== "string") {
+      return NextResponse.json({ message: "Invalid note" }, { status: 400 });
+    }
+
+    if (
+      !Array.isArray(itemIds) ||
+      itemIds.length === 0 ||
+      !itemIds.every((id) => Number.isInteger(id) && id > 0) ||
+      new Set(itemIds).size !== itemIds.length
+    ) {
+      return NextResponse.json({ message: "Invalid itemIds" }, { status: 400 });
     }
 
     if (!itemIds || itemIds.length === 0) {
@@ -112,50 +129,45 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4. Lấy cart của user
-    const cart = await prisma.cart.findUnique({
-      where: {
-        userId: userId,
-      },
-      include: {
-        items: {
-          where: {
-            id: {
-              in: itemIds,
-            },
-          },
-          include: {
-            product: true,
-          },
-        },
-      },
-    });
-
-    if (!receiverName) {
-      return NextResponse.json(
-        {
-          message: "Receiver name is required",
-        },
-        { status: 400 },
-      );
-    }
-
-    if (!cart || cart.items.length === 0) {
-      return NextResponse.json(
-        {
-          message: "Cart is empty",
-        },
-        { status: 400 },
-      );
-    }
-
-    // 5. Tính tổng tiền
-    const total = cart.items.reduce((sum, item) => {
-      return sum + item.product.price * item.quantity;
-    }, 0);
-
     // 6. Tạo Order + OrderItem
     const order = await prisma.$transaction(async (tx) => {
+      const cart = await tx.cart.findUnique({
+        where: {
+          userId: userId,
+        },
+        include: {
+          items: {
+            where: {
+              id: {
+                in: itemIds,
+              },
+            },
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      if (
+        !cart ||
+        cart.items.length === 0 ||
+        cart.items.length !== itemIds.length
+      ) {
+        throw new Error("INVALID_CART_ITEMS");
+      }
+
+      for (const item of cart.items) {
+        if (item.quantity > item.product.quantity) {
+          throw new Error(`INSUFFICIENT_STOCK:${item.product.name}`);
+        }
+      }
+
+      //Tính tổng tiền
+      const total = cart.items.reduce((sum, item) => {
+        return sum + Number(item.product.price) * item.quantity;
+      }, 0);
+
       const newOrder = await tx.order.create({
         data: {
           userId: userId,
@@ -194,7 +206,7 @@ export async function POST(request: Request) {
       });
 
       // 7. Xóa CartItem sau khi tạo Order
-      await tx.cartItem.deleteMany({
+      const deletedItems = await tx.cartItem.deleteMany({
         where: {
           id: {
             in: itemIds,
@@ -202,6 +214,10 @@ export async function POST(request: Request) {
           cartId: cart.id,
         },
       });
+
+      if (deletedItems.count !== cart.items.length) {
+        throw new Error("CART_ITEMS_CHANGED");
+      }
 
       return order;
     });
@@ -214,7 +230,30 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Create order error:", error);
+    if (error instanceof Error) {
+      if (
+        error.message === "INVALID_CART_ITEMS" ||
+        error.message === "CART_ITEMS_CHANGED"
+      ) {
+        return NextResponse.json(
+          {
+            message:
+              "Giỏ hàng đã thay đổi hoặc sản phẩm được chọn không hợp lệ. Vui lòng tải lại giỏ hàng.",
+          },
+          { status: 400 },
+        );
+      }
+      if (error.message.startsWith("INSUFFICIENT_STOCK:")) {
+        const productName = error.message.slice("INSUFFICIENT_STOCK:".length);
+
+        return NextResponse.json(
+          {
+            message: `Sản phẩm "${productName}" không đủ số lượng tồn kho. Vui lòng điều chỉnh giỏ hàng.`,
+          },
+          { status: 400 },
+        );
+      }
+    }
 
     return NextResponse.json(
       {
