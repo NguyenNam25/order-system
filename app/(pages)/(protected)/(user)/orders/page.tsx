@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -12,65 +11,59 @@ import OrderTabs from "@/components/orders/OrderTabs";
 import OrderDetail from "@/components/orders/OrderDetail";
 import CancelOrderDialog from "@/components/orders/CancelOrderDialog";
 import ReturnOrderDialog from "@/components/orders/ReturnOrderDialog";
+import useMyOrders from "@/hooks/orders/queries/useMyOrders";
+import useUpdateOrderStatus from "@/hooks/orders/mutations/useUpdateOrderStatus";
 
 export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [openCancelled, setOpenCancelled] = useState(false);
   const [openReturned, setOpenReturned] = useState(false);
 
-  const queryClient = useQueryClient();
+  const { data, isLoading, isError, refetch, isFetching } = useMyOrders();
 
-  const {
-    data,
-    isLoading,
-    isError,
-    refetch,
-    isFetching,
-  } = useQuery({
-    queryKey: ["orders"],
-    queryFn: orderApi.getMyOrders,
-  });
+  const handleUpdateOrder = useUpdateOrderStatus();
 
-  const handleUpdateOrder = useMutation({
-    mutationFn: ({
-      id,
-      status,
-      data,
-    }: {
-      id: number;
-      status: Order["status"];
-      data?: {
-        cancelNote?: string;
-        returnNote?: string;
-        returnMethod?: "REFUND" | "EXCHANGE";
-        returnRejectNote?: string;
-      };
-    }) => orderApi.updateOrderStatus(id, status, data),
-
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-
-      if (variables.status === "CANCELLED") {
+  const onUpdateOrderSuccess = (status: Order["status"]) => {
+    switch (status) {
+      case "CANCELLED":
         toast.success("Hủy đơn hàng thành công");
         setOpenCancelled(false);
-      }
+        setSelectedOrder(null);
+        break;
 
-      if (variables.status === "RETURN_REQUESTED") {
+      case "RETURN_REQUESTED":
         toast.success("Đã gửi yêu cầu hoàn hàng");
         setOpenReturned(false);
-      }
+        setSelectedOrder(null);
+        break;
 
-      if (variables.status === "COMPLETED") {
+      case "COMPLETED":
         toast.success("Đã xác nhận nhận hàng");
-      }
+        setSelectedOrder(null);
+        break;
 
-      setSelectedOrder(null);
-    },
+      default:
+        toast.success("Cập nhật đơn hàng thành công");
+        break;
+    }
+  };
 
-    onError: () => {
-      toast.error("Cập nhật đơn hàng thất bại");
-    },
-  });
+  const updateOrderStatus = (payload: {
+    id: number;
+    status: Order["status"];
+    data?: {
+      cancelNote?: string;
+      returnNote?: string;
+      returnMethod?: "REFUND" | "EXCHANGE";
+      returnRejectNote?: string;
+    };
+  }) => {
+    handleUpdateOrder.mutate(payload, {
+      onSuccess: () => {
+        onUpdateOrderSuccess(payload.status);
+      },
+    });
+  };
 
   const orders = data ?? [];
 
@@ -142,7 +135,7 @@ export default function Orders() {
           onCompleted={() => {
             if (!selectedOrder) return;
 
-            handleUpdateOrder.mutate({
+            updateOrderStatus({
               id: selectedOrder.id,
               status: "COMPLETED",
             });
@@ -156,7 +149,7 @@ export default function Orders() {
           onSubmit={(cancelNote) => {
             if (!selectedOrder) return;
 
-            handleUpdateOrder.mutate({
+            updateOrderStatus({
               id: selectedOrder.id,
               status: "CANCELLED",
               data: { cancelNote },
@@ -171,7 +164,7 @@ export default function Orders() {
           onSubmit={(returnNote) => {
             if (!selectedOrder) return;
 
-            handleUpdateOrder.mutate({
+            updateOrderStatus({
               id: selectedOrder.id,
               status: "RETURN_REQUESTED",
               data: { returnNote },

@@ -25,9 +25,7 @@ export default function useUpdateOrderStatus() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["orders"],
-      });
-
-      toast.success("Cập nhật đơn hàng thành công");
+      })
     },
 
     onError: () => {
