@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatVND } from "@/lib/format";
@@ -22,9 +21,7 @@ export default function CheckoutOrderSummary({
         </h2>
 
         <div className="flex items-center justify-between text-sm">
-          <span className="text-zinc-400">
-            Số lượng sản phẩm
-          </span>
+          <span className="text-zinc-400">Số lượng sản phẩm</span>
           <span>{totalQuantity}</span>
         </div>
 
@@ -38,9 +35,7 @@ export default function CheckoutOrderSummary({
             <Truck className="h-4 w-4" />
             Phí vận chuyển
           </span>
-          <span className="font-medium text-emerald-400">
-            Miễn phí
-          </span>
+          <span className="font-medium text-emerald-400">Miễn phí</span>
         </div>
 
         <Separator className="bg-zinc-800" />

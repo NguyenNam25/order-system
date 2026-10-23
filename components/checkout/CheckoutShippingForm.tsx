@@ -1,13 +1,7 @@
-
 import type { UseFormRegister } from "react-hook-form";
 import { MapPin } from "lucide-react";
-
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import type { CheckoutForm } from "@/interfaces/checkout";
 

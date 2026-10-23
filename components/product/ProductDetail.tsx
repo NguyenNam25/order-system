@@ -5,7 +5,6 @@ import cartApi from "@/api/routes/cartApi";
 import { formatVND } from "@/lib/format";
 import { useAuth } from "../auth/AuthContext";
 import { Button } from "../ui/button";
-
 import {
   Heart,
   MinusIcon,
@@ -15,7 +14,6 @@ import {
   ShieldCheck,
   Truck,
 } from "lucide-react";
-
 import {
   Carousel,
   CarouselContent,
@@ -23,7 +21,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ProductImage } from "@/interfaces/product";

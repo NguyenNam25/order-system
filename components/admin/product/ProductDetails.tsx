@@ -16,7 +16,7 @@ import { ProductDisplay } from "@/interfaces/product";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Package, Tag, Hash, Boxes, FileText } from "lucide-react";
+import { Package, Tag, Boxes, FileText } from "lucide-react";
 
 export default function ProductDetails({
   data,

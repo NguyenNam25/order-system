@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -29,9 +28,7 @@ export default function CheckoutPaymentMethod({
           <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#FF0033]" />
 
           <div className="space-y-1">
-            <p className="font-medium">
-              Thanh toán khi nhận hàng (COD)
-            </p>
+            <p className="font-medium">Thanh toán khi nhận hàng (COD)</p>
             <p className="text-sm text-zinc-400">
               Bạn thanh toán trực tiếp cho đơn vị vận chuyển khi nhận hàng.
             </p>

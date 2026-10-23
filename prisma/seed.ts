@@ -60,153 +60,142 @@ async function main() {
   const category6 = await seedCategory("ROG SAGA");
 
   // 2. Product
-  const product1 = await seedProduct({
-    name: "ROG Crosshair X870E Edition 20",
-    price: 399000000,
-    categoryId: category1.id,
-    quantity: 10,
-    description: "",
-  });
+  const products: ProductSeed[] = [
+    {
+      name: "ROG Crosshair X870E Edition 20",
+      price: 399000000,
+      categoryId: category1.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG Astral GeForce RTX 5090 Edition 20",
+      price: 189000000,
+      categoryId: category1.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG Thor 3000W Titanium III Edition 20",
+      price: 29900000,
+      categoryId: category1.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG GR20 Edition 20",
+      price: 20000000,
+      categoryId: category1.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG Swift OLED PG27AQWP-G Edition 20",
+      price: 39990000,
+      categoryId: category2.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG XREAL R1 Edition 20",
+      price: 20900000,
+      categoryId: category2.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG Rapture GT-BE98 Pro Edition 20",
+      price: 17690000,
+      categoryId: category2.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG Xbox Ally X20 Bundle",
+      price: 64990000,
+      categoryId: category3.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG Azoth Extreme Edition 20",
+      price: 19990000,
+      categoryId: category4.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG Keycap Mystery Box Edition 20",
+      price: 1590000,
+      categoryId: category4.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG Harpe II Extreme Edition 20",
+      price: 8990000,
+      categoryId: category4.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG Scabbard II XXL Edition 20",
+      price: 1990000,
+      categoryId: category4.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG Destrier Edition 20",
+      price: 24990000,
+      categoryId: category4.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG SLASH Hard Case Luggage Edition 20",
+      price: 18200000,
+      categoryId: category4.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG SLASH Backpack Edition 20",
+      price: 12900000,
+      categoryId: category4.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG NUC 16 Edition 20",
+      price: 186000000,
+      categoryId: category5.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG G1000 Edition 20",
+      price: 402990000,
+      categoryId: category5.id,
+      quantity: 10,
+      description: "",
+    },
+    {
+      name: "ROG SAGA OMNI Edition 20 Action Figure",
+      price: 4160000,
+      categoryId: category6.id,
+      quantity: 0,
+      description: "",
+    },
+  ];
 
-  const product2 = await seedProduct({
-    name: "ROG Astral GeForce RTX 5090 Edition 20",
-    price: 189000000,
-    categoryId: category1.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product3 = await seedProduct({
-    name: "ROG Thor 3000W Titanium III Edition 20",
-    price: 29900000,
-    categoryId: category1.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product4 = await seedProduct({
-    name: "ROG GR20 Edition 20",
-    price: 20000000,
-    categoryId: category1.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product5 = await seedProduct({
-    name: "ROG Swift OLED PG27AQWP-G Edition 20",
-    price: 39990000,
-    categoryId: category2.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product6 = await seedProduct({
-    name: "ROG XREAL R1 Edition 20",
-    price: 20900000,
-    categoryId: category2.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product7 = await seedProduct({
-    name: "ROG Rapture GT-BE98 Pro Edition 20",
-    price: 17690000,
-    categoryId: category2.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product8 = await seedProduct({
-    name: "ROG Xbox Ally X20 Bundle",
-    price: 64990000,
-    categoryId: category3.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product9 = await seedProduct({
-    name: "ROG Azoth Extreme Edition 20",
-    price: 19990000,
-    categoryId: category4.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product10 = await seedProduct({
-    name: "ROG Keycap Mystery Box Edition 20",
-    price: 1590000,
-    categoryId: category4.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product11 = await seedProduct({
-    name: "ROG Harpe II Extreme Edition 20",
-    price: 8990000,
-    categoryId: category4.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product12 = await seedProduct({
-    name: "ROG Scabbard II XXL Edition 20",
-    price: 1990000,
-    categoryId: category4.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product13 = await seedProduct({
-    name: "ROG Destrier Edition 20",
-    price: 24990000,
-    categoryId: category4.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product14 = await seedProduct({
-    name: "ROG SLASH Hard Case Luggage Edition 20",
-    price: 18200000,
-    categoryId: category4.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product15 = await seedProduct({
-    name: "ROG SLASH Backpack Edition 20",
-    price: 12900000,
-    categoryId: category4.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product16 = await seedProduct({
-    name: "ROG NUC 16 Edition 20",
-    price: 186000000,
-    categoryId: category5.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product17 = await seedProduct({
-    name: "ROG G1000 Edition 20",
-    price: 402990000,
-    categoryId: category5.id,
-    quantity: 10,
-    description: "",
-  });
-
-  const product18 = await seedProduct({
-    name: "ROG SAGA OMNI Edition 20 Action Figure",
-    price: 4160000,
-    categoryId: category6.id,
-    quantity: 0,
-    description: "",
-  });
+  for (const product of products) {
+    await seedProduct(product);
+  }
 
   const hashedPassword = await bcrypt.hash("t123456", 10);
 
-  const user = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: {
       email: "test@gmail.com",
     },

@@ -6,16 +6,13 @@ import {
   MapPin,
   CalendarDays,
   CreditCard,
-  Hash,
   XCircle,
   CheckCircle2,
   RotateCcw,
-  Truck,
   UserRound,
   Phone,
   Receipt,
 } from "lucide-react";
-
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,

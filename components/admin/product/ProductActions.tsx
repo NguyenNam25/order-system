@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import AlertDialogDelete from "@/components/layout-components/AlertDialogDelete";
-import { Product, ProductDisplay } from "@/interfaces/product";
+import { ProductDisplay } from "@/interfaces/product";
 import UpdateProduct from "./UpdateProduct";
 import ProductDetails from "./ProductDetails";
 import { useDeleteProduct } from "@/hooks/products/mutations/useDeleteProduct";

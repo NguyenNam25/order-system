@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import type { UserCreate, UserRegister } from "@/interfaces/user";
-import { userCreateSchema, userSchema } from "@/schemas/userSchema";
+import type { UserCreate } from "@/interfaces/user";
+import { userCreateSchema } from "@/schemas/userSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Select,

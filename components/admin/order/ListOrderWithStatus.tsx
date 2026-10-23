@@ -1,6 +1,6 @@
 "use client";
 
-import { DataTableFeatures, features } from "@/interfaces/data-table-features";
+import { features } from "@/interfaces/data-table-features";
 import {
   Table,
   TableBody,
@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  ColumnDef,
   ColumnFiltersState,
   SortingState,
   useTable,

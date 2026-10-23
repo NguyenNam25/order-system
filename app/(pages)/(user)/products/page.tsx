@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { Check, Heart, Phone, ShoppingCart, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
@@ -40,7 +40,7 @@ export default function Products() {
     return true;
   };
 
-  const { data, isLoading, isError, refetch } = useProducts()
+  const { data, isLoading, isError, refetch } = useProducts();
 
   const addToCartMutation = useMutation({
     mutationFn: async ({
@@ -89,15 +89,11 @@ export default function Products() {
   };
 
   if (isLoading) {
-    return (
-      <ProductLoadingState />
-    );
+    return <ProductLoadingState />;
   }
 
   if (isError) {
-    return (
-      <ProductErrorState refetch={refetch}/>
-    );
+    return <ProductErrorState refetch={refetch} />;
   }
 
   // Empty state
@@ -132,7 +128,7 @@ export default function Products() {
               className="flex flex-1 flex-col"
             >
               {/* Product image */}
-              <div className="relative m-2.5 mb-0 aspect-square overflow-hidden rounded-xl border border-white/6 bg-[#242429] sm:m-3.5 sm:mb-0"  >
+              <div className="relative m-2.5 mb-0 aspect-square overflow-hidden rounded-xl border border-white/6 bg-[#242429] sm:m-3.5 sm:mb-0">
                 {product.images[0]?.imageUrl ? (
                   <Image
                     src={product.images[0].imageUrl}

@@ -7,12 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import type { Product } from "@/interfaces/product";
 import { useProductImages } from "@/hooks/products/useProductImages";
 import { useUpdateProductForm } from "@/hooks/products/useUpdateProductForm";
 import { useUpdateProduct } from "@/hooks/products/mutations/useUpdateProduct";
-
 import UpdateProductForm from "./UpdateProductForm";
 import { useEffect } from "react";
 

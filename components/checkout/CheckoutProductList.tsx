@@ -1,4 +1,3 @@
-
 import Image from "next/image";
 import { ShoppingBag } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";

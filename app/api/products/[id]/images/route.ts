@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth";
-import path from "path";
-import fs from "fs/promises";
 
 // POST /api/products/[id]/images
 export async function POST(

@@ -8,7 +8,6 @@ import {
   UserRound,
   ChevronDown,
 } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -23,7 +22,6 @@ import {
   SidebarMenuSub,
   SidebarRail,
 } from "@/components/ui/sidebar";
-
 import AppSideMenuItem from "./AppSideMenuItem";
 import { useAuth } from "../auth/AuthContext";
 import { Button } from "../ui/button";

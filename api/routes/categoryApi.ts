@@ -1,4 +1,3 @@
-import axios from "axios";
 import type { Category, CategoryForm } from "@/interfaces/category";
 import axiosClient from "../axiosConfiguration";
 
@@ -12,31 +11,19 @@ const categoryApi = {
     return response.data;
   },
   createCategory: async (category: CategoryForm): Promise<Category> => {
-    try {
-      const response = await axiosClient.post("/categories", category);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosClient.post("/categories", category);
+    return response.data;
   },
   updateCategory: async (
     id: number,
     category: CategoryForm,
   ): Promise<Category> => {
-    try {
-      const response = await axiosClient.put(`/categories/${id}`, category);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosClient.put(`/categories/${id}`, category);
+    return response.data;
   },
   deleteCategory: async (id: number): Promise<Category> => {
-    try {
-      const response = await axiosClient.delete(`/categories/${id}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosClient.delete(`/categories/${id}`);
+    return response.data;
   },
 };
 

@@ -4,7 +4,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import type { DataTableFeatures } from "@/interfaces/data-table-features";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { Product, ProductDisplay } from "@/interfaces/product";
+import { ProductDisplay } from "@/interfaces/product";
 import ProductActions from "./ProductActions";
 
 const columnHelper = createColumnHelper<DataTableFeatures, ProductDisplay>();
