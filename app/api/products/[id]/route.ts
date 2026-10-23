@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser } from "@/lib/auth";
 import path from "path";
 import fs from "fs/promises";
+import { Prisma } from "@prisma/client";
 
 // GET /api/products/[id]
 export async function GET(
@@ -176,7 +177,7 @@ export async function DELETE(
     if (authUser.role !== "ADMIN") {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
-    
+
     // 3. Kiểm tra ID sản phẩm
     const { id } = await params;
     const productId = Number(id);
@@ -208,22 +209,43 @@ export async function DELETE(
     });
 
     // 6. Xóa các file ảnh lưu trên local
+    const uploadDir = path.resolve(process.cwd(), "uploads", "products");
+    
     for (const image of product.images) {
-      const filename = path.basename(
-        new URL(image.imageUrl, "http://localhost").pathname,
-      );
-
-      const filePath = path.join(
-        process.cwd(),
-        "uploads",
-        "products",
-        filename,
-      );
-
       try {
+        const pathname = new URL(image.imageUrl, "http://localhost").pathname;
+
+        const prefix = "/api/uploads/products/";
+
+        if (!pathname.startsWith(prefix)) {
+          console.error("Invalid product image URL:", image.imageUrl);
+          continue;
+        }
+
+        const filename = pathname.slice(prefix.length);
+
+        if (
+          !filename ||
+          filename !== path.basename(filename) ||
+          filename.includes("\\") ||
+          filename === "." ||
+          filename === ".."
+        ) {
+          console.error("Invalid image filename:", filename);
+          continue;
+        }
+
+        const filePath = path.resolve(uploadDir, filename);
+
+        // Đảm bảo file nằm trực tiếp trong uploadDir
+        if (path.dirname(filePath) !== uploadDir) {
+          console.error("Image path is outside upload directory");
+          continue;
+        }
+
         await fs.unlink(filePath);
       } catch (error) {
-        console.error(`Cannot delete image file: ${filePath}`, error);
+        console.error("Cannot delete product image:", error);
       }
     }
 
@@ -232,6 +254,25 @@ export async function DELETE(
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2003") {
+        return NextResponse.json(
+          {
+            message:
+              "Không thể xóa sản phẩm vì sản phẩm đang được sử dụng trong đơn hàng hoặc dữ liệu liên quan.",
+          },
+          { status: 400 },
+        );
+      }
+
+      if (error.code === "P2025") {
+        return NextResponse.json(
+          { message: "Không tìm thấy sản phẩm cần xóa." },
+          { status: 404 },
+        );
+      }
+    }
+
     console.error("Delete product error:", error);
 
     return NextResponse.json(

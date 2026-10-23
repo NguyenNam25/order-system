@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import { getAuthenticatedUser } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
 
 export async function GET(
   request: Request,
@@ -40,10 +41,7 @@ export async function PUT(
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Forbidden" },
-        { status: 403 },
-      );
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const category = await prisma.category.update({
@@ -76,10 +74,7 @@ export async function DELETE(
     }
 
     if (authUser.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Forbidden" },
-        { status: 403 },
-      );
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     await prisma.category.delete({
@@ -93,6 +88,25 @@ export async function DELETE(
       { status: 200 },
     );
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2003") {
+        return NextResponse.json(
+          {
+            message:
+              "Không thể xóa danh mục vì vẫn còn sản phẩm hoặc dữ liệu liên quan đang sử dụng danh mục này.",
+          },
+          { status: 400 },
+        );
+      }
+
+      if (error.code === "P2025") {
+        return NextResponse.json(
+          { message: "Không tìm thấy danh mục cần xóa." },
+          { status: 404 },
+        );
+      }
+    }
+
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 },

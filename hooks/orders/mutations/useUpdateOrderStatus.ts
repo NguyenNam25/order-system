@@ -11,6 +11,7 @@ export interface UpdateOrderStatusPayload {
     cancelNote?: string;
     returnMethod?: "REFUND" | "EXCHANGE";
     returnRejectNote?: string;
+    returnNote?: string;
   };
 }
 
