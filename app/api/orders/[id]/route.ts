@@ -30,16 +30,13 @@ export async function PATCH(
 ) {
   try {
     const authUser = await getAuthenticatedUser();
-
     if (!authUser) {
       return NextResponse.json(
         { message: "Bạn chưa đăng nhập" },
         { status: 401 },
       );
     }
-
     const userId = authUser.userId;
-
     if (!userId) {
       return NextResponse.json(
         { message: "Dữ liệu trong token không hợp lệ" },
@@ -64,7 +61,6 @@ export async function PATCH(
 
     const { id } = await params;
     const orderId = Number(id);
-
     if (Number.isNaN(orderId)) {
       return NextResponse.json(
         { message: "Id đơn hàng không hợp lệ" },
@@ -75,7 +71,6 @@ export async function PATCH(
     const body = await request.json();
     const { status, cancelNote, returnNote, returnMethod, returnRejectNote } =
       body;
-
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
         { message: "Trạng thái đơn hàng không hợp lệ" },
@@ -92,21 +87,15 @@ export async function PATCH(
           items: true,
         },
       });
-
       if (!currentOrder) {
         throw new Error("ORDER_NOT_FOUND");
       }
-
-      // Chỉ cho phép USER và ADMIN thực hiện thao tác
       if (user.role !== "USER" && user.role !== "ADMIN") {
         throw new Error("FORBIDDEN");
       }
-
-      // USER chỉ được thao tác trên đơn hàng của chính mình
       if (user.role === "USER" && currentOrder.userId !== user.id) {
         throw new Error("ORDER_FORBIDDEN");
       }
-
       if (user.role === "USER") {
         const isAllowedUserTransition =
           (currentOrder.status === "PENDING" && status === "CANCELLED") ||
@@ -118,14 +107,49 @@ export async function PATCH(
           throw new Error("FORBIDDEN_STATUS_TRANSITION");
         }
       }
-
       const allowedStatuses = allowedTransitions[currentOrder.status];
-
       if (!allowedStatuses.includes(status)) {
         throw new Error("INVALID_STATUS_TRANSITION");
       }
-      // Khi CONFIRMED → trừ stock
+
+      const orderData = {
+        status,
+        ...(status === "CANCELLED"
+          ? {
+              cancelNote: cancelNote ?? null,
+              role: user.role,
+            }
+          : {}),
+        ...(status === "RETURN_REQUESTED"
+          ? {
+              returnNote: returnNote ?? null,
+            }
+          : {}),
+        ...(status === "RETURN_APPROVED"
+          ? {
+              returnMethod: returnMethod ?? null,
+            }
+          : {}),
+        ...(status === "RETURN_REJECTED"
+          ? {
+              returnRejectNote: returnRejectNote ?? null,
+            }
+          : {}),
+      };
+
       if (currentOrder.status === "PENDING" && status === "CONFIRMED") {
+        const claimedOrder = await tx.order.updateMany({
+          where: {
+            id: orderId,
+            status: "PENDING",
+          },
+          data: {
+            status: status,
+          },
+        });
+        if (claimedOrder.count === 0) {
+          throw new Error("ORDER_ALREADY_PROCESSED");
+        }
         for (const item of currentOrder.items) {
           const result = await tx.product.updateMany({
             where: {
@@ -140,7 +164,6 @@ export async function PATCH(
               },
             },
           });
-
           if (result.count === 0) {
             const product = await tx.product.findUnique({
               where: {
@@ -150,36 +173,32 @@ export async function PATCH(
                 name: true,
               },
             });
-
             if (!product) {
               throw new Error("PRODUCT_NOT_FOUND");
             }
-
             throw new Error(`OUT_OF_STOCK:${product.name}`);
           }
         }
-      }
-      // Khi RETURN APPROVE → cộng stock
-      if (
+      } else if (
         currentOrder.status === "RETURN_REQUESTED" &&
         status === "RETURN_APPROVED" &&
         returnMethod === "REFUND"
       ) {
+        const claimedOrder = await tx.order.updateMany({
+          where: {
+            id: orderId,
+            status: "RETURN_REQUESTED",
+          },
+          data: {
+            status: status,
+            returnMethod: returnMethod,
+          },
+        });
+        if (claimedOrder.count === 0) {
+          throw new Error("ORDER_ALREADY_PROCESSED");
+        }
         for (const item of currentOrder.items) {
-          const product = await tx.product.findUnique({
-            where: {
-              id: item.productId,
-            },
-            select: {
-              id: true,
-            },
-          });
-
-          if (!product) {
-            throw new Error("PRODUCT_NOT_FOUND");
-          }
-
-          await tx.product.update({
+          const result = await tx.product.updateMany({
             where: {
               id: item.productId,
             },
@@ -189,39 +208,34 @@ export async function PATCH(
               },
             },
           });
+          if (result.count === 0) {
+            throw new Error("PRODUCT_NOT_FOUND");
+          }
         }
+      } else {
+        return tx.order.update({
+          where: {
+            id: orderId,
+          },
+          data: orderData,
+          include: {
+            items: true,
+          },
+        });
       }
-      // Update Order
-      return tx.order.update({
+
+      const updatedOrder = await tx.order.findUnique({
         where: {
           id: orderId,
         },
-        data: {
-          status,
-          // Chỉ lưu cancelNote khi huỷ
-          ...(status === "CANCELLED"
-            ? {
-                cancelNote: cancelNote ?? null,
-                role: user.role,
-              }
-            : {}),
-          ...(status === "RETURN_REQUESTED"
-            ? {
-                returnNote: returnNote ?? null,
-              }
-            : {}),
-          ...(status === "RETURN_APPROVED"
-            ? {
-                returnMethod: returnMethod ?? null,
-              }
-            : {}),
-          ...(status === "RETURN_REJECTED"
-            ? {
-                returnRejectNote: returnRejectNote ?? null,
-              }
-            : {}),
+        include: {
+          items: true,
         },
       });
+      if (!updatedOrder) {
+        throw new Error("ORDER_NOT_FOUND");
+      }
+      return updatedOrder;
     });
 
     return NextResponse.json(
@@ -283,6 +297,13 @@ export async function PATCH(
         return NextResponse.json(
           { message: "Bạn không có quyền thực hiện thao tác này" },
           { status: 403 },
+        );
+      }
+
+      if (error.message === "ORDER_ALREADY_PROCESSED") {
+        return NextResponse.json(
+          { message: "Đơn hàng đã được chuyển trạng thái" },
+          { status: 400 },
         );
       }
     }

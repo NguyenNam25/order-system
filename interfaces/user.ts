@@ -24,13 +24,32 @@ export interface UserUpdate {
   phone: string;
 }
 
+// User tự đổi mật khẩu
 export interface PasswordUpdate {
   currentPassword: string;
   newPassword: string;
 }
 
+// Form đổi mật khẩu của User
 export type ChangePassForm = {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 };
+
+// Thông tin người dùng được chọn trong dialog Admin
+export interface AdminPasswordUpdate {
+  id: number;
+  fullname: string;
+}
+
+// Dữ liệu mật khẩu Admin gửi lên API
+export interface AdminPassword {
+  newPassword: string;
+}
+
+// Payload mutation dành cho Admin
+export interface AdminChangePassword {
+  id: number;
+  password: AdminPassword;
+}

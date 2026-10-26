@@ -1,21 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const authUser = await getAuthenticatedUser();
+    const { user: authUser, response } = await requireUser();
 
-    if (!authUser) {
-      return NextResponse.json(
-        { message: "Bạn chưa đăng nhập" },
-        { status: 401 },
-      );
-    }
+    if (response) return response;
 
     const { id } = await params;
     const userId = Number(id);
@@ -27,29 +22,38 @@ export async function PATCH(
       );
     }
 
-    // Chỉ cho phép đổi mật khẩu của chính mình
-    if (authUser.userId !== userId) {
+    const isAdmin = authUser.role === "ADMIN";
+    const isSelf = authUser.id === userId;
+
+    if (!isAdmin && !isSelf) {
       return NextResponse.json(
         { message: "Bạn không có quyền đổi mật khẩu người dùng khác" },
         { status: 403 },
       );
     }
-
     const body = await request.json();
 
-    if (
-      typeof body.currentPassword !== "string" ||
-      typeof body.newPassword !== "string" ||
-      !body.currentPassword ||
-      body.newPassword.length < 8
-    ) {
+    if (typeof body.newPassword !== "string" || body.newPassword.length < 8) {
       return NextResponse.json(
-        { message: "Mật khẩu hiện tại không hợp lệ hoặc mật khẩu mới phải có ít nhất 8 ký tự" },
+        {
+          message:
+            "Mật khẩu hiện tại không hợp lệ hoặc mật khẩu mới phải có ít nhất 8 ký tự",
+        },
         { status: 400 },
       );
     }
 
-    const user = await prisma.user.findUnique({
+    if (
+      !isAdmin &&
+      (typeof body.currentPassword !== "string" || !body.currentPassword)
+    ) {
+      return NextResponse.json(
+        { message: "Vui lòng nhập mật khẩu hiện tại" },
+        { status: 400 },
+      );
+    }
+
+    const targetUser = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -58,30 +62,32 @@ export async function PATCH(
       },
     });
 
-    if (!user || !user.isActive) {
+    if (!targetUser) {
       return NextResponse.json(
-        { message: "Không tìm thấy người dùng hoặc tài khoản đã bị khóa" },
+        { message: "Không tìm thấy người dùng" },
         { status: 404 },
       );
     }
 
-    const isPasswordCorrect = await bcrypt.compare(
-      body.currentPassword,
-      user.password,
-    );
-
-    if (!isPasswordCorrect) {
-      return NextResponse.json(
-        { message: "Mật khẩu hiện tại không đúng" },
-        { status: 400 },
+    if (!isAdmin) {
+      const isPasswordCorrect = await bcrypt.compare(
+        body.currentPassword,
+        targetUser.password,
       );
-    }
 
-    if (body.currentPassword === body.newPassword) {
-      return NextResponse.json(
-        { message: "Mật khẩu mới phải khác mật khẩu hiện tại" },
-        { status: 400 },
-      );
+      if (!isPasswordCorrect) {
+        return NextResponse.json(
+          { message: "Mật khẩu hiện tại không đúng" },
+          { status: 400 },
+        );
+      }
+
+      if (body.currentPassword === body.newPassword) {
+        return NextResponse.json(
+          { message: "Mật khẩu mới phải khác mật khẩu hiện tại" },
+          { status: 400 },
+        );
+      }
     }
 
     const hashedPassword = await bcrypt.hash(body.newPassword, 10);

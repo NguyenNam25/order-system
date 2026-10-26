@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { isAccountActive } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -29,6 +30,13 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { message: "Email hoặc password không đúng" },
         { status: 401 },
+      );
+    }
+
+    if (!isAccountActive(user)) {
+      return NextResponse.json(
+        { message: "Tài khoản đã bị vô hiệu hóa" },
+        { status: 403 },
       );
     }
 

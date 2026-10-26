@@ -6,20 +6,11 @@ import CancelOrderDialog from "@/components/orders/CancelOrderDialog";
 import ReturnApproveDialog from "@/components/orders/ReturnApproved";
 import ReturnRejectDialog from "@/components/orders/ReturnRejected";
 import OrderStatusActions from "./detail/OrderStatusActions";
-import useUpdateOrderStatus from "@/hooks/orders/mutations/useUpdateOrderStatus";
+import useUpdateOrderStatus, { UpdateOrderStatusPayload } from "@/hooks/orders/mutations/useUpdateOrderStatus";
+import { toast } from "sonner";
 
 interface FastActionsProps {
   order: Order;
-}
-
-interface UpdateOrderStatusPayload {
-  id: number;
-  status: Order["status"];
-  data?: {
-    cancelNote?: string;
-    returnMethod?: "REFUND" | "EXCHANGE";
-    returnRejectNote?: string;
-  };
 }
 
 export default function FastActions({ order }: FastActionsProps) {
@@ -37,11 +28,56 @@ export default function FastActions({ order }: FastActionsProps) {
     status: Order["status"],
     data?: UpdateOrderStatusPayload["data"],
   ) => {
-    handleChangeStatus.mutate({
-      id: order.id,
-      status,
-      data,
-    });
+    handleChangeStatus.mutate(
+      {
+        id: order.id,
+        status,
+        data,
+      },
+      {
+        onSuccess: () => {
+          switch (status) {
+            case "CANCELLED":
+              toast.success("Hủy đơn hàng thành công");
+              setOpenCancelDialog(false);
+              break;
+
+            case "CONFIRMED":
+              toast.success("Xác nhận đơn hàng thành công");
+              break;
+
+            case "SHIPPING":
+              toast.success("Xác nhận đơn hàng đang được giao");
+              break;
+
+            case "COMPLETED":
+              toast.success("Xác nhận giao hàng thành công");
+              break;
+
+            case "RETURN_APPROVED":
+              if (data?.returnMethod === "REFUND") {
+                toast.success("Đã duyệt yêu cầu hoàn tiền");
+              } else if (data?.returnMethod === "EXCHANGE") {
+                toast.success("Đã duyệt yêu cầu đổi hàng");
+              } else {
+                toast.success("Đã duyệt yêu cầu hoàn hàng");
+              }
+
+              setOpenApproveReturn(false);
+              break;
+
+            case "RETURN_REJECTED":
+              toast.success("Đã từ chối yêu cầu hoàn hàng");
+              setOpenRejectReturn(false);
+              break;
+
+            default:
+              toast.success("Cập nhật đơn hàng thành công");
+              break;
+          }
+        },
+      },
+    );
   };
 
   return (

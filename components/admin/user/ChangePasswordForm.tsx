@@ -1,3 +1,4 @@
+
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +9,12 @@ import type {
   UseFormRegister,
   UseFormReset,
 } from "react-hook-form";
-import { ChangePassForm } from "@/interfaces/user";
+import type { AdminPasswordUpdateForm } from "@/schemas/userSchema";
 
 interface ChangePasswordFormProps {
-  register: UseFormRegister<ChangePassForm>;
-  errors: FieldErrors<ChangePassForm>;
-  reset: UseFormReset<ChangePassForm>;
+  register: UseFormRegister<AdminPasswordUpdateForm>;
+  errors: FieldErrors<AdminPasswordUpdateForm>;
+  reset: UseFormReset<AdminPasswordUpdateForm>;
   isPending: boolean;
 }
 
@@ -29,42 +30,6 @@ export default function ChangePasswordForm({
 
   return (
     <FieldGroup className="gap-5">
-      <Field className="gap-2">
-        <FieldLabel htmlFor="currentPassword" className="text-sm font-medium">
-          Mật khẩu hiện tại
-        </FieldLabel>
-
-        <div className="relative">
-          <Input
-            id="currentPassword"
-            type={showCurrentPassword ? "text" : "password"}
-            placeholder="Nhập mật khẩu hiện tại"
-            autoComplete="current-password"
-            className="h-10 rounded-lg pr-10"
-            {...register("currentPassword")}
-          />
-
-          <button
-            type="button"
-            aria-label={showCurrentPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-            onClick={() => setShowCurrentPassword((prev) => !prev)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            {showCurrentPassword ? (
-              <EyeOff className="size-4" />
-            ) : (
-              <Eye className="size-4" />
-            )}
-          </button>
-        </div>
-
-        {errors.currentPassword && (
-          <p className="text-sm text-destructive">
-            {errors.currentPassword.message}
-          </p>
-        )}
-      </Field>
-
       <Field className="gap-2">
         <FieldLabel htmlFor="newPassword" className="text-sm font-medium">
           Mật khẩu mới

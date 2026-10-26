@@ -19,6 +19,7 @@ import OrderItems from "./detail/OrderItems";
 import ShippingInfo from "./detail/ShippingInfo";
 import OrderNotes from "./detail/OrderNotes";
 import OrderStatusActions from "./detail/OrderStatusActions";
+import { toast } from "sonner";
 
 interface OrderDetailProps {
   data: Order;
@@ -37,6 +38,50 @@ export default function OrderDetail({
 
   const handleChangeStatus = useUpdateOrderStatus();
 
+  const onUpdateOrderSuccess = (
+    status: Order["status"],
+    payload?: {
+      returnMethod?: "REFUND" | "EXCHANGE";
+    },
+  ) => {
+    switch (status) {
+      case "CANCELLED":
+        toast.success("Hủy đơn hàng thành công");
+        setOpenCancelDialog(false);
+        break;
+
+      case "CONFIRMED":
+        toast.success("Xác nhận đơn hàng thành công");
+        break;
+
+      case "SHIPPING":
+        toast.success("Xác nhận đơn hàng đang được giao");
+        setOpenApproveReturn(false);
+        break;
+
+      case "RETURN_APPROVED":
+        if (payload?.returnMethod === "REFUND") {
+          toast.success("Đã duyệt yêu cầu hoàn tiền thành công");
+        } else if (payload?.returnMethod === "EXCHANGE") {
+          toast.success("Đã duyệt yêu cầu đổi hàng thành công");
+        } else {
+          toast.success("Duyệt yêu cầu hoàn hàng thành công");
+        }
+        setOpenApproveReturn(false);
+        break;
+
+      case "RETURN_REJECTED":
+        toast.success("Xác nhận hàng không thể hoàn");
+        setOpenRejectReturn(false);
+        break;
+
+      default:
+        toast.success("Cập nhật đơn hàng thành công");
+        break;
+    }
+    onOpenChange(false);
+  };
+
   const updateStatus = (
     status: Order["status"],
     payload?: {
@@ -52,7 +97,7 @@ export default function OrderDetail({
         data: payload,
       },
       {
-        onSuccess: () => onOpenChange(false),
+        onSuccess: () => onUpdateOrderSuccess(status, payload),
       },
     );
   };

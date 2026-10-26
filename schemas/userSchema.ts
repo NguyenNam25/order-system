@@ -19,7 +19,7 @@ const phone = z
   .regex(/^0\d{9}$/, "Phone must be a valid phone number");
 const role = z.enum(["USER", "ADMIN"]);
 
-export const userSchema = z.object({ fullname, email, password, phone});
+export const userSchema = z.object({ fullname, email, password, phone });
 
 export const userCreateSchema = userSchema.extend({
   role,
@@ -37,3 +37,15 @@ export const PasswordUpdateSchema = z
     message: "Password do not match",
     path: ["confirmPassword"],
   });
+
+export const AdminPasswordUpdateSchema = z
+  .object({
+    newPassword: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
+    confirmPassword: z.string().min(1, "Vui lòng xác nhận mật khẩu mới"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmPassword"],
+  });
+
+export type AdminPasswordUpdateForm = z.infer<typeof AdminPasswordUpdateSchema>;

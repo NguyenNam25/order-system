@@ -7,31 +7,35 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ChangePassForm, User } from "@/interfaces/user";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PasswordUpdateSchema } from "@/schemas/userSchema";
 import { useChangePassword } from "@/hooks/users/mutations/useChangePassword";
 import ChangePasswordForm from "./ChangePasswordForm";
+import {
+  AdminPasswordUpdateSchema,
+  type AdminPasswordUpdateForm,
+} from "@/schemas/userSchema";
+import { AdminPasswordUpdate } from "@/interfaces/user";
+
+interface ChangePasswordProps {
+  data: AdminPasswordUpdate;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
 export default function ChangePassword({
   data,
   open,
   onOpenChange,
-}: {
-  data: User;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
+}: ChangePasswordProps) {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<ChangePassForm>({
-    resolver: zodResolver(PasswordUpdateSchema),
+  } = useForm<AdminPasswordUpdateForm>({
+    resolver: zodResolver(AdminPasswordUpdateSchema),
     defaultValues: {
-      currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
@@ -39,12 +43,11 @@ export default function ChangePassword({
 
   const changePasswordMutation = useChangePassword();
 
-  const onUpdate = (formData: ChangePassForm) => {
+  const onUpdate = (formData: AdminPasswordUpdateForm) => {
     changePasswordMutation.mutate(
       {
         id: data.id,
         password: {
-          currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,
         },
       },
@@ -59,6 +62,9 @@ export default function ChangePassword({
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (changePasswordMutation.isPending) return;
+
+    if (!nextOpen) reset();
+
     onOpenChange(nextOpen);
   };
 
@@ -67,10 +73,11 @@ export default function ChangePassword({
       <DialogContent className="max-h-[90vh] max-w-md! gap-6 overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-xl">
         <DialogHeader className="gap-1">
           <DialogTitle className="text-xl font-semibold tracking-tight">
-            Đổi mật khẩu
+            Đặt lại mật khẩu người dùng
           </DialogTitle>
           <DialogDescription className="text-sm leading-5 text-muted-foreground">
-            Nhập mật khẩu hiện tại và thiết lập mật khẩu mới cho tài khoản.
+            Thiết lập mật khẩu mới cho tài khoản {data.fullname}. Không cần nhập
+            mật khẩu hiện tại.
           </DialogDescription>
         </DialogHeader>
 

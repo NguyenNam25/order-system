@@ -1,5 +1,7 @@
 import axiosClient from "../axiosConfiguration";
 import type {
+  AdminPassword,
+  AdminPasswordUpdate,
   PasswordUpdate,
   User,
   UserCreate,
@@ -9,7 +11,7 @@ import type {
 const userApi = {
   getAllUsers: async (): Promise<User[]> => {
     const response = await axiosClient.get("/users");
-    return response.data
+    return response.data;
   },
   getUserById: async (id: number): Promise<User> => {
     const response = await axiosClient.get(`/users/${id}`);
@@ -27,11 +29,12 @@ const userApi = {
     const response = await axiosClient.delete(`/users/${id}`);
     return response.data;
   },
-  ChangePassword: async (
+  changePassword: async (
     id: number,
-    password: PasswordUpdate,
+    password: PasswordUpdate | AdminPassword,
   ): Promise<User> => {
     const response = await axiosClient.patch(`/users/${id}/password`, password);
+
     return response.data;
   },
 };

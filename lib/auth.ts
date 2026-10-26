@@ -1,13 +1,18 @@
-
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { AuthenticatedUser, JwtPayload } from "@/interfaces/auth";
 
-export interface JwtPayload {
-  userId: number;
-  role: "ADMIN" | "USER";
-}
+type RequireUserResult =
+  | {
+      user: AuthenticatedUser;
+      response: null;
+    }
+  | {
+      user: null;
+      response: NextResponse;
+    };
 
 // Chỉ xác thực JWT, không truy vấn DB
 export async function getAuthenticatedUser(): Promise<JwtPayload | null> {
@@ -20,59 +25,76 @@ export async function getAuthenticatedUser(): Promise<JwtPayload | null> {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
 
-    if (
-      typeof decoded === "string" ||
-      typeof decoded.userId !== "number" ||
-      (decoded.role !== "ADMIN" && decoded.role !== "USER")
-    ) {
+    if (typeof decoded === "string" || typeof decoded.userId !== "number") {
       return null;
     }
 
     return {
       userId: decoded.userId,
-      role: decoded.role,
     };
   } catch {
     return null;
   }
 }
 
-// Xác thực đăng nhập và kiểm tra quyền Admin từ DB
-export async function requireAdmin() {
+export function isAccountActive(
+  user: { isActive: boolean } | null | undefined,
+): boolean {
+  return user?.isActive === true;
+}
+
+export async function requireUser(): Promise<RequireUserResult> {
   const authUser = await getAuthenticatedUser();
 
   if (!authUser) {
     return {
       user: null,
       response: NextResponse.json(
-        { message: "Bạn chưa đăng nhập" },
+        { message: "Vui lòng đăng nhập" },
         { status: 401 },
       ),
     };
   }
 
   const user = await prisma.user.findUnique({
-    where: { id: authUser.userId },
+    where: {
+      id: authUser.userId,
+    },
     select: {
       id: true,
       fullname: true,
       email: true,
+      phone: true,
       role: true,
       isActive: true,
     },
   });
 
-  if (!user || !user.isActive) {
+  if (!user || !isAccountActive(user)) {
     return {
       user: null,
       response: NextResponse.json(
-        { message: "Bạn chưa đăng nhập" },
+        { message: "Tài khoản không tồn tại hoặc đã bị vô hiệu hóa" },
         { status: 401 },
       ),
     };
   }
 
-  if (user.role !== "ADMIN") {
+  return {
+    user,
+    response: null,
+  };
+}
+
+// Xác thực đăng nhập và kiểm tra quyền Admin từ DB
+export async function requireAdmin() {
+  const result = await requireUser();
+
+  if (result.response) {
+    return result;
+  }
+
+  if (result.user.role !== "ADMIN") {
     return {
       user: null,
       response: NextResponse.json(
@@ -82,8 +104,5 @@ export async function requireAdmin() {
     };
   }
 
-  return {
-    user,
-    response: null,
-  };
+  return result;
 }
