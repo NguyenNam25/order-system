@@ -50,7 +50,7 @@ export default function CancelOrderDialog({
       }}
     >
       <DialogContent className="w-[calc(100%-24px)] max-w-md gap-0 overflow-hidden rounded-2xl border border-white/10 bg-[#101013] p-0 text-zinc-100">
-        <div className="border-b border-white/[0.07] bg-gradient-to-r from-red-500/10 via-transparent to-transparent px-5 py-5 sm:px-6">
+        <div className="border-b border-white/[0.07] bg-linear-to-r from-red-500/10 via-transparent to-transparent px-5 py-5 sm:px-6">
           <DialogHeader>
             <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10">
               <AlertTriangle className="size-5 text-red-400" />
@@ -108,7 +108,7 @@ export default function CancelOrderDialog({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="rounded-xl border-white/10 bg-transparent text-zinc-300 hover:bg-white/[0.06] hover:text-white"
+                className="rounded-xl border-white/10 bg-transparent text-zinc-300 hover:bg-white/6 hover:text-white"
               >
                 Giữ đơn hàng
               </Button>

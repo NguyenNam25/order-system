@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 
 export async function DELETE() {
   try {
     // 1. Lấy token
-    const user = await getAuthenticatedUser();
+    const { user: authUser, response } = await requireUser();
 
-    if (!user) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
+    if (response) return response;
 
-    const userId = user.userId;
+    const userId = authUser.id;
 
     // 3. Tìm cart của user
     const cart = await prisma.cart.findUnique({
@@ -21,7 +19,10 @@ export async function DELETE() {
     });
 
     if (!cart) {
-      return NextResponse.json({ message: "Không tìm thấy giỏ hàng" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Không tìm thấy giỏ hàng" },
+        { status: 404 },
+      );
     }
 
     // 4. Xóa tất cả CartItem của cart

@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await getAuthenticatedUser();
+    const { user: authUser, response } = await requireUser();
 
-    if (!user) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
+    if (response) return response;
 
-    const userId = user.userId;
+    const userId = authUser.id;
 
     const { id } = await params;
     const cartItemId = Number(id);
@@ -95,11 +93,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const user = await getAuthenticatedUser();
+    const { user: authUser, response } = await requireUser();
 
-    if (!user) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
+    if (response) return response;
+
+    const userId = authUser.id;
 
     // 3. Lấy cartItemId từ URL
     const { id } = await params;
@@ -116,7 +114,7 @@ export async function DELETE(
       where: {
         id: cartItemId,
         cart: {
-          userId: user.userId,
+          userId: userId,
         },
       },
     });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser, requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireUser } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
 
 const validStatuses = [
   "PENDING",
@@ -24,38 +25,41 @@ const allowedTransitions: Record<string, string[]> = {
   RETURN_REJECTED: [],
 };
 
+type OrderStatus = (typeof validStatuses)[number];
+
+function isValidOrderStatus(value: unknown): value is OrderStatus {
+  return (
+    typeof value === "string" &&
+    validStatuses.some((status) => status === value)
+  );
+}
+
+const validReturnMethods = ["REFUND", "EXCHANGE"] as const;
+type ReturnMethod = (typeof validReturnMethods)[number];
+
+function isValidReturnMethod(value: unknown): value is ReturnMethod {
+  return (
+    typeof value === "string" &&
+    validReturnMethods.some((method) => method === value)
+  );
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const authUser = await getAuthenticatedUser();
-    if (!authUser) {
-      return NextResponse.json(
-        { message: "Bạn chưa đăng nhập" },
-        { status: 401 },
-      );
-    }
-    const userId = authUser.userId;
+    const { user: authUser, response } = await requireUser();
+
+    if (response) return response;
+
+    const userId = authUser.id;
+    const role = authUser.role;
+
     if (!userId) {
       return NextResponse.json(
         { message: "Dữ liệu trong token không hợp lệ" },
         { status: 401 },
-      );
-    }
-    const user = await prisma.user.findUnique({
-      where: {
-        id: Number(userId),
-      },
-      select: {
-        id: true,
-        role: true,
-      },
-    });
-    if (!user) {
-      return NextResponse.json(
-        { message: "Không tìm thấy người dùng" },
-        { status: 404 },
       );
     }
 
@@ -68,12 +72,35 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
+    const body: unknown = await request.json();
+
+    if (typeof body !== "object" || body === null || Array.isArray(body)) {
+      return NextResponse.json(
+        { message: "Dữ liệu yêu cầu không hợp lệ" },
+        { status: 400 },
+      );
+    }
+
     const { status, cancelNote, returnNote, returnMethod, returnRejectNote } =
-      body;
-    if (!validStatuses.includes(status)) {
+      body as Record<string, unknown>;
+
+    if (!isValidOrderStatus(status)) {
       return NextResponse.json(
         { message: "Trạng thái đơn hàng không hợp lệ" },
+        { status: 400 },
+      );
+    }
+
+    const validatedReturnMethod: ReturnMethod | null =
+      status === "RETURN_APPROVED"
+        ? isValidReturnMethod(returnMethod)
+          ? returnMethod
+          : null
+        : null;
+
+    if (status === "RETURN_APPROVED" && !validatedReturnMethod) {
+      return NextResponse.json(
+        { message: "Vui lòng chọn phương thức trả hàng hợp lệ" },
         { status: 400 },
       );
     }
@@ -90,13 +117,13 @@ export async function PATCH(
       if (!currentOrder) {
         throw new Error("ORDER_NOT_FOUND");
       }
-      if (user.role !== "USER" && user.role !== "ADMIN") {
+      if (role !== "USER" && role !== "ADMIN") {
         throw new Error("FORBIDDEN");
       }
-      if (user.role === "USER" && currentOrder.userId !== user.id) {
+      if (role === "USER" && currentOrder.userId !== userId) {
         throw new Error("ORDER_FORBIDDEN");
       }
-      if (user.role === "USER") {
+      if (role === "USER") {
         const isAllowedUserTransition =
           (currentOrder.status === "PENDING" && status === "CANCELLED") ||
           (currentOrder.status === "COMPLETED" &&
@@ -117,7 +144,7 @@ export async function PATCH(
         ...(status === "CANCELLED"
           ? {
               cancelNote: cancelNote ?? null,
-              role: user.role,
+              role: role,
             }
           : {}),
         ...(status === "RETURN_REQUESTED"
@@ -181,8 +208,7 @@ export async function PATCH(
         }
       } else if (
         currentOrder.status === "RETURN_REQUESTED" &&
-        status === "RETURN_APPROVED" &&
-        returnMethod === "REFUND"
+        status === "RETURN_APPROVED"
       ) {
         const claimedOrder = await tx.order.updateMany({
           where: {
@@ -191,25 +217,27 @@ export async function PATCH(
           },
           data: {
             status: status,
-            returnMethod: returnMethod,
+            returnMethod: validatedReturnMethod,
           },
         });
         if (claimedOrder.count === 0) {
           throw new Error("ORDER_ALREADY_PROCESSED");
         }
-        for (const item of currentOrder.items) {
-          const result = await tx.product.updateMany({
-            where: {
-              id: item.productId,
-            },
-            data: {
-              quantity: {
-                increment: item.quantity,
+        if (validatedReturnMethod === "REFUND") {
+          for (const item of currentOrder.items) {
+            const result = await tx.product.updateMany({
+              where: {
+                id: item.productId,
               },
-            },
-          });
-          if (result.count === 0) {
-            throw new Error("PRODUCT_NOT_FOUND");
+              data: {
+                quantity: {
+                  increment: item.quantity,
+                },
+              },
+            });
+            if (result.count === 0) {
+              throw new Error("PRODUCT_NOT_FOUND");
+            }
           }
         }
       } else {
@@ -306,6 +334,18 @@ export async function PATCH(
           { status: 400 },
         );
       }
+    }
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        {
+          message: "Dữ liệu bị trùng. Vui lòng kiểm tra lại thông tin.",
+        },
+        { status: 409 },
+      );
     }
 
     return NextResponse.json(

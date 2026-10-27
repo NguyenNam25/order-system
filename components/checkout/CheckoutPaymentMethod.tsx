@@ -43,7 +43,7 @@ export default function CheckoutPaymentMethod({
         <Button
           type="submit"
           disabled={isDisabled || isPending}
-          className="w-full bg-[#FF0033] font-semibold text-white hover:bg-[#D9002B] disabled:opacity-50"
+          className="h-12 w-full bg-[#FF0033] font-semibold text-white hover:bg-[#D9002B] disabled:opacity-50"
         >
           {isPending ? (
             <>

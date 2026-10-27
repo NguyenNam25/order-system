@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
 import { generateOrderCode } from "@/lib/generate-code";
-import { getAuthenticatedUser, requireAdmin } from "@/lib/auth";
+import { requireAdmin, requireUser } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -68,23 +68,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const authUser = await getAuthenticatedUser();
+    const { user: authUser, response } = await requireUser();
 
-    if (!authUser) {
-      return NextResponse.json(
-        { message: "Bạn chưa đăng nhập" },
-        { status: 401 },
-      );
-    }
+    if (response) return response;
 
-    if (authUser.role !== "USER" && authUser.role !== "ADMIN") {
-      return NextResponse.json(
-        { message: "Bạn không có quyền thực hiện thao tác này" },
-        { status: 403 },
-      );
-    }
-
-    const userId = authUser.userId;
+    const userId = authUser.id;
 
     // 3. Lấy dữ liệu checkout
     const body = await request.json();

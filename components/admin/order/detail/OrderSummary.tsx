@@ -14,7 +14,7 @@ export default function OrderSummary({ order }: OrderSummaryProps) {
           <p className="text-xs font-medium text-muted-foreground">
             Mã đơn hàng
           </p>
-          <p className="text-base font-semibold">#{order.id}</p>
+          <p className="text-base font-semibold">{order.orderCode}</p>
         </div>
 
         <div className="space-y-1">

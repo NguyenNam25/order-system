@@ -90,7 +90,7 @@ export default function Orders() {
             variant="outline"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="w-fit border-white/10 bg-[#18181B] text-zinc-200 hover:bg-white/[0.06] hover:text-white"
+            className="w-fit border-white/10 bg-[#18181B] text-zinc-200 hover:bg-white/6 hover:text-white"
           >
             <RefreshCw
               className={`mr-2 size-4 ${isFetching ? "animate-spin" : ""}`}

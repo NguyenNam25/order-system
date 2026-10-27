@@ -13,6 +13,7 @@ export interface UpdateOrderStatusPayload {
     returnRejectNote?: string;
     returnNote?: string;
   };
+  successMessage?: string;
 }
 
 export default function useUpdateOrderStatus() {
@@ -22,10 +23,14 @@ export default function useUpdateOrderStatus() {
     mutationFn: ({ id, status, data }: UpdateOrderStatusPayload) =>
       orderApi.updateOrderStatus(id, status, data),
 
-    onSuccess: async () => {
+    onSuccess: async (_result, variables) => {
+      if (variables.successMessage) {
+        toast.success(variables.successMessage);
+      }
+
       await queryClient.invalidateQueries({
         queryKey: ["orders"],
-      })
+      });
     },
 
     onError: () => {

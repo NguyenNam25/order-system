@@ -14,6 +14,7 @@ export default function OrderNotes({ order }: OrderNotesProps) {
       content: order.cancelNote,
       icon: AlertCircle,
       className: "text-destructive",
+      role: order.role,
     },
     {
       key: "return",
@@ -59,6 +60,15 @@ export default function OrderNotes({ order }: OrderNotesProps) {
                   <p className="text-sm leading-6 whitespace-pre-wrap wrap-break-word text-muted-foreground">
                     {note.content}
                   </p>
+
+                  {note.key === "cancel" && note.role && (
+                    <p className="pt-1 text-xs text-muted-foreground">
+                      Người hủy:{" "}
+                      <span className="font-medium text-foreground">
+                        {note.role === "ADMIN" ? "Quản trị viên" : "Khách hàng"}
+                      </span>
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>

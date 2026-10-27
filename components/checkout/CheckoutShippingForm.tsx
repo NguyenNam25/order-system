@@ -17,7 +17,7 @@ export default function CheckoutShippingForm({
 }: CheckoutShippingFormProps) {
   return (
     <Card className="gap-0 rounded-xl border-white/[0.07] bg-[#18181B] py-0 text-zinc-100">
-      <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4 sm:px-6">
+      <div className="flex items-center gap-3 border-b border-white/6 px-5 py-4 sm:px-6">
         <div className="flex size-10 items-center justify-center rounded-lg bg-[#FF0033]/10">
           <MapPin className="size-5 text-[#FF334F]" />
         </div>

@@ -102,7 +102,7 @@ export default function OrderTabs({ orders, onSelect }: OrderTabsProps) {
 
   return (
     <Tabs value={value} onValueChange={setValue} className="w-full">
-      <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl border border-white/[0.07] bg-[#111114] p-1.5">
+      <TabsList className="flex h-auto w-full justify-start gap-1 rounded-xl border border-white/[0.07] bg-[#111114] p-1.5">
         {menuTabsTrigger.map((triggerItem) => {
           const Icon = triggerItem.icon;
 
@@ -114,7 +114,7 @@ export default function OrderTabs({ orders, onSelect }: OrderTabsProps) {
           min-w-fit gap-2 rounded-lg border border-transparent
           px-3 py-2.5 text-xs font-medium text-zinc-400
           transition-colors duration-200
-          hover:bg-white/[0.06] hover:text-white
+          hover:bg-white/6 hover:text-white
           data-[state=active]:border-[#FF0033]/30
           data-[state=active]:bg-[#FF0033]/15
           data-[state=active]:font-semibold
@@ -172,7 +172,7 @@ function OrderSection({
 }) {
   return (
     <Card className="gap-0 overflow-hidden rounded-xl border-white/[0.07] bg-[#18181B] py-0 text-zinc-100">
-      <CardHeader className="border-b border-white/[0.06] px-4 py-4 sm:px-5">
+      <CardHeader className="border-b border-white/6 px-4 py-4 sm:px-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <CardTitle className="text-base font-semibold">{title}</CardTitle>
@@ -182,7 +182,7 @@ function OrderSection({
             </CardDescription>
           </div>
 
-          <span className="rounded-full border border-white/[0.08] bg-[#242429] px-3 py-1 text-xs text-zinc-300">
+          <span className="rounded-full border border-white/8 bg-[#242429] px-3 py-1 text-xs text-zinc-300">
             {orders.length} đơn hàng
           </span>
         </div>

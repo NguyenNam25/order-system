@@ -25,7 +25,7 @@ export default function Page() {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
-        <ListOrderWS status={["RETURN_APPROVED"]} />
+        <ListOrderWS status={["RETURN_APPROVED", "RETURN_REJECTED"]} />
       </div>
     </div>
   );

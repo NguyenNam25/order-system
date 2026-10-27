@@ -6,8 +6,9 @@ import CancelOrderDialog from "@/components/orders/CancelOrderDialog";
 import ReturnApproveDialog from "@/components/orders/ReturnApproved";
 import ReturnRejectDialog from "@/components/orders/ReturnRejected";
 import OrderStatusActions from "./detail/OrderStatusActions";
-import useUpdateOrderStatus, { UpdateOrderStatusPayload } from "@/hooks/orders/mutations/useUpdateOrderStatus";
-import { toast } from "sonner";
+import useUpdateOrderStatus, {
+  UpdateOrderStatusPayload,
+} from "@/hooks/orders/mutations/useUpdateOrderStatus";
 
 interface FastActionsProps {
   order: Order;
@@ -28,56 +29,43 @@ export default function FastActions({ order }: FastActionsProps) {
     status: Order["status"],
     data?: UpdateOrderStatusPayload["data"],
   ) => {
-    handleChangeStatus.mutate(
-      {
-        id: order.id,
-        status,
-        data,
-      },
-      {
-        onSuccess: () => {
-          switch (status) {
-            case "CANCELLED":
-              toast.success("Hủy đơn hàng thành công");
-              setOpenCancelDialog(false);
-              break;
+    const messages: Partial<Record<Order["status"], string>> = {
+      CANCELLED: "Hủy đơn hàng thành công",
+      CONFIRMED: "Xác nhận đơn hàng thành công",
+      SHIPPING: "Xác nhận đơn hàng đang được giao",
+      COMPLETED: "Xác nhận giao hàng thành công",
+      RETURN_REJECTED: "Đã từ chối yêu cầu hoàn hàng",
+    };
 
-            case "CONFIRMED":
-              toast.success("Xác nhận đơn hàng thành công");
-              break;
+    let successMessage = messages[status];
 
-            case "SHIPPING":
-              toast.success("Xác nhận đơn hàng đang được giao");
-              break;
+    if (status === "RETURN_APPROVED") {
+      successMessage =
+        data?.returnMethod === "REFUND"
+          ? "Đã duyệt yêu cầu hoàn tiền"
+          : data?.returnMethod === "EXCHANGE"
+            ? "Đã duyệt yêu cầu đổi hàng"
+            : "Đã duyệt yêu cầu hoàn hàng";
+    }
 
-            case "COMPLETED":
-              toast.success("Xác nhận giao hàng thành công");
-              break;
+    handleChangeStatus.mutate({
+      id: order.id,
+      status,
+      data,
+      successMessage,
+    });
 
-            case "RETURN_APPROVED":
-              if (data?.returnMethod === "REFUND") {
-                toast.success("Đã duyệt yêu cầu hoàn tiền");
-              } else if (data?.returnMethod === "EXCHANGE") {
-                toast.success("Đã duyệt yêu cầu đổi hàng");
-              } else {
-                toast.success("Đã duyệt yêu cầu hoàn hàng");
-              }
+    if (status === "CANCELLED") {
+      setOpenCancelDialog(false);
+    }
 
-              setOpenApproveReturn(false);
-              break;
+    if (status === "RETURN_APPROVED") {
+      setOpenApproveReturn(false);
+    }
 
-            case "RETURN_REJECTED":
-              toast.success("Đã từ chối yêu cầu hoàn hàng");
-              setOpenRejectReturn(false);
-              break;
-
-            default:
-              toast.success("Cập nhật đơn hàng thành công");
-              break;
-          }
-        },
-      },
-    );
+    if (status === "RETURN_REJECTED") {
+      setOpenRejectReturn(false);
+    }
   };
 
   return (

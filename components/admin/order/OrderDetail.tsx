@@ -13,13 +13,14 @@ import { useState } from "react";
 import CancelOrderDialog from "@/components/orders/CancelOrderDialog";
 import ReturnApproveDialog from "@/components/orders/ReturnApproved";
 import ReturnRejectDialog from "@/components/orders/ReturnRejected";
-import useUpdateOrderStatus from "@/hooks/orders/mutations/useUpdateOrderStatus";
+import useUpdateOrderStatus, {
+  type UpdateOrderStatusPayload,
+} from "@/hooks/orders/mutations/useUpdateOrderStatus";
 import OrderSummary from "./detail/OrderSummary";
 import OrderItems from "./detail/OrderItems";
 import ShippingInfo from "./detail/ShippingInfo";
 import OrderNotes from "./detail/OrderNotes";
 import OrderStatusActions from "./detail/OrderStatusActions";
-import { toast } from "sonner";
 
 interface OrderDetailProps {
   data: Order;
@@ -38,68 +39,72 @@ export default function OrderDetail({
 
   const handleChangeStatus = useUpdateOrderStatus();
 
-  const onUpdateOrderSuccess = (
+  const updateStatus = (
     status: Order["status"],
-    payload?: {
-      returnMethod?: "REFUND" | "EXCHANGE";
-    },
+    payload?: UpdateOrderStatusPayload["data"],
   ) => {
+    let successMessage: string;
+
     switch (status) {
       case "CANCELLED":
-        toast.success("Hủy đơn hàng thành công");
-        setOpenCancelDialog(false);
+        successMessage = "Hủy đơn hàng thành công";
         break;
 
       case "CONFIRMED":
-        toast.success("Xác nhận đơn hàng thành công");
+        successMessage = "Xác nhận đơn hàng thành công";
         break;
 
       case "SHIPPING":
-        toast.success("Xác nhận đơn hàng đang được giao");
-        setOpenApproveReturn(false);
+        successMessage = "Xác nhận đơn hàng đang được giao";
+        break;
+
+      case "COMPLETED":
+        successMessage = "Xác nhận giao hàng thành công";
         break;
 
       case "RETURN_APPROVED":
         if (payload?.returnMethod === "REFUND") {
-          toast.success("Đã duyệt yêu cầu hoàn tiền thành công");
+          successMessage = "Đã duyệt yêu cầu hoàn tiền thành công";
         } else if (payload?.returnMethod === "EXCHANGE") {
-          toast.success("Đã duyệt yêu cầu đổi hàng thành công");
+          successMessage = "Đã duyệt yêu cầu đổi hàng thành công";
         } else {
-          toast.success("Duyệt yêu cầu hoàn hàng thành công");
+          successMessage = "Duyệt yêu cầu hoàn hàng thành công";
         }
+        break;
+
+      case "RETURN_REJECTED":
+        successMessage = "Xác nhận hàng không thể hoàn";
+        break;
+
+      default:
+        successMessage = "Cập nhật đơn hàng thành công";
+        break;
+    }
+
+    handleChangeStatus.mutate({
+      id: data.id,
+      status,
+      data: payload,
+      successMessage,
+    });
+
+    // Đóng dialog tương ứng sau khi gửi yêu cầu.
+    // Nếu API thất bại, hook sẽ hiển thị toast lỗi.
+    switch (status) {
+      case "CANCELLED":
+        setOpenCancelDialog(false);
+        break;
+
+      case "RETURN_APPROVED":
         setOpenApproveReturn(false);
         break;
 
       case "RETURN_REJECTED":
-        toast.success("Xác nhận hàng không thể hoàn");
         setOpenRejectReturn(false);
         break;
-
-      default:
-        toast.success("Cập nhật đơn hàng thành công");
-        break;
     }
-    onOpenChange(false);
-  };
 
-  const updateStatus = (
-    status: Order["status"],
-    payload?: {
-      cancelNote?: string;
-      returnMethod?: "REFUND" | "EXCHANGE";
-      returnRejectNote?: string;
-    },
-  ) => {
-    handleChangeStatus.mutate(
-      {
-        id: data.id,
-        status,
-        data: payload,
-      },
-      {
-        onSuccess: () => onUpdateOrderSuccess(status, payload),
-      },
-    );
+    onOpenChange(false);
   };
 
   const onCancel = (cancelNote: string) => {
@@ -123,7 +128,7 @@ export default function OrderDetail({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] max-w-2xl! gap-6 overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-xl">
+        <DialogContent className="max-h-[90vh] max-w-2xl! gap-6 overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-xl admin-order-detail-scroll">
           <DialogHeader className="gap-1">
             <DialogTitle className="text-xl font-semibold tracking-tight">
               Chi tiết đơn hàng

@@ -23,6 +23,7 @@ import Image from "next/image";
 import logo from "@/public/asus-rog-1-logo-svgrepo-com.png";
 import RegisterBg from "@/components/register/RegisterBg";
 import RegisterFieldGroup from "@/components/register/RegisterFieldGroup";
+import { useRegister } from "@/hooks/users/mutations/useRegister";
 
 export default function Register() {
   const {
@@ -37,38 +38,23 @@ export default function Register() {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  const registerMutation = useMutation({
-    mutationFn: authApi.register,
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["users"],
-      });
-
-      toast.success("Đăng ký tài khoản thành công!");
-      reset();
-      router.push("/login");
-    },
-
-    onError: (error) => {
-      if (axios.isAxiosError(error)) {
-        toast.error(
-          error.response?.data?.message ||
-            "Đăng ký thất bại. Vui lòng thử lại.",
-        );
-      } else {
-        toast.error("Đã xảy ra lỗi. Vui lòng thử lại.");
-      }
-    },
-  });
+  const registerMutation = useRegister();
 
   const onSubmit = (data: UserRegister) => {
-    registerMutation.mutate({
-      fullname: data.fullname,
-      email: data.email,
-      password: data.password,
-      phone: data.phone,
-    });
+    registerMutation.mutate(
+      {
+        fullname: data.fullname,
+        email: data.email,
+        password: data.password,
+        phone: data.phone,
+      },
+      {
+        onSuccess: () => {
+          reset();
+          router.push("/login");
+        },
+      },
+    );
   };
 
   return (

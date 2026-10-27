@@ -128,3 +128,62 @@
     @apply font-sans;
   }
 }
+
+/* Thanh cuộn riêng cho Order Detail */
+.order-detail-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 #101013;
+}
+
+/* Chrome, Edge, Safari */
+.order-detail-scroll::-webkit-scrollbar {
+  width: 7px;
+}
+
+.order-detail-scroll::-webkit-scrollbar-track {
+  background: #101013;
+  border-radius: 999px;
+}
+
+.order-detail-scroll::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border: 1px solid #101013;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.order-detail-scroll::-webkit-scrollbar-thumb:hover {
+  background: #ff0033;
+}
+
+/* Scrollbar riêng cho Order Detail của Admin */
+.admin-order-detail-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+
+  /* Bo góc và cắt phần scrollbar thừa */
+  border-radius: 0.75rem;
+  overflow-x: hidden;
+}
+
+.admin-order-detail-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-order-detail-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 12px;
+  border-radius: 999px;
+}
+
+.admin-order-detail-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+.admin-order-detail-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+  background-clip: padding-box;
+}

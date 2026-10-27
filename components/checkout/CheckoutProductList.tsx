@@ -13,7 +13,7 @@ export default function CheckoutProductList({
 }: CheckoutProductListProps) {
   return (
     <Card className="gap-0 overflow-hidden rounded-xl border-white/[0.07] bg-[#18181B] py-0 text-zinc-100">
-      <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4 sm:px-6">
+      <div className="flex items-center gap-3 border-b border-white/6 px-5 py-4 sm:px-6">
         <div className="flex size-10 items-center justify-center rounded-lg bg-[#FF0033]/10">
           <ShoppingBag className="size-5 text-[#FF334F]" />
         </div>
@@ -27,13 +27,13 @@ export default function CheckoutProductList({
       </div>
 
       <CardContent className="px-4 py-2 sm:px-6">
-        <div className="divide-y divide-white/[0.06]">
+        <div className="divide-y divide-white/6">
           {items.map((item) => (
             <div
               key={item.id}
               className="flex items-center gap-3 py-4 sm:gap-5"
             >
-              <div className="flex size-[76px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.06] bg-[#242429] sm:size-[92px]">
+              <div className="flex size-19 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/6 bg-[#242429] sm:size-23">
                 {item.product.images?.[0]?.imageUrl ? (
                   <Image
                     src={item.product.images[0].imageUrl}

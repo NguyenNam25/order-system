@@ -1,7 +1,6 @@
 import axiosClient from "../axiosConfiguration";
 import type {
   AdminPassword,
-  AdminPasswordUpdate,
   PasswordUpdate,
   User,
   UserCreate,

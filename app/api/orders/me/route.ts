@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 
 export async function GET() {
   try {
-    const authUser = await getAuthenticatedUser();
+    const { user: authUser, response } = await requireUser();
 
-    if (!authUser) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
+    if (response) return response;
 
-    const userId = authUser.userId;
+    const userId = authUser.id;
 
     const orders = await prisma.order.findMany({
       where: {

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import type { Order } from "@/interfaces/order";
-import { Check, Truck, X, RotateCcw, CircleCheck } from "lucide-react";
+import { Check, Truck, X, RotateCcw } from "lucide-react";
 
 interface OrderStatusActionsProps {
   order: Order;
@@ -19,7 +19,6 @@ export default function OrderStatusActions({
   isPending,
   onConfirm,
   onShipping,
-  onComplete,
   onOpenCancelDialog,
   onOpenApproveReturn,
   onOpenRejectReturn,
@@ -49,13 +48,6 @@ export default function OrderStatusActions({
         <Button type="button" onClick={onShipping} disabled={isPending}>
           <Truck className="mr-2 size-4" />
           {isPending ? "Đang xử lý..." : "Xác nhận đang giao hàng"}
-        </Button>
-      )}
-
-      {order.status === "SHIPPING" && (
-        <Button type="button" onClick={onComplete} disabled={isPending}>
-          <CircleCheck className="mr-2 size-4" />
-          {isPending ? "Đang xử lý..." : "Xác nhận đã giao hàng"}
         </Button>
       )}
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 
 interface AddCartRequest {
   productId: number;
@@ -12,11 +12,11 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const user = await getAuthenticatedUser();
+    const { user: authUser, response } = await requireUser();
 
-    if (!user) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
+    if (response) return response;
+
+    const userId = authUser.id;
     // Lấy itemIds từ URL
     const itemsParam = searchParams.get("items");
 
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
     const cart = await prisma.cart.findUnique({
       where: {
-        userId: user.userId,
+        userId: userId,
       },
 
       include: {
@@ -74,11 +74,11 @@ export async function GET(request: Request) {
 // POST /api/cart
 export async function POST(request: Request) {
   try {
-    const user = await getAuthenticatedUser();
+    const { user: authUser, response } = await requireUser();
 
-    if (!user) {
-      return NextResponse.json({ message: "Bạn chưa đăng nhập" }, { status: 401 });
-    }
+    if (response) return response;
+
+    const userId = authUser.id;
 
     const body = (await request.json()) as AddCartRequest;
 
@@ -86,7 +86,9 @@ export async function POST(request: Request) {
 
     if (!productId || !quantity || quantity <= 0) {
       return NextResponse.json(
-        { message: "ID sản phẩm không hợp lệ hoặc số lượng sản phamar không đủ" },
+        {
+          message: "ID sản phẩm không hợp lệ hoặc số lượng sản phamar không đủ",
+        },
         { status: 400 },
       );
     }
@@ -120,11 +122,11 @@ export async function POST(request: Request) {
 
       const cart = await tx.cart.upsert({
         where: {
-          userId: user.userId,
+          userId: userId,
         },
         update: {},
         create: {
-          userId: user.userId,
+          userId: userId,
         },
       });
 
