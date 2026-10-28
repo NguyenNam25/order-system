@@ -56,7 +56,7 @@ export default function ReturnOrderDialog({
     >
       <DialogContent className="w-[calc(100%-24px)] max-w-md gap-0 overflow-hidden rounded-2xl border border-white/10 bg-[#101013] p-0 text-zinc-100">
         {/* Header */}
-        <div className="border-b border-white/[0.07] bg-gradient-to-r from-[#FF0033]/10 via-transparent to-transparent px-5 py-5 sm:px-6">
+        <div className="border-b border-white/[0.07] bg-linear-to-r from-[#FF0033]/10 via-transparent to-transparent px-5 py-5 sm:px-6">
           <DialogHeader>
             <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-[#FF0033]/20 bg-[#FF0033]/10">
               <RotateCcw className="size-5 text-[#FF4D6D]" />
@@ -80,7 +80,7 @@ export default function ReturnOrderDialog({
           >
             {/* Order information */}
             <div className="flex items-start gap-3 rounded-xl border border-white/[0.07] bg-[#18181C] p-4">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/[0.05]">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/5">
                 <Package className="size-5 text-zinc-300" />
               </div>
 
@@ -132,7 +132,7 @@ export default function ReturnOrderDialog({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="rounded-xl border-white/10 bg-transparent text-zinc-300 hover:bg-white/[0.06] hover:text-white"
+                className="rounded-xl border-white/10 bg-transparent text-zinc-300 hover:bg-white/6 hover:text-white"
               >
                 Đóng
               </Button>

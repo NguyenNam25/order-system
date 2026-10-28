@@ -105,7 +105,7 @@ export default function OrderList({
             className="cursor-pointer gap-0 overflow-hidden rounded-xl border-white/[0.07] bg-[#18181B] py-0 text-zinc-100 transition duration-200 hover:border-[#FF0033]/40 hover:bg-[#1D1D21] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF0033]/50"
           >
             {/* Header đơn hàng */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-4 sm:px-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/6 px-4 py-4 sm:px-5">
               <div className="min-w-0">
                 <p className="text-xs text-zinc-500">Mã đơn hàng</p>
                 <p className="mt-1 break-all text-sm font-semibold text-zinc-100">
@@ -132,7 +132,7 @@ export default function OrderList({
                     key={item.id}
                     className="flex min-w-0 items-center gap-3 sm:gap-4"
                   >
-                    <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/[0.06] bg-[#242429] sm:size-[72px]">
+                    <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/6 bg-[#242429] sm:size-18">
                       {item.product.images?.[0]?.imageUrl ? (
                         <Image
                           src={item.product.images[0].imageUrl}
@@ -164,7 +164,7 @@ export default function OrderList({
               </div>
 
               {/* Footer đơn hàng */}
-              <div className="mt-5 flex flex-col gap-4 border-t border-white/[0.06] pt-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="mt-5 flex flex-col gap-4 border-t border-white/6 pt-4 sm:flex-row sm:items-end sm:justify-between">
                 <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-zinc-500">
                   <span className="inline-flex items-center gap-1.5">
                     <CalendarDays className="size-3.5" />

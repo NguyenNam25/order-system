@@ -38,7 +38,7 @@ export default function ReturnApproveDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100%-24px)] max-w-md gap-0 overflow-hidden rounded-2xl border border-white/10 bg-[#101013] p-0 text-zinc-100">
-        <div className="border-b border-white/[0.07] bg-gradient-to-r from-[#FF0033]/10 via-transparent to-transparent px-5 py-5 sm:px-6">
+        <div className="border-b border-white/[0.07] bg-linear-to-r from-[#FF0033]/10 via-transparent to-transparent px-5 py-5 sm:px-6">
           <DialogHeader>
             <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-[#FF0033]/20 bg-[#FF0033]/10">
               <PackageCheck className="size-5 text-[#FF4D6D]" />
@@ -93,7 +93,7 @@ export default function ReturnApproveDialog({
                 onClick={() => handleSubmit("EXCHANGE")}
                 className="h-auto w-full justify-start gap-3 rounded-xl border-white/10 bg-[#18181C] px-4 py-4 text-left text-zinc-100 shadow-none hover:border-white/20 hover:bg-[#222227] hover:text-white"
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/[0.06]">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/6">
                   <ArrowLeftRight className="size-5 text-zinc-300" />
                 </span>
 
@@ -110,7 +110,7 @@ export default function ReturnApproveDialog({
               type="button"
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="w-full rounded-xl text-zinc-400 hover:bg-white/[0.05] hover:text-white"
+              className="w-full rounded-xl text-zinc-400 hover:bg-white/5 hover:text-white"
             >
               Để sau
             </Button>
