@@ -37,59 +37,60 @@ export default function OrderDetail({
   const [openApproveReturn, setOpenApproveReturn] = useState(false);
   const [openRejectReturn, setOpenRejectReturn] = useState(false);
 
-  const handleChangeStatus = useUpdateOrderStatus();
+  
+const handleChangeStatus = useUpdateOrderStatus();
 
-  const updateStatus = (
-    status: Order["status"],
-    payload?: UpdateOrderStatusPayload["data"],
-  ) => {
-    let successMessage: string;
+const updateStatus = async (
+  status: Order["status"],
+  payload?: UpdateOrderStatusPayload["data"],
+) => {
+  let successMessage: string;
 
-    switch (status) {
-      case "CANCELLED":
-        successMessage = "Hủy đơn hàng thành công";
-        break;
+  switch (status) {
+    case "CANCELLED":
+      successMessage = "Hủy đơn hàng thành công";
+      break;
 
-      case "CONFIRMED":
-        successMessage = "Xác nhận đơn hàng thành công";
-        break;
+    case "CONFIRMED":
+      successMessage = "Xác nhận đơn hàng thành công";
+      break;
 
-      case "SHIPPING":
-        successMessage = "Xác nhận đơn hàng đang được giao";
-        break;
+    case "SHIPPING":
+      successMessage = "Xác nhận đơn hàng đang được giao";
+      break;
 
-      case "COMPLETED":
-        successMessage = "Xác nhận giao hàng thành công";
-        break;
+    case "COMPLETED":
+      successMessage = "Xác nhận giao hàng thành công";
+      break;
 
-      case "RETURN_APPROVED":
-        if (payload?.returnMethod === "REFUND") {
-          successMessage = "Đã duyệt yêu cầu hoàn tiền thành công";
-        } else if (payload?.returnMethod === "EXCHANGE") {
-          successMessage = "Đã duyệt yêu cầu đổi hàng thành công";
-        } else {
-          successMessage = "Duyệt yêu cầu hoàn hàng thành công";
-        }
-        break;
+    case "RETURN_APPROVED":
+      if (payload?.returnMethod === "REFUND") {
+        successMessage = "Đã duyệt yêu cầu hoàn tiền thành công";
+      } else if (payload?.returnMethod === "EXCHANGE") {
+        successMessage = "Đã duyệt yêu cầu đổi hàng thành công";
+      } else {
+        successMessage = "Duyệt yêu cầu hoàn hàng thành công";
+      }
+      break;
 
-      case "RETURN_REJECTED":
-        successMessage = "Xác nhận hàng không thể hoàn";
-        break;
+    case "RETURN_REJECTED":
+      successMessage = "Xác nhận hàng không thể hoàn";
+      break;
 
-      default:
-        successMessage = "Cập nhật đơn hàng thành công";
-        break;
-    }
+    default:
+      successMessage = "Cập nhật đơn hàng thành công";
+      break;
+  }
 
-    handleChangeStatus.mutate({
+  try {
+    await handleChangeStatus.mutateAsync({
       id: data.id,
       status,
       data: payload,
       successMessage,
     });
 
-    // Đóng dialog tương ứng sau khi gửi yêu cầu.
-    // Nếu API thất bại, hook sẽ hiển thị toast lỗi.
+    // Chỉ đóng dialog sau khi API cập nhật thành công.
     switch (status) {
       case "CANCELLED":
         setOpenCancelDialog(false);
@@ -105,7 +106,12 @@ export default function OrderDetail({
     }
 
     onOpenChange(false);
-  };
+  } catch {
+    // Hook xử lý và hiển thị toast lỗi.
+    // Không đóng dialog để người dùng giữ được ghi chú đã nhập.
+  }
+};
+
 
   const onCancel = (cancelNote: string) => {
     updateStatus("CANCELLED", { cancelNote });

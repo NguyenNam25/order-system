@@ -65,7 +65,7 @@ export async function PATCH(
 
     const { id } = await params;
     const orderId = Number(id);
-    if (Number.isNaN(orderId)) {
+    if (!Number.isInteger(orderId) || orderId <= 0) {
       return NextResponse.json(
         { message: "Id đơn hàng không hợp lệ" },
         { status: 400 },
@@ -164,19 +164,28 @@ export async function PATCH(
           : {}),
       };
 
-      if (currentOrder.status === "PENDING" && status === "CONFIRMED") {
-        const claimedOrder = await tx.order.updateMany({
-          where: {
-            id: orderId,
-            status: "PENDING",
-          },
-          data: {
-            status: status,
-          },
-        });
-        if (claimedOrder.count === 0) {
-          throw new Error("ORDER_ALREADY_PROCESSED");
-        }
+      const expectedStatus = currentOrder.status;
+
+      const updateData = {
+        ...orderData,
+        ...(status === "RETURN_APPROVED"
+          ? { returnMethod: validatedReturnMethod }
+          : {}),
+      };
+
+      const claimedOrder = await tx.order.updateMany({
+        where: {
+          id: orderId,
+          status: expectedStatus,
+        },
+        data: updateData,
+      });
+
+      if (claimedOrder.count === 0) {
+        throw new Error("ORDER_ALREADY_PROCESSED");
+      }
+
+      if (expectedStatus === "PENDING" && status === "CONFIRMED") {
         for (const item of currentOrder.items) {
           const result = await tx.product.updateMany({
             where: {
@@ -191,6 +200,7 @@ export async function PATCH(
               },
             },
           });
+
           if (result.count === 0) {
             const product = await tx.product.findUnique({
               where: {
@@ -200,59 +210,40 @@ export async function PATCH(
                 name: true,
               },
             });
+
             if (!product) {
               throw new Error("PRODUCT_NOT_FOUND");
             }
+
             throw new Error(`OUT_OF_STOCK:${product.name}`);
           }
         }
-      } else if (
-        currentOrder.status === "RETURN_REQUESTED" &&
-        status === "RETURN_APPROVED"
-      ) {
-        const claimedOrder = await tx.order.updateMany({
-          where: {
-            id: orderId,
-            status: "RETURN_REQUESTED",
-          },
-          data: {
-            status: status,
-            returnMethod: validatedReturnMethod,
-          },
-        });
-        if (claimedOrder.count === 0) {
-          throw new Error("ORDER_ALREADY_PROCESSED");
-        }
-        if (validatedReturnMethod === "REFUND") {
-          for (const item of currentOrder.items) {
-            const result = await tx.product.updateMany({
-              where: {
-                id: item.productId,
-              },
-              data: {
-                quantity: {
-                  increment: item.quantity,
-                },
-              },
-            });
-            if (result.count === 0) {
-              throw new Error("PRODUCT_NOT_FOUND");
-            }
-          }
-        }
-      } else {
-        return tx.order.update({
-          where: {
-            id: orderId,
-          },
-          data: orderData,
-          include: {
-            items: true,
-          },
-        });
       }
 
-      const updatedOrder = await tx.order.findUnique({
+      if (
+        expectedStatus === "RETURN_REQUESTED" &&
+        status === "RETURN_APPROVED" &&
+        validatedReturnMethod === "REFUND"
+      ) {
+        for (const item of currentOrder.items) {
+          const result = await tx.product.updateMany({
+            where: {
+              id: item.productId,
+            },
+            data: {
+              quantity: {
+                increment: item.quantity,
+              },
+            },
+          });
+
+          if (result.count === 0) {
+            throw new Error("PRODUCT_NOT_FOUND");
+          }
+        }
+      }
+
+      return tx.order.findUniqueOrThrow({
         where: {
           id: orderId,
         },
@@ -260,10 +251,6 @@ export async function PATCH(
           items: true,
         },
       });
-      if (!updatedOrder) {
-        throw new Error("ORDER_NOT_FOUND");
-      }
-      return updatedOrder;
     });
 
     return NextResponse.json(

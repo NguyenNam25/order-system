@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const { response } = await requireAdmin();
 
@@ -11,7 +11,15 @@ export async function GET() {
       return response;
     }
 
+    const { searchParams } = new URL(request.url);
+    const role = searchParams.get("role");
+
     const users = await prisma.user.findMany({
+      where: role
+        ? {
+            role: role as "ADMIN" | "USER",
+          }
+        : undefined,
       select: {
         id: true,
         fullname: true,

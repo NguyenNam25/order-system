@@ -31,26 +31,25 @@ export async function PATCH(
         { status: 403 },
       );
     }
+
     const body = await request.json();
 
     if (typeof body.newPassword !== "string" || body.newPassword.length < 8) {
       return NextResponse.json(
-        {
-          message:
-            "Mật khẩu hiện tại không hợp lệ hoặc mật khẩu mới phải có ít nhất 8 ký tự",
-        },
+        { message: "Mật khẩu mới phải có ít nhất 8 ký tự" },
         { status: 400 },
       );
     }
 
-    if (
-      !isAdmin &&
-      (typeof body.currentPassword !== "string" || !body.currentPassword)
-    ) {
-      return NextResponse.json(
-        { message: "Vui lòng nhập mật khẩu hiện tại" },
-        { status: 400 },
-      );
+    const isChangingOwnPassword = authUser.id === userId;
+
+    if (isChangingOwnPassword) {
+      if (typeof body.currentPassword !== "string" || !body.currentPassword) {
+        return NextResponse.json(
+          { message: "Vui lòng nhập mật khẩu hiện tại" },
+          { status: 400 },
+        );
+      }
     }
 
     const targetUser = await prisma.user.findUnique({
@@ -69,7 +68,7 @@ export async function PATCH(
       );
     }
 
-    if (!isAdmin) {
+    if (isChangingOwnPassword) {
       const isPasswordCorrect = await bcrypt.compare(
         body.currentPassword,
         targetUser.password,

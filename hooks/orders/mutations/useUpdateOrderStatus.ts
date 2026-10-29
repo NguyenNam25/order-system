@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import axios from "axios";
 
 import orderApi from "@/api/routes/orderApi";
 import type { Order } from "@/interfaces/order";
@@ -33,8 +34,14 @@ export default function useUpdateOrderStatus() {
       });
     },
 
-    onError: () => {
-      toast.error("Cập nhật đơn hàng thất bại");
+    onError: (error: unknown) => {
+      let message = "Cập nhật đơn hàng thất bại";
+
+      if (axios.isAxiosError<{ message?: string }>(error)) {
+        message = error.response?.data?.message || message;
+      }
+
+      toast.error(message);
     },
   });
 }

@@ -12,6 +12,12 @@ const userApi = {
     const response = await axiosClient.get("/users");
     return response.data;
   },
+  getUsersByRole: async (): Promise<User[]> => {
+    const response = await axiosClient.get("/users", {
+      params: { role: "USER" },
+    });
+    return response.data;
+  },
   getUserById: async (id: number): Promise<User> => {
     const response = await axiosClient.get(`/users/${id}`);
     return response.data;
