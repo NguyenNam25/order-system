@@ -9,6 +9,7 @@ interface Props {
   onCancel: () => void;
   onReturn: () => void;
   onCompleted: () => void;
+  isPending?: boolean;
 }
 
 export default function OrderDetailActions({
@@ -16,6 +17,7 @@ export default function OrderDetailActions({
   onCancel,
   onReturn,
   onCompleted,
+  isPending = false,
 }: Props) {
   if (status !== "PENDING" && status !== "SHIPPING" && status !== "COMPLETED") {
     return null;
@@ -30,6 +32,7 @@ export default function OrderDetailActions({
           <Button
             variant="outline"
             onClick={onCancel}
+            disabled={isPending}
             className="border-red-500/30 bg-transparent text-red-400 hover:bg-red-500/10 hover:text-red-300"
           >
             <XCircle className="mr-2 size-4" />
@@ -40,6 +43,7 @@ export default function OrderDetailActions({
         {status === "SHIPPING" && (
           <Button
             onClick={onCompleted}
+            disabled={isPending}
             className="bg-emerald-600 text-white hover:bg-emerald-500"
           >
             <CheckCircle2 className="mr-2 size-4" />
@@ -50,6 +54,7 @@ export default function OrderDetailActions({
         {status === "COMPLETED" && (
           <Button
             onClick={onReturn}
+            disabled={isPending}
             className="bg-[#FF0033] text-white hover:bg-[#D9002B]"
           >
             <RotateCcw className="mr-2 size-4" />

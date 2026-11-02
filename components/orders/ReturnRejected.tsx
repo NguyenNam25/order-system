@@ -23,7 +23,8 @@ interface ReturnRejectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   order: Order | null;
-  onSubmit: (returnRejectNote: string) => void;
+  onSubmit: (returnRejectNote: string) => Promise<boolean> | boolean;
+  isPending?: boolean;
 }
 
 export default function ReturnRejectDialog({
@@ -31,6 +32,7 @@ export default function ReturnRejectDialog({
   onOpenChange,
   order,
   onSubmit,
+  isPending = false,
 }: ReturnRejectDialogProps) {
   const {
     register,
@@ -39,15 +41,15 @@ export default function ReturnRejectDialog({
     formState: { errors },
   } = useForm<ReturnRejectForm>();
 
-  const handleFormSubmit = (values: ReturnRejectForm) => {
-    onSubmit(values.returnRejectNote.trim());
-    reset();
+  const handleFormSubmit = async (values: ReturnRejectForm) => {
+    if (await onSubmit(values.returnRejectNote.trim())) reset();
   };
 
   return (
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
+        if (isPending && !nextOpen) return;
         onOpenChange(nextOpen);
 
         if (!nextOpen) {
@@ -124,6 +126,7 @@ export default function ReturnRejectDialog({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isPending}
                 className="rounded-xl border-white/10 bg-transparent text-zinc-300 hover:bg-white/6 hover:text-white"
               >
                 Quay lại
@@ -132,6 +135,7 @@ export default function ReturnRejectDialog({
               <Button
                 type="submit"
                 variant="destructive"
+                disabled={isPending}
                 className="rounded-xl bg-[#FF0033] font-semibold text-white hover:bg-[#D9002B]"
               >
                 <XCircle className="mr-2 size-4" />

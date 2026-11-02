@@ -37,93 +37,91 @@ export default function OrderDetail({
   const [openApproveReturn, setOpenApproveReturn] = useState(false);
   const [openRejectReturn, setOpenRejectReturn] = useState(false);
 
-  
-const handleChangeStatus = useUpdateOrderStatus();
+  const handleChangeStatus = useUpdateOrderStatus();
 
-const updateStatus = async (
-  status: Order["status"],
-  payload?: UpdateOrderStatusPayload["data"],
-) => {
-  let successMessage: string;
+  const updateStatus = async (
+    status: Order["status"],
+    payload?: UpdateOrderStatusPayload["data"],
+  ): Promise<boolean> => {
+    let successMessage: string;
 
-  switch (status) {
-    case "CANCELLED":
-      successMessage = "Hủy đơn hàng thành công";
-      break;
-
-    case "CONFIRMED":
-      successMessage = "Xác nhận đơn hàng thành công";
-      break;
-
-    case "SHIPPING":
-      successMessage = "Xác nhận đơn hàng đang được giao";
-      break;
-
-    case "COMPLETED":
-      successMessage = "Xác nhận giao hàng thành công";
-      break;
-
-    case "RETURN_APPROVED":
-      if (payload?.returnMethod === "REFUND") {
-        successMessage = "Đã duyệt yêu cầu hoàn tiền thành công";
-      } else if (payload?.returnMethod === "EXCHANGE") {
-        successMessage = "Đã duyệt yêu cầu đổi hàng thành công";
-      } else {
-        successMessage = "Duyệt yêu cầu hoàn hàng thành công";
-      }
-      break;
-
-    case "RETURN_REJECTED":
-      successMessage = "Xác nhận hàng không thể hoàn";
-      break;
-
-    default:
-      successMessage = "Cập nhật đơn hàng thành công";
-      break;
-  }
-
-  try {
-    await handleChangeStatus.mutateAsync({
-      id: data.id,
-      status,
-      data: payload,
-      successMessage,
-    });
-
-    // Chỉ đóng dialog sau khi API cập nhật thành công.
     switch (status) {
       case "CANCELLED":
-        setOpenCancelDialog(false);
+        successMessage = "Hủy đơn hàng thành công";
         break;
-
+      case "CONFIRMED":
+        successMessage = "Xác nhận đơn hàng thành công";
+        break;
+      case "SHIPPING":
+        successMessage = "Xác nhận đơn hàng đang được giao";
+        break;
+      case "COMPLETED":
+        successMessage = "Xác nhận giao hàng thành công";
+        break;
       case "RETURN_APPROVED":
-        setOpenApproveReturn(false);
+        successMessage =
+          payload?.returnMethod === "REFUND"
+            ? "Đã duyệt yêu cầu hoàn tiền thành công"
+            : payload?.returnMethod === "EXCHANGE"
+              ? "Đã duyệt yêu cầu đổi hàng thành công"
+              : "Duyệt yêu cầu hoàn hàng thành công";
         break;
-
       case "RETURN_REJECTED":
-        setOpenRejectReturn(false);
+        successMessage = "Xác nhận hàng không thể hoàn";
+        break;
+      default:
+        successMessage = "Cập nhật đơn hàng thành công";
         break;
     }
 
-    onOpenChange(false);
-  } catch {
-    // Hook xử lý và hiển thị toast lỗi.
-    // Không đóng dialog để người dùng giữ được ghi chú đã nhập.
-  }
-};
+    try {
+      await handleChangeStatus.mutateAsync({
+        id: data.id,
+        status,
+        data: payload,
+        successMessage,
+      });
+
+      switch (status) {
+        case "CANCELLED":
+          setOpenCancelDialog(false);
+          break;
+        case "RETURN_APPROVED":
+          setOpenApproveReturn(false);
+          break;
+        case "RETURN_REJECTED":
+          setOpenRejectReturn(false);
+          break;
+      }
+
+      onOpenChange(false);
+      return true;
+    } catch {
+      // Hook xử lý và hiển thị toast lỗi; giữ nguyên dialog và ghi chú.
+      return false;
+    }
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (handleChangeStatus.isPending && !nextOpen) return;
+    onOpenChange(nextOpen);
+  };
+
+  const handleNestedOpenChange = (setOpen: (open: boolean) => void) =>
+    (nextOpen: boolean) => {
+      if (handleChangeStatus.isPending && !nextOpen) return;
+      setOpen(nextOpen);
+    };
 
 
-  const onCancel = (cancelNote: string) => {
+  const onCancel = (cancelNote: string) =>
     updateStatus("CANCELLED", { cancelNote });
-  };
 
-  const onApproveReturn = (returnMethod: "REFUND" | "EXCHANGE") => {
+  const onApproveReturn = (returnMethod: "REFUND" | "EXCHANGE") =>
     updateStatus("RETURN_APPROVED", { returnMethod });
-  };
 
-  const onRejectReturn = (returnRejectNote: string) => {
+  const onRejectReturn = (returnRejectNote: string) =>
     updateStatus("RETURN_REJECTED", { returnRejectNote });
-  };
 
   const hasNotes = Boolean(
     data.cancelNote?.trim() ||
@@ -133,7 +131,7 @@ const updateStatus = async (
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-h-[90vh] max-w-2xl! gap-6 overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-xl admin-order-detail-scroll">
           <DialogHeader className="gap-1">
             <DialogTitle className="text-xl font-semibold tracking-tight">
@@ -181,23 +179,26 @@ const updateStatus = async (
 
       <CancelOrderDialog
         open={openCancelDialog}
-        onOpenChange={setOpenCancelDialog}
+        onOpenChange={handleNestedOpenChange(setOpenCancelDialog)}
         order={data}
         onSubmit={onCancel}
+        isPending={handleChangeStatus.isPending}
       />
 
       <ReturnApproveDialog
         open={openApproveReturn}
-        onOpenChange={setOpenApproveReturn}
+        onOpenChange={handleNestedOpenChange(setOpenApproveReturn)}
         order={data}
         onSubmit={onApproveReturn}
+        isPending={handleChangeStatus.isPending}
       />
 
       <ReturnRejectDialog
         open={openRejectReturn}
-        onOpenChange={setOpenRejectReturn}
+        onOpenChange={handleNestedOpenChange(setOpenRejectReturn)}
         order={data}
         onSubmit={onRejectReturn}
+        isPending={handleChangeStatus.isPending}
       />
     </>
   );

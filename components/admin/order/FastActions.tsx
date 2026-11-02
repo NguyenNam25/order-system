@@ -25,10 +25,10 @@ export default function FastActions({ order }: FastActionsProps) {
     (item) => item.quantity > item.product.quantity,
   );
 
-  const handleStatusChange = (
+  const handleStatusChange = async (
     status: Order["status"],
     data?: UpdateOrderStatusPayload["data"],
-  ) => {
+  ): Promise<boolean> => {
     const messages: Partial<Record<Order["status"], string>> = {
       CANCELLED: "Hủy đơn hàng thành công",
       CONFIRMED: "Xác nhận đơn hàng thành công",
@@ -48,64 +48,71 @@ export default function FastActions({ order }: FastActionsProps) {
             : "Đã duyệt yêu cầu hoàn hàng";
     }
 
-    handleChangeStatus.mutate({
-      id: order.id,
-      status,
-      data,
-      successMessage,
-    });
+    try {
+      await handleChangeStatus.mutateAsync({
+        id: order.id,
+        status,
+        data,
+        successMessage,
+      });
 
-    if (status === "CANCELLED") {
-      setOpenCancelDialog(false);
-    }
-
-    if (status === "RETURN_APPROVED") {
-      setOpenApproveReturn(false);
-    }
-
-    if (status === "RETURN_REJECTED") {
-      setOpenRejectReturn(false);
+      if (status === "CANCELLED") setOpenCancelDialog(false);
+      if (status === "RETURN_APPROVED") setOpenApproveReturn(false);
+      if (status === "RETURN_REJECTED") setOpenRejectReturn(false);
+      return true;
+    } catch {
+      // The mutation hook displays the backend error and the dialog stays open.
+      return false;
     }
   };
+
+  const handleDialogOpenChange =
+    (setOpen: (open: boolean) => void) => (nextOpen: boolean) => {
+      if (handleChangeStatus.isPending && !nextOpen) return;
+      setOpen(nextOpen);
+    };
 
   return (
     <>
       <CancelOrderDialog
         open={openCancelDialog}
-        onOpenChange={setOpenCancelDialog}
+        onOpenChange={handleDialogOpenChange(setOpenCancelDialog)}
         order={order}
         onSubmit={(cancelNote) =>
           handleStatusChange("CANCELLED", { cancelNote })
         }
+        isPending={handleChangeStatus.isPending}
       />
 
       <ReturnApproveDialog
         open={openApproveReturn}
-        onOpenChange={setOpenApproveReturn}
+        onOpenChange={handleDialogOpenChange(setOpenApproveReturn)}
         order={order}
         onSubmit={(returnMethod) =>
           handleStatusChange("RETURN_APPROVED", { returnMethod })
         }
+        isPending={handleChangeStatus.isPending}
       />
 
       <ReturnRejectDialog
         open={openRejectReturn}
-        onOpenChange={setOpenRejectReturn}
+        onOpenChange={handleDialogOpenChange(setOpenRejectReturn)}
         order={order}
         onSubmit={(returnRejectNote) =>
           handleStatusChange("RETURN_REJECTED", {
             returnRejectNote,
           })
         }
+        isPending={handleChangeStatus.isPending}
       />
 
       <OrderStatusActions
         order={order}
         isPending={handleChangeStatus.isPending}
         isOutOfStock={isOutOfStock}
-        onConfirm={() => handleStatusChange("CONFIRMED")}
-        onShipping={() => handleStatusChange("SHIPPING")}
-        onComplete={() => handleStatusChange("COMPLETED")}
+        onConfirm={() => void handleStatusChange("CONFIRMED")}
+        onShipping={() => void handleStatusChange("SHIPPING")}
+        onComplete={() => void handleStatusChange("COMPLETED")}
         onOpenCancelDialog={() => setOpenCancelDialog(true)}
         onOpenApproveReturn={() => setOpenApproveReturn(true)}
         onOpenRejectReturn={() => setOpenRejectReturn(true)}

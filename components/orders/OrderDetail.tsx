@@ -16,6 +16,7 @@ interface OrderDetailDialogProps {
   onCancel: () => void;
   onReturn: () => void;
   onCompleted: () => void;
+  isPending?: boolean;
 }
 
 export default function OrderDetail({
@@ -24,12 +25,13 @@ export default function OrderDetail({
   onCancel,
   onReturn,
   onCompleted,
+  isPending = false,
 }: OrderDetailDialogProps) {
   return (
     <Dialog
       open={order !== null}
       onOpenChange={(open) => {
-        if (!open) onClose();
+        if (!open && !isPending) onClose();
       }}
     >
       <DialogContent
@@ -46,7 +48,10 @@ export default function OrderDetail({
       >
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => {
+            if (!isPending) onClose();
+          }}
+          disabled={isPending}
           aria-label="Đóng chi tiết đơn hàng"
           className="
             absolute right-4 top-4 z-50
@@ -81,6 +86,7 @@ export default function OrderDetail({
                 onCancel={onCancel}
                 onReturn={onReturn}
                 onCompleted={onCompleted}
+                isPending={isPending}
               />
             </div>
           </>

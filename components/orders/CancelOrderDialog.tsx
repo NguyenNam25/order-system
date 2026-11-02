@@ -22,7 +22,8 @@ interface CancelOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   order: Order | null;
-  onSubmit: (cancelNote: string) => void;
+  onSubmit: (cancelNote: string) => Promise<boolean> | boolean;
+  isPending?: boolean;
 }
 
 export default function CancelOrderDialog({
@@ -30,18 +31,19 @@ export default function CancelOrderDialog({
   onOpenChange,
   order,
   onSubmit,
+  isPending = false,
 }: CancelOrderDialogProps) {
   const { register, handleSubmit, reset } = useForm<CancelOrderForm>();
 
-  const handleFormSubmit = (values: CancelOrderForm) => {
-    onSubmit(values.cancelNote);
-    reset();
+  const handleFormSubmit = async (values: CancelOrderForm) => {
+    if (await onSubmit(values.cancelNote)) reset();
   };
 
   return (
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
+        if (isPending && !nextOpen) return;
         onOpenChange(nextOpen);
 
         if (!nextOpen) {
@@ -108,6 +110,7 @@ export default function CancelOrderDialog({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isPending}
                 className="rounded-xl border-white/10 bg-transparent text-zinc-300 hover:bg-white/6 hover:text-white"
               >
                 Giữ đơn hàng
@@ -116,6 +119,7 @@ export default function CancelOrderDialog({
               <Button
                 type="submit"
                 variant="destructive"
+                disabled={isPending}
                 className="rounded-xl bg-[#FF0033] font-semibold text-white hover:bg-[#D9002B]"
               >
                 <XCircle className="mr-2 size-4" />

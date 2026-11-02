@@ -23,6 +23,7 @@ interface ReturnApproveDialogProps {
   onOpenChange: (open: boolean) => void;
   order: Order | null;
   onSubmit: (returnMethod: "REFUND" | "EXCHANGE") => void;
+  isPending?: boolean;
 }
 
 export default function ReturnApproveDialog({
@@ -30,13 +31,20 @@ export default function ReturnApproveDialog({
   onOpenChange,
   order,
   onSubmit,
+  isPending = false,
 }: ReturnApproveDialogProps) {
   const handleSubmit = (returnMethod: "REFUND" | "EXCHANGE") => {
     onSubmit(returnMethod);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (isPending && !nextOpen) return;
+        onOpenChange(nextOpen);
+      }}
+    >
       <DialogContent className="w-[calc(100%-24px)] max-w-md gap-0 overflow-hidden rounded-2xl border border-white/10 bg-[#101013] p-0 text-zinc-100">
         <div className="border-b border-white/[0.07] bg-linear-to-r from-[#FF0033]/10 via-transparent to-transparent px-5 py-5 sm:px-6">
           <DialogHeader>
@@ -71,6 +79,7 @@ export default function ReturnApproveDialog({
               <Button
                 type="button"
                 onClick={() => handleSubmit("REFUND")}
+                disabled={isPending}
                 className="h-auto w-full justify-start gap-3 rounded-xl border border-[#FF0033]/30 bg-[#FF0033]/10 px-4 py-4 text-left text-white shadow-none hover:bg-[#FF0033]/20"
               >
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#FF0033]/15">
@@ -91,6 +100,7 @@ export default function ReturnApproveDialog({
                 type="button"
                 variant="outline"
                 onClick={() => handleSubmit("EXCHANGE")}
+                disabled={isPending}
                 className="h-auto w-full justify-start gap-3 rounded-xl border-white/10 bg-[#18181C] px-4 py-4 text-left text-zinc-100 shadow-none hover:border-white/20 hover:bg-[#222227] hover:text-white"
               >
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/6">
@@ -110,6 +120,7 @@ export default function ReturnApproveDialog({
               type="button"
               variant="ghost"
               onClick={() => onOpenChange(false)}
+              disabled={isPending}
               className="w-full rounded-xl text-zinc-400 hover:bg-white/5 hover:text-white"
             >
               Để sau

@@ -46,7 +46,7 @@ export default function Orders() {
     }
   };
 
-  const updateOrderStatus = (payload: {
+  const updateOrderStatus = async (payload: {
     id: number;
     status: Order["status"];
     data?: {
@@ -55,12 +55,15 @@ export default function Orders() {
       returnMethod?: "REFUND" | "EXCHANGE";
       returnRejectNote?: string;
     };
-  }) => {
-    handleUpdateOrder.mutate(payload, {
-      onSuccess: () => {
-        onUpdateOrderSuccess(payload.status);
-      },
-    });
+  }): Promise<boolean> => {
+    try {
+      await handleUpdateOrder.mutateAsync(payload);
+      onUpdateOrderSuccess(payload.status);
+      return true;
+    } catch {
+      // The mutation hook reports the backend error; keep the dialog open.
+      return false;
+    }
   };
 
   const orders = data ?? [];
@@ -127,6 +130,7 @@ export default function Orders() {
 
         <OrderDetail
           order={selectedOrder}
+          isPending={handleUpdateOrder.isPending}
           onClose={() => setSelectedOrder(null)}
           onCancel={() => setOpenCancelled(true)}
           onReturn={() => setOpenReturned(true)}
@@ -142,32 +146,40 @@ export default function Orders() {
 
         <CancelOrderDialog
           open={openCancelled}
-          onOpenChange={setOpenCancelled}
+          onOpenChange={(nextOpen) => {
+            if (handleUpdateOrder.isPending && !nextOpen) return;
+            setOpenCancelled(nextOpen);
+          }}
           order={selectedOrder}
           onSubmit={(cancelNote) => {
-            if (!selectedOrder) return;
+            if (!selectedOrder) return false;
 
-            updateOrderStatus({
+            return updateOrderStatus({
               id: selectedOrder.id,
               status: "CANCELLED",
               data: { cancelNote },
             });
           }}
+          isPending={handleUpdateOrder.isPending}
         />
 
         <ReturnOrderDialog
           open={openReturned}
-          onOpenChange={setOpenReturned}
+          onOpenChange={(nextOpen) => {
+            if (handleUpdateOrder.isPending && !nextOpen) return;
+            setOpenReturned(nextOpen);
+          }}
           order={selectedOrder}
           onSubmit={(returnNote) => {
-            if (!selectedOrder) return;
+            if (!selectedOrder) return false;
 
-            updateOrderStatus({
+            return updateOrderStatus({
               id: selectedOrder.id,
               status: "RETURN_REQUESTED",
               data: { returnNote },
             });
           }}
+          isPending={handleUpdateOrder.isPending}
         />
       </div>
     </main>

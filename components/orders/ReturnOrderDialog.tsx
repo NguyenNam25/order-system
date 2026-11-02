@@ -22,7 +22,8 @@ interface ReturnOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   order: Order | null;
-  onSubmit: (returnNote: string) => void;
+  onSubmit: (returnNote: string) => Promise<boolean> | boolean;
+  isPending?: boolean;
 }
 
 export default function ReturnOrderDialog({
@@ -30,6 +31,7 @@ export default function ReturnOrderDialog({
   onOpenChange,
   order,
   onSubmit,
+  isPending = false,
 }: ReturnOrderDialogProps) {
   const {
     register,
@@ -38,15 +40,15 @@ export default function ReturnOrderDialog({
     formState: { errors },
   } = useForm<ReturnOrderForm>();
 
-  const handleFormSubmit = (values: ReturnOrderForm) => {
-    onSubmit(values.returnNote.trim());
-    reset();
+  const handleFormSubmit = async (values: ReturnOrderForm) => {
+    if (await onSubmit(values.returnNote.trim())) reset();
   };
 
   return (
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
+        if (isPending && !nextOpen) return;
         onOpenChange(nextOpen);
 
         if (!nextOpen) {
@@ -132,6 +134,7 @@ export default function ReturnOrderDialog({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isPending}
                 className="rounded-xl border-white/10 bg-transparent text-zinc-300 hover:bg-white/6 hover:text-white"
               >
                 Đóng
@@ -139,6 +142,7 @@ export default function ReturnOrderDialog({
 
               <Button
                 type="submit"
+                disabled={isPending}
                 className="rounded-xl bg-[#FF0033] font-semibold text-white hover:bg-[#D9002B]"
               >
                 <Send className="mr-2 size-4" />
