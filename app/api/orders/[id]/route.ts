@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, requireUser } from "@/lib/auth";
 import { Prisma } from "@prisma/client";
+import { parseJsonObject } from "@/lib/parse-json-object";
 
 const validStatuses = [
   "PENDING",
@@ -72,9 +73,9 @@ export async function PATCH(
       );
     }
 
-    const body: unknown = await request.json();
+    const body = await parseJsonObject(request);
 
-    if (typeof body !== "object" || body === null || Array.isArray(body)) {
+    if (!body) {
       return NextResponse.json(
         { message: "Dữ liệu yêu cầu không hợp lệ" },
         { status: 400 },
@@ -82,7 +83,18 @@ export async function PATCH(
     }
 
     const { status, cancelNote, returnNote, returnMethod, returnRejectNote } =
-      body as Record<string, unknown>;
+      body;
+
+    if (
+      (cancelNote !== undefined && typeof cancelNote !== "string") ||
+      (returnNote !== undefined && typeof returnNote !== "string") ||
+      (returnRejectNote !== undefined && typeof returnRejectNote !== "string")
+    ) {
+      return NextResponse.json(
+        { message: "Các trường ghi chú phải có kiểu dữ liệu string" },
+        { status: 400 },
+      );
+    }
 
     if (!isValidOrderStatus(status)) {
       return NextResponse.json(
@@ -150,11 +162,6 @@ export async function PATCH(
         ...(status === "RETURN_REQUESTED"
           ? {
               returnNote: returnNote ?? null,
-            }
-          : {}),
-        ...(status === "RETURN_APPROVED"
-          ? {
-              returnMethod: returnMethod ?? null,
             }
           : {}),
         ...(status === "RETURN_REJECTED"
@@ -357,7 +364,7 @@ export async function DELETE(
 
     const orderId = Number(id);
 
-    if (Number.isNaN(orderId)) {
+    if (!Number.isInteger(orderId) || orderId <= 0) {
       return NextResponse.json(
         { message: "Id đơn hàng không hợp lệ" },
         { status: 400 },
@@ -365,6 +372,46 @@ export async function DELETE(
     }
 
     await prisma.$transaction(async (tx) => {
+      // Serialize deletion with status changes so inventory is restored from
+      // the final persisted status, and a concurrent PATCH cannot overwrite it.
+      const lockedOrders = await tx.$queryRaw<Array<{ id: number }>>`
+        SELECT id FROM "Order" WHERE id = ${orderId} FOR UPDATE
+      `;
+      const currentOrder = lockedOrders[0]
+        ? await tx.order.findUnique({
+            where: { id: orderId },
+            include: { items: true },
+          })
+        : null;
+
+      if (!currentOrder) {
+        throw new Error("ORDER_NOT_FOUND");
+      }
+
+      const inventoryWasDeducted =
+        [
+          "CONFIRMED",
+          "SHIPPING",
+          "COMPLETED",
+          "RETURN_REQUESTED",
+          "RETURN_REJECTED",
+        ].includes(currentOrder.status) ||
+        (currentOrder.status === "RETURN_APPROVED" &&
+          currentOrder.returnMethod === "EXCHANGE");
+
+      if (inventoryWasDeducted) {
+        for (const item of currentOrder.items) {
+          const result = await tx.product.updateMany({
+            where: { id: item.productId },
+            data: { quantity: { increment: item.quantity } },
+          });
+
+          if (result.count === 0) {
+            throw new Error("PRODUCT_NOT_FOUND");
+          }
+        }
+      }
+
       await tx.orderItem.deleteMany({
         where: {
           orderId,
@@ -384,7 +431,21 @@ export async function DELETE(
       },
       { status: 200 },
     );
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "ORDER_NOT_FOUND") {
+      return NextResponse.json(
+        { message: "Không tìm thấy đơn hàng" },
+        { status: 404 },
+      );
+    }
+
+    if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") {
+      return NextResponse.json(
+        { message: "Không tìm thấy sản phẩm" },
+        { status: 404 },
+      );
+    }
+
     return NextResponse.json(
       {
         message: "Đã xảy ra lỗi máy chủ",

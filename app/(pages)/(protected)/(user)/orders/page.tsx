@@ -61,7 +61,9 @@ export default function Orders() {
       onUpdateOrderSuccess(payload.status);
       return true;
     } catch {
-      // The mutation hook reports the backend error; keep the dialog open.
+      setOpenCancelled(false);
+      setOpenReturned(false);
+      setSelectedOrder(null);
       return false;
     }
   };

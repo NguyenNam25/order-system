@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedUser, requireAdmin } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
+import { updateUserSchema } from "@/schemas/userSchema";
+import { parseJsonObject } from "@/lib/parse-json-object";
 
 export async function GET(
   request: Request,
@@ -14,17 +17,33 @@ export async function GET(
     }
 
     const { id } = await params;
+    const userId = Number(id);
+
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return NextResponse.json(
+        { message: "ID người dùng không hợp lệ" },
+        { status: 400 },
+      );
+    }
 
     const user = await prisma.user.findUnique({
       where: {
-        id: Number(id),
+        id: userId,
       },
       select: {
         id: true,
         fullname: true,
         email: true,
+        phone: true,
       },
     });
+
+    if (!user) {
+      return NextResponse.json(
+        { message: "Không tìm thấy người dùng" },
+        { status: 404 },
+      );
+    }
 
     return NextResponse.json(user, { status: 200 });
   } catch {
@@ -86,25 +105,59 @@ export async function PUT(
       );
     }
 
-    const body = await request.json();
+    const body = await parseJsonObject(request);
+    const parsedUser = body
+      ? updateUserSchema.safeParse({
+          fullname:
+            typeof body.fullname === "string"
+              ? body.fullname.trim()
+              : body.fullname,
+          email:
+            typeof body.email === "string" ? body.email.trim() : body.email,
+          phone:
+            typeof body.phone === "string" ? body.phone.trim() : body.phone,
+        })
+      : null;
+
+    if (!parsedUser?.success) {
+      return NextResponse.json(
+        { message: "Thông tin người dùng không hợp lệ" },
+        { status: 400 },
+      );
+    }
 
     const user = await prisma.user.update({
       where: {
         id: userId,
       },
       data: {
-        fullname: body.fullname,
-        email: body.email,
+        ...parsedUser.data,
       },
       select: {
         id: true,
         fullname: true,
         email: true,
+        phone: true,
       },
     });
 
     return NextResponse.json(user, { status: 200 });
-  } catch {
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return NextResponse.json(
+          { message: "Không tìm thấy người dùng cần cập nhật." },
+          { status: 404 },
+        );
+      }
+
+      if (error.code === "P2002") {
+        return NextResponse.json(
+          { message: "Email đã được sử dụng" },
+          { status: 409 },
+        );
+      }
+    }
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
@@ -166,23 +219,55 @@ export async function PATCH(
     }
 
     // 5. Cập nhật thông tin
-    const body = await request.json();
+    const body = await parseJsonObject(request);
+    const parsedUser = body
+      ? updateUserSchema.safeParse({
+          fullname:
+            typeof body.fullname === "string"
+              ? body.fullname.trim()
+              : body.fullname,
+          email:
+            typeof body.email === "string" ? body.email.trim() : body.email,
+          phone:
+            typeof body.phone === "string" ? body.phone.trim() : body.phone,
+        })
+      : null;
+
+    if (!parsedUser?.success) {
+      return NextResponse.json(
+        { message: "Thông tin người dùng không hợp lệ" },
+        { status: 400 },
+      );
+    }
 
     const user = await prisma.user.update({
       where: { id: userId },
-      data: {
-        fullname: body.fullname,
-        email: body.email,
-      },
+      data: parsedUser.data,
       select: {
         id: true,
         fullname: true,
         email: true,
+        phone: true,
       },
     });
 
     return NextResponse.json(user, { status: 200 });
-  } catch {
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return NextResponse.json(
+          { message: "Không tìm thấy người dùng cần cập nhật." },
+          { status: 404 },
+        );
+      }
+
+      if (error.code === "P2002") {
+        return NextResponse.json(
+          { message: "Email đã được sử dụng" },
+          { status: 409 },
+        );
+      }
+    }
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },
@@ -202,10 +287,18 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    const userId = Number(id);
+
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return NextResponse.json(
+        { message: "ID người dùng không hợp lệ" },
+        { status: 400 },
+      );
+    }
 
     await prisma.user.delete({
       where: {
-        id: Number(id),
+        id: userId,
       },
     });
 
@@ -213,7 +306,25 @@ export async function DELETE(
       { message: "Xóa người dùng thành công" },
       { status: 200 },
     );
-  } catch {
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2003") {
+        return NextResponse.json(
+          {
+            message:
+              "Không thể xóa người dùng vì vẫn còn dữ liệu liên quan đang chứa thông tin người dùng này.",
+          },
+          { status: 400 },
+        );
+      }
+
+      if (error.code === "P2025") {
+        return NextResponse.json(
+          { message: "Không tìm thấy người dùng cần xóa." },
+          { status: 404 },
+        );
+      }
+    }
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

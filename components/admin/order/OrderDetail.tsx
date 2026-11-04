@@ -97,7 +97,10 @@ export default function OrderDetail({
       onOpenChange(false);
       return true;
     } catch {
-      // Hook xử lý và hiển thị toast lỗi; giữ nguyên dialog và ghi chú.
+      setOpenCancelDialog(false);
+      setOpenApproveReturn(false);
+      setOpenRejectReturn(false);
+      onOpenChange(false);
       return false;
     }
   };
@@ -107,12 +110,11 @@ export default function OrderDetail({
     onOpenChange(nextOpen);
   };
 
-  const handleNestedOpenChange = (setOpen: (open: boolean) => void) =>
-    (nextOpen: boolean) => {
+  const handleNestedOpenChange =
+    (setOpen: (open: boolean) => void) => (nextOpen: boolean) => {
       if (handleChangeStatus.isPending && !nextOpen) return;
       setOpen(nextOpen);
     };
-
 
   const onCancel = (cancelNote: string) =>
     updateStatus("CANCELLED", { cancelNote });

@@ -28,10 +28,6 @@ export default function useUpdateOrderStatus() {
       if (variables.successMessage) {
         toast.success(variables.successMessage);
       }
-
-      await queryClient.invalidateQueries({
-        queryKey: ["orders"],
-      });
     },
 
     onError: (error: unknown) => {
@@ -42,6 +38,12 @@ export default function useUpdateOrderStatus() {
       }
 
       toast.error(message);
+    },
+
+    onSettled: async() => {
+      await queryClient.invalidateQueries({
+        queryKey: ["orders"],
+      });
     },
   });
 }

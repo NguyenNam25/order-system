@@ -24,7 +24,6 @@ export default function ChangePasswordForm({
   reset,
   isPending,
 }: ChangePasswordFormProps) {
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -108,7 +107,6 @@ export default function ChangePasswordForm({
           variant="outline"
           onClick={() => {
             reset();
-            setShowCurrentPassword(false);
             setShowNewPassword(false);
             setShowConfirmPassword(false);
           }}

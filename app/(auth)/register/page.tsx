@@ -1,6 +1,5 @@
 "use client";
 
-import authApi from "@/api/routes/authApi";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,12 +11,9 @@ import {
 import { UserRegister } from "@/interfaces/user";
 import { userSchema } from "@/schemas/userSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { UserPlus, ArrowLeft, LoaderCircle, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import logo from "@/public/asus-rog-1-logo-svgrepo-com.png";
@@ -35,7 +31,6 @@ export default function Register() {
     resolver: zodResolver(userSchema),
   });
 
-  const queryClient = useQueryClient();
   const router = useRouter();
 
   const registerMutation = useRegister();

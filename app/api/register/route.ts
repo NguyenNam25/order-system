@@ -1,14 +1,27 @@
 import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { userSchema } from "@/schemas/userSchema";
+import { parseJsonObject } from "@/lib/parse-json-object";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = await parseJsonObject(request);
+
+    const parsedBody = body ? userSchema.safeParse(body) : null;
+
+    if (!parsedBody?.success) {
+      return NextResponse.json(
+        { message: "Thông tin đăng ký không hợp lệ" },
+        { status: 400 },
+      );
+    }
+
+    const { fullname, email, password, phone } = parsedBody.data;
 
     const existingUser = await prisma.user.findUnique({
       where: {
-        email: body.email,
+        email,
       },
     });
 
@@ -19,14 +32,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(body.password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
       data: {
-        fullname: body.fullname,
-        email: body.email,
+        fullname,
+        email,
         password: hashedPassword,
-        phone: body.phone,
+        phone,
         role: "USER",
       },
       select: {

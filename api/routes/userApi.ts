@@ -8,10 +8,10 @@ import type {
 } from "@/interfaces/user";
 
 const userApi = {
-  getAllUsers: async (): Promise<User[]> => {
-    const response = await axiosClient.get("/users");
-    return response.data;
-  },
+  // getAllUsers: async (): Promise<User[]> => {
+  //   const response = await axiosClient.get("/users");
+  //   return response.data;
+  // },
   getUsersByRole: async (): Promise<User[]> => {
     const response = await axiosClient.get("/users", {
       params: { role: "USER" },

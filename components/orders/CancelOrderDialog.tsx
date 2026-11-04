@@ -13,6 +13,7 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Order } from "@/interfaces/order";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 
 interface CancelOrderForm {
   cancelNote: string;
@@ -34,6 +35,10 @@ export default function CancelOrderDialog({
   isPending = false,
 }: CancelOrderDialogProps) {
   const { register, handleSubmit, reset } = useForm<CancelOrderForm>();
+
+  useEffect(() => {
+    if (!open) reset();
+  }, [open, reset]);
 
   const handleFormSubmit = async (values: CancelOrderForm) => {
     if (await onSubmit(values.cancelNote)) reset();

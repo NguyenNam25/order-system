@@ -3,6 +3,18 @@ import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@prisma/client";
 import { generateOrderCode } from "@/lib/generate-code";
 import { requireAdmin, requireUser } from "@/lib/auth";
+import { parseJsonObject } from "@/lib/parse-json-object";
+
+const validOrderStatuses: OrderStatus[] = [
+  "PENDING",
+  "CONFIRMED",
+  "SHIPPING",
+  "COMPLETED",
+  "CANCELLED",
+  "RETURN_REQUESTED",
+  "RETURN_APPROVED",
+  "RETURN_REJECTED",
+];
 
 export async function GET(request: Request) {
   try {
@@ -16,7 +28,19 @@ export async function GET(request: Request) {
 
     const statusParam = searchParams.get("status");
 
-    const statuses = statusParam ? statusParam.split(",") : [];
+    const statuses = statusParam === null ? [] : statusParam.split(",");
+
+    if (
+      statusParam !== null &&
+      statuses.some(
+        (status) => !validOrderStatuses.includes(status as OrderStatus),
+      )
+    ) {
+      return NextResponse.json(
+        { message: "Trạng thái đơn hàng không hợp lệ" },
+        { status: 400 },
+      );
+    }
 
     const orders = await prisma.order.findMany({
       where:
@@ -74,8 +98,15 @@ export async function POST(request: Request) {
 
     const userId = authUser.id;
 
-    // 3. Lấy dữ liệu checkout
-    const body = await request.json();
+    // 3. Parse and validate checkout body before reading its fields.
+    const body = await parseJsonObject(request);
+
+    if (!body) {
+      return NextResponse.json(
+        { message: "Dữ liệu yêu cầu không hợp lệ" },
+        { status: 400 },
+      );
+    }
 
     const { receiverName, phone, address, note, itemIds } = body;
 

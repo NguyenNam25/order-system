@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { parseJsonObject } from "@/lib/parse-json-object";
 
 // POST /api/products/[id]/images
 export async function POST(
@@ -38,9 +39,9 @@ export async function POST(
     }
 
     // 4. Kiểm tra imageUrl
-    const body = await request.json();
+    const body = await parseJsonObject(request);
 
-    if (typeof body.imageUrl !== "string" || !body.imageUrl.trim()) {
+    if (typeof body?.imageUrl !== "string" || !body.imageUrl.trim()) {
       return NextResponse.json(
         { message: "URL ảnh không hợp lệ" },
         { status: 400 },

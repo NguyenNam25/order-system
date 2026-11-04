@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:orders": "tsx --test tests/orders-api.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
-
-interface AddCartRequest {
-  productId: number;
-  quantity: number;
-}
+import { parseJsonObject } from "@/lib/parse-json-object";
 
 // GET /api/cart
 export async function GET(request: Request) {
@@ -80,15 +76,27 @@ export async function POST(request: Request) {
 
     const userId = authUser.id;
 
-    const body = (await request.json()) as AddCartRequest;
+    const body = await parseJsonObject(request);
+
+    if (!body) {
+      return NextResponse.json(
+        { message: "Dữ liệu yêu cầu không hợp lệ" },
+        { status: 400 },
+      );
+    }
 
     const { productId, quantity } = body;
 
-    if (!productId || !quantity || quantity <= 0) {
+    if (
+      typeof productId !== "number" ||
+      !Number.isInteger(productId) ||
+      productId <= 0 ||
+      typeof quantity !== "number" ||
+      !Number.isInteger(quantity) ||
+      quantity <= 0
+    ) {
       return NextResponse.json(
-        {
-          message: "ID sản phẩm không hợp lệ hoặc số lượng sản phamar không đủ",
-        },
+        { message: "ID sản phẩm hoặc số lượng không hợp lệ" },
         { status: 400 },
       );
     }

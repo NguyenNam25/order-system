@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import path from "path";
 import fs from "fs/promises";
 import { Prisma } from "@prisma/client";
+import { parseJsonObject } from "@/lib/parse-json-object";
 
 // GET /api/products/[id]
 export async function GET(
@@ -80,7 +81,14 @@ export async function PUT(
     }
 
     // 4. Kiểm tra dữ liệu đầu vào
-    const body = await request.json();
+    const body = await parseJsonObject(request);
+
+    if (!body) {
+      return NextResponse.json(
+        { message: "Dữ liệu sản phẩm không hợp lệ" },
+        { status: 400 },
+      );
+    }
     const { name, price, quantity, categoryId, description } = body;
 
     if (
@@ -89,8 +97,10 @@ export async function PUT(
       typeof price !== "number" ||
       !Number.isFinite(price) ||
       price < 0 ||
+      typeof quantity !== "number" ||
       !Number.isInteger(quantity) ||
       quantity < 0 ||
+      typeof categoryId !== "number" ||
       !Number.isInteger(categoryId) ||
       categoryId <= 0 ||
       (description !== undefined && typeof description !== "string")
@@ -142,7 +152,23 @@ export async function PUT(
     });
 
     return NextResponse.json(product, { status: 200 });
-  } catch {
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return NextResponse.json(
+          { message: "Sản phẩm đã tồn tại" },
+          { status: 400 },
+        );
+      }
+
+      if (error.code === "P2025") {
+        return NextResponse.json(
+          { message: "Không tìm thấy sản phẩm cần cập nhật." },
+          { status: 404 },
+        );
+      }
+    }
+
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

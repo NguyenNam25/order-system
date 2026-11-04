@@ -30,9 +30,9 @@ const orderApi = {
     const response = await axiosClient.post("/orders", data);
     return response.data;
   },
-  deleteOrder: async (id: number): Promise<Order> => {
+  deleteOrder: async (id: number): Promise<{ message: string }> => {
     const response = await axiosClient.delete(`/orders/${id}`);
-    return response.data.order;
+    return response.data;
   },
   updateOrderStatus: async (
     id: number,

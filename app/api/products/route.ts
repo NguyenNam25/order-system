@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
+import { parseJsonObject } from "@/lib/parse-json-object";
 
 // GET /api/products
 export async function GET() {
@@ -35,7 +37,14 @@ export async function POST(request: Request) {
     }
 
     // 4. Lấy dữ liệu từ request
-    const body = await request.json();
+    const body = await parseJsonObject(request);
+
+    if (!body) {
+      return NextResponse.json(
+        { message: "Dữ liệu sản phẩm không hợp lệ" },
+        { status: 400 },
+      );
+    }
 
     const { name, price, categoryId, quantity, description } = body;
 
@@ -46,9 +55,13 @@ export async function POST(request: Request) {
       typeof price !== "number" ||
       !Number.isFinite(price) ||
       price < 0 ||
+      typeof categoryId !== "number" ||
       !Number.isInteger(categoryId) ||
+      categoryId <= 0 ||
+      typeof quantity !== "number" ||
       !Number.isInteger(quantity) ||
-      quantity < 0
+      quantity < 0 ||
+      typeof description !== "string"
     ) {
       return NextResponse.json(
         { message: "Dữ liệu sản phẩm không hợp lệ" },
@@ -70,6 +83,18 @@ export async function POST(request: Request) {
       );
     }
 
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
+      select: { id: true },
+    });
+
+    if (!category) {
+      return NextResponse.json(
+        { message: "Không tìm thấy danh mục" },
+        { status: 400 },
+      );
+    }
+
     // 7. Tạo sản phẩm
     const product = await prisma.product.create({
       data: {
@@ -82,7 +107,17 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(product, { status: 201 });
-  } catch {
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { message: "Sản phẩm đã tồn tại" },
+        { status: 400 },
+      );
+    }
+
     return NextResponse.json(
       { message: "Đã xảy ra lỗi máy chủ" },
       { status: 500 },

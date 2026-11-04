@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { userCreateSchema } from "@/schemas/userSchema";
+import { parseJsonObject } from "@/lib/parse-json-object";
 
 export async function GET(request: Request) {
   try {
@@ -14,16 +16,20 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const role = searchParams.get("role");
 
+    if (role !== null && role !== "ADMIN" && role !== "USER") {
+      return NextResponse.json(
+        { message: "Vai trò người dùng không hợp lệ" },
+        { status: 400 },
+      );
+    }
+
     const users = await prisma.user.findMany({
-      where: role
-        ? {
-            role: role as "ADMIN" | "USER",
-          }
-        : undefined,
+      where: role !== null ? { role } : undefined,
       select: {
         id: true,
         fullname: true,
         email: true,
+        phone: true,
       },
     });
 
@@ -44,11 +50,22 @@ export async function POST(request: Request) {
       return response;
     }
 
-    const body = await request.json();
+    const body = await parseJsonObject(request);
+
+    const parsedBody = body ? userCreateSchema.safeParse(body) : null;
+
+    if (!parsedBody?.success) {
+      return NextResponse.json(
+        { message: "Dữ liệu người dùng không hợp lệ" },
+        { status: 400 },
+      );
+    }
+
+    const userData = parsedBody.data;
 
     const existingUser = await prisma.user.findUnique({
       where: {
-        email: body.email,
+        email: userData.email,
       },
     });
 
@@ -59,14 +76,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(body.password, 10);
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
 
     const user = await prisma.user.create({
       data: {
-        fullname: body.fullname,
-        email: body.email,
-        phone: body.phone,
-        role: body.role,
+        fullname: userData.fullname,
+        email: userData.email,
+        phone: userData.phone,
+        role: userData.role,
         password: hashedPassword,
       },
       select: {

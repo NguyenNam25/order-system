@@ -13,6 +13,7 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Order } from "@/interfaces/order";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 
 interface ReturnOrderForm {
   returnNote: string;
@@ -39,6 +40,10 @@ export default function ReturnOrderDialog({
     reset,
     formState: { errors },
   } = useForm<ReturnOrderForm>();
+
+  useEffect(() => {
+    if (!open) reset();
+  }, [open, reset]);
 
   const handleFormSubmit = async (values: ReturnOrderForm) => {
     if (await onSubmit(values.returnNote.trim())) reset();

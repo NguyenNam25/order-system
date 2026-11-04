@@ -22,7 +22,7 @@ import { DataTablePagination } from "@/components/layout-components/TablePaginat
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import AddUser from "./AddUser";
-import useUsers from "@/hooks/users/queries/useUsers";
+import useUsers from "@/hooks/users/queries/useCustomers";
 
 interface DataTableProps {
   columns: ColumnDef<DataTableFeatures, User, unknown>[];

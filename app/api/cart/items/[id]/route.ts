@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth";
+import { parseJsonObject } from "@/lib/parse-json-object";
 
 export async function PUT(
   request: Request,
@@ -16,7 +17,7 @@ export async function PUT(
     const { id } = await params;
     const cartItemId = Number(id);
 
-    if (!Number.isInteger(cartItemId)) {
+    if (!Number.isSafeInteger(cartItemId) || cartItemId <= 0) {
       return NextResponse.json(
         { message: "Cart item ID không hợp lệ" },
         { status: 400 },
@@ -24,10 +25,14 @@ export async function PUT(
     }
 
     // 4. Lấy dữ liệu từ request body
-    const body = await request.json();
-    const { quantity } = body;
+    const body = await parseJsonObject(request);
+    const quantity = body?.quantity;
 
-    if (!Number.isInteger(quantity) || quantity < 1) {
+    if (
+      typeof quantity !== "number" ||
+      !Number.isInteger(quantity) ||
+      quantity < 1
+    ) {
       return NextResponse.json(
         { message: "Số lượng không hợp lệ" },
         { status: 400 },

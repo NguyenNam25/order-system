@@ -3,14 +3,36 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { isAccountActive } from "@/lib/auth";
+import { parseJsonObject } from "@/lib/parse-json-object";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const body = await parseJsonObject(request);
+
+    if (!body) {
+      return NextResponse.json(
+        { message: "Email hoặc mật khẩu không hợp lệ" },
+        { status: 400 },
+      );
+    }
+
+    const { email, password } = body;
+
+    if (
+      typeof email !== "string" ||
+      !email.trim() ||
+      typeof password !== "string" ||
+      !password
+    ) {
+      return NextResponse.json(
+        { message: "Email hoặc mật khẩu không hợp lệ" },
+        { status: 400 },
+      );
+    }
 
     const user = await prisma.user.findUnique({
       where: {
-        email: body.email,
+        email,
       },
     });
 
@@ -22,7 +44,7 @@ export async function POST(request: Request) {
     }
 
     const isPasswordCorrect = await bcrypt.compare(
-      body.password,
+      password,
       user.password,
     );
 

@@ -61,7 +61,9 @@ export default function FastActions({ order }: FastActionsProps) {
       if (status === "RETURN_REJECTED") setOpenRejectReturn(false);
       return true;
     } catch {
-      // The mutation hook displays the backend error and the dialog stays open.
+      setOpenCancelDialog(false);
+      setOpenApproveReturn(false);
+      setOpenRejectReturn(false);
       return false;
     }
   };
