@@ -10,7 +10,9 @@ import OrderDetail from "@/components/orders/OrderDetail";
 import CancelOrderDialog from "@/components/orders/CancelOrderDialog";
 import ReturnOrderDialog from "@/components/orders/ReturnOrderDialog";
 import useMyOrders from "@/hooks/orders/queries/useMyOrders";
-import useUpdateOrderStatus from "@/hooks/orders/mutations/useUpdateOrderStatus";
+import useUpdateOrderStatus, {
+  isOrderStatusConflictError,
+} from "@/hooks/orders/mutations/useUpdateOrderStatus";
 
 export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -60,10 +62,12 @@ export default function Orders() {
       await handleUpdateOrder.mutateAsync(payload);
       onUpdateOrderSuccess(payload.status);
       return true;
-    } catch {
-      setOpenCancelled(false);
-      setOpenReturned(false);
-      setSelectedOrder(null);
+    } catch (error) {
+      if (isOrderStatusConflictError(error)) {
+        setOpenCancelled(false);
+        setOpenReturned(false);
+        setSelectedOrder(null);
+      }
       return false;
     }
   };

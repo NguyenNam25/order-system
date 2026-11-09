@@ -30,9 +30,11 @@ export async function POST(request: Request) {
       );
     }
 
+    const normalizedEmail = email.trim();
+
     const user = await prisma.user.findUnique({
       where: {
-        email,
+        email: normalizedEmail,
       },
     });
 

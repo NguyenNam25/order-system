@@ -9,17 +9,18 @@ const email = z
   .string({ message: "Email is required" })
   .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "This is not email");
 
-const password = z
+export const passwordSchema = z
   .string({ message: "Password is required" })
   .min(6, "Password must contain at least 6 characters")
-  .regex(/[A-Za-z]/, "Password must contain at least 1 character (a-z)");
+  .regex(/[A-Za-z]/, "Password must contain at least 1 character (a-z)")
+  .regex(/^\S+$/, "Password must not contain whitespace");
 
 const phone = z
   .string({ message: "Phone is required" })
   .regex(/^0\d{9}$/, "Phone must be a valid phone number");
 const role = z.enum(["USER", "ADMIN"]);
 
-export const userSchema = z.object({ fullname, email, password, phone });
+export const userSchema = z.object({ fullname, email, password: passwordSchema, phone });
 
 export const userCreateSchema = userSchema.extend({
   role,
@@ -30,7 +31,7 @@ export const updateUserSchema = z.object({ fullname, email, phone });
 export const PasswordUpdateSchema = z
   .object({
     currentPassword: z.string({ message: "Please confirm your password" }),
-    newPassword: password,
+    newPassword: passwordSchema,
     confirmPassword: z.string({ message: "Please confirm your password" }),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -40,7 +41,7 @@ export const PasswordUpdateSchema = z
 
 export const AdminPasswordUpdateSchema = z
   .object({
-    newPassword: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
+    newPassword: passwordSchema,
     confirmPassword: z.string().min(1, "Vui lòng xác nhận mật khẩu mới"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

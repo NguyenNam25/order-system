@@ -7,6 +7,7 @@ import ReturnApproveDialog from "@/components/orders/ReturnApproved";
 import ReturnRejectDialog from "@/components/orders/ReturnRejected";
 import OrderStatusActions from "./detail/OrderStatusActions";
 import useUpdateOrderStatus, {
+  isOrderStatusConflictError,
   UpdateOrderStatusPayload,
 } from "@/hooks/orders/mutations/useUpdateOrderStatus";
 
@@ -60,10 +61,12 @@ export default function FastActions({ order }: FastActionsProps) {
       if (status === "RETURN_APPROVED") setOpenApproveReturn(false);
       if (status === "RETURN_REJECTED") setOpenRejectReturn(false);
       return true;
-    } catch {
-      setOpenCancelDialog(false);
-      setOpenApproveReturn(false);
-      setOpenRejectReturn(false);
+    } catch (error) {
+      if (isOrderStatusConflictError(error)) {
+        setOpenCancelDialog(false);
+        setOpenApproveReturn(false);
+        setOpenRejectReturn(false);
+      }
       return false;
     }
   };

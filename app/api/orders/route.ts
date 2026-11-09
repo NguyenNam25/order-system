@@ -28,10 +28,10 @@ export async function GET(request: Request) {
 
     const statusParam = searchParams.get("status");
 
-    const statuses = statusParam === null ? [] : statusParam.split(",");
+    const statuses = statusParam ? statusParam.split(",") : [];
 
     if (
-      statusParam !== null &&
+      statusParam &&
       statuses.some(
         (status) => !validOrderStatuses.includes(status as OrderStatus),
       )

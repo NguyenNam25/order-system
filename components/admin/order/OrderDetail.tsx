@@ -14,6 +14,7 @@ import CancelOrderDialog from "@/components/orders/CancelOrderDialog";
 import ReturnApproveDialog from "@/components/orders/ReturnApproved";
 import ReturnRejectDialog from "@/components/orders/ReturnRejected";
 import useUpdateOrderStatus, {
+  isOrderStatusConflictError,
   type UpdateOrderStatusPayload,
 } from "@/hooks/orders/mutations/useUpdateOrderStatus";
 import OrderSummary from "./detail/OrderSummary";
@@ -96,11 +97,13 @@ export default function OrderDetail({
 
       onOpenChange(false);
       return true;
-    } catch {
-      setOpenCancelDialog(false);
-      setOpenApproveReturn(false);
-      setOpenRejectReturn(false);
-      onOpenChange(false);
+    } catch (error) {
+      if (isOrderStatusConflictError(error)) {
+        setOpenCancelDialog(false);
+        setOpenApproveReturn(false);
+        setOpenRejectReturn(false);
+        onOpenChange(false);
+      }
       return false;
     }
   };

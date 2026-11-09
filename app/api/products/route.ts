@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     if (existingProduct) {
       return NextResponse.json(
         { message: "Sản phẩm đã tồn tại" },
-        { status: 400 },
+        { status: 409 },
       );
     }
 
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         { message: "Sản phẩm đã tồn tại" },
-        { status: 400 },
+        { status: 409 },
       );
     }
 

@@ -17,6 +17,19 @@ export interface UpdateOrderStatusPayload {
   successMessage?: string;
 }
 
+export function isOrderStatusConflictError(error: unknown): boolean {
+  if (!axios.isAxiosError<{ message?: string }>(error)) return false;
+
+  const message = error.response?.data?.message;
+
+  return (
+    (error.response?.status === 400 &&
+      (message === "Không thể chuyển sang trạng thái này" ||
+        message === "Đơn hàng đã được chuyển trạng thái")) ||
+    (error.response?.status === 404 && message === "Không tìm thấy đơn hàng")
+  );
+}
+
 export default function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
 
@@ -28,9 +41,13 @@ export default function useUpdateOrderStatus() {
       if (variables.successMessage) {
         toast.success(variables.successMessage);
       }
+
+      await queryClient.invalidateQueries({
+        queryKey: ["orders"],
+      });
     },
 
-    onError: (error: unknown) => {
+    onError: async (error: unknown) => {
       let message = "Cập nhật đơn hàng thất bại";
 
       if (axios.isAxiosError<{ message?: string }>(error)) {
@@ -38,12 +55,12 @@ export default function useUpdateOrderStatus() {
       }
 
       toast.error(message);
-    },
 
-    onSettled: async() => {
-      await queryClient.invalidateQueries({
-        queryKey: ["orders"],
-      });
+      if (isOrderStatusConflictError(error)) {
+        await queryClient.invalidateQueries({
+          queryKey: ["orders"],
+        });
+      }
     },
   });
 }

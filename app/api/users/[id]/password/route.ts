@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { requireUser } from "@/lib/auth";
 import { parseJsonObject } from "@/lib/parse-json-object";
+import { passwordSchema } from "@/schemas/userSchema";
 
 export async function PATCH(
   request: Request,
@@ -42,17 +43,19 @@ export async function PATCH(
       );
     }
 
-    const newPassword = body.newPassword;
+    const parsedPassword = passwordSchema.safeParse(body.newPassword);
 
-    if (
-      typeof newPassword !== "string" ||
-      newPassword.length < 8
-    ) {
+    if (!parsedPassword.success) {
       return NextResponse.json(
-        { message: "Mật khẩu mới phải có ít nhất 8 ký tự" },
+        {
+          message:
+            "Mật khẩu mới phải có ít nhất 6 ký tự, chứa chữ cái và không có khoảng trắng",
+        },
         { status: 400 },
       );
     }
+
+    const newPassword = parsedPassword.data;
 
     let currentPassword = "";
 

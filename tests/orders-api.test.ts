@@ -10,6 +10,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
+import {
+  AdminPasswordUpdateSchema,
+  userSchema,
+} from "../schemas/userSchema";
 
 const databaseUrl = process.env.DATABASE_URL;
 const jwtSecret = process.env.JWT_SECRET;
@@ -71,6 +75,8 @@ let productId: number | undefined;
 let categoryId: number | undefined;
 const orderIds: number[] = [];
 const extraUserIds: number[] = [];
+const extraProductIds: number[] = [];
+const extraCategoryIds: number[] = [];
 
 let userToken = "";
 let adminToken = "";
@@ -264,7 +270,17 @@ after(async () => {
     await prisma.cart.deleteMany({ where: { userId: { in: userIds } } });
     await prisma.user.deleteMany({ where: { id: { in: userIds } } });
   }
+  if (extraProductIds.length > 0) {
+    await prisma.product.deleteMany({
+      where: { id: { in: extraProductIds } },
+    });
+  }
   if (productId) await prisma.product.delete({ where: { id: productId } });
+  if (extraCategoryIds.length > 0) {
+    await prisma.category.deleteMany({
+      where: { id: { in: extraCategoryIds } },
+    });
+  }
   if (categoryId) await prisma.category.delete({ where: { id: categoryId } });
 
   await prisma.$disconnect();
@@ -289,6 +305,70 @@ test("catalog, product detail, and protected list APIs respond", async () => {
   assert.ok(products.some((product) => product.id === productId));
   assert.ok(categories.some((category) => category.id === categoryId));
 
+  const adminHeaders = {
+    "content-type": "application/json",
+    cookie: `token=${adminToken}`,
+  };
+  const duplicateCategoryCreate = await fetch(`${baseUrl}/api/categories`, {
+    method: "POST",
+    headers: adminHeaders,
+    body: JSON.stringify({ name: `API Test ${runId}` }),
+  });
+  assert.equal(duplicateCategoryCreate.status, 409);
+
+  const categoryForDuplicateUpdate = await prisma.category.create({
+    data: { name: `API Test Duplicate ${runId}` },
+  });
+  extraCategoryIds.push(categoryForDuplicateUpdate.id);
+  const duplicateCategoryUpdate = await fetch(
+    `${baseUrl}/api/categories/${categoryId}`,
+    {
+      method: "PUT",
+      headers: adminHeaders,
+      body: JSON.stringify({ name: categoryForDuplicateUpdate.name }),
+    },
+  );
+  assert.equal(duplicateCategoryUpdate.status, 409);
+
+  const duplicateProductCreate = await fetch(`${baseUrl}/api/products`, {
+    method: "POST",
+    headers: adminHeaders,
+    body: JSON.stringify({
+      name: productName,
+      price: 100,
+      categoryId,
+      quantity: 1,
+      description: "Duplicate product regression case",
+    }),
+  });
+  assert.equal(duplicateProductCreate.status, 409);
+
+  const productForDuplicateUpdate = await prisma.product.create({
+    data: {
+      name: `API Test Duplicate Product ${runId}`,
+      price: 100,
+      quantity: 1,
+      description: "Duplicate product update regression fixture",
+      categoryId: categoryId!,
+    },
+  });
+  extraProductIds.push(productForDuplicateUpdate.id);
+  const duplicateProductUpdate = await fetch(
+    `${baseUrl}/api/products/${productForDuplicateUpdate.id}`,
+    {
+      method: "PUT",
+      headers: adminHeaders,
+      body: JSON.stringify({
+        name: productName,
+        price: 100,
+        categoryId,
+        quantity: 1,
+        description: "Duplicate product regression case",
+      }),
+    },
+  );
+  assert.equal(duplicateProductUpdate.status, 409);
+
   assert.equal((await fetch(`${baseUrl}/api/me`)).status, 401);
   assert.equal((await fetch(`${baseUrl}/api/cart`)).status, 401);
   assert.equal((await fetch(`${baseUrl}/api/orders/me`)).status, 401);
@@ -302,6 +382,11 @@ test("catalog, product detail, and protected list APIs respond", async () => {
   ]);
   assert.equal(usersResponse.status, 200);
   assert.equal(ordersResponse.status, 200);
+
+  const emptyStatusResponse = await fetch(`${baseUrl}/api/orders?status=`, {
+    headers: { cookie: `token=${adminToken}` },
+  });
+  assert.equal(emptyStatusResponse.status, 200);
 
   const invalidProductBodies = ["{", "null", "[]", "{}"];
   for (const body of invalidProductBodies) {
@@ -555,6 +640,66 @@ test("catalog, product detail, and protected list APIs respond", async () => {
   }
 });
 
+test("registration and password update schemas share password rules", () => {
+  const registrationFields = {
+    fullname: "Password Validation Test",
+    email: "password-validation@example.invalid",
+    phone: "0123456789",
+  };
+
+  for (const invalidPassword of [
+    "",
+    "A",
+    "Ab123",
+    "123456",
+    "      ",
+    "Ab 123",
+    "Ab\t123",
+  ]) {
+    assert.equal(
+      userSchema.safeParse({
+        ...registrationFields,
+        password: invalidPassword,
+      }).success,
+      false,
+      `registration rejects ${JSON.stringify(invalidPassword)}`,
+    );
+    assert.equal(
+      AdminPasswordUpdateSchema.safeParse({
+        newPassword: invalidPassword,
+        confirmPassword: invalidPassword,
+      }).success,
+      false,
+      `password update rejects ${JSON.stringify(invalidPassword)}`,
+    );
+  }
+
+  for (const validPassword of ["Ab1234", "Abc12345"]) {
+    assert.equal(
+      userSchema.safeParse({
+        ...registrationFields,
+        password: validPassword,
+      }).success,
+      true,
+    );
+    assert.equal(
+      AdminPasswordUpdateSchema.safeParse({
+        newPassword: validPassword,
+        confirmPassword: validPassword,
+      }).success,
+      true,
+    );
+  }
+
+  assert.equal(
+    AdminPasswordUpdateSchema.safeParse({
+      newPassword: "Ab1234",
+      confirmPassword: "Ab1235",
+    }).success,
+    false,
+  );
+});
+
 test("registration, duplicate registration, login, and profile flow", async () => {
   const email = testEmail("signup");
   const registration = {
@@ -593,6 +738,48 @@ test("registration, duplicate registration, login, and profile flow", async () =
   });
   assert.equal(nullRegistration.status, 400);
 
+  for (const [index, invalidPassword] of [
+    "",
+    "Ab123",
+    "123456",
+    "      ",
+    "Ab 123",
+    "Ab\t123",
+    null,
+    123456,
+    [],
+    {},
+  ].entries()) {
+    const invalidPasswordRegistration = await fetch(
+      `${baseUrl}/api/register`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...registration,
+          email: testEmail(`invalid-password-${index}`),
+          password: invalidPassword,
+        }),
+      },
+    );
+    assert.equal(invalidPasswordRegistration.status, 400);
+  }
+
+  const minimumPasswordRegistration = await fetch(`${baseUrl}/api/register`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      ...registration,
+      email: testEmail("minimum-password"),
+      password: "Ab1234",
+    }),
+  });
+  assert.equal(minimumPasswordRegistration.status, 201);
+  const minimumPasswordUser = (await minimumPasswordRegistration.json()) as {
+    id: number;
+  };
+  extraUserIds.push(minimumPasswordUser.id);
+
   const invalidRegistration = await fetch(`${baseUrl}/api/register`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -623,6 +810,16 @@ test("registration, duplicate registration, login, and profile flow", async () =
   });
   assert.equal(wrongPassword.status, 401);
 
+  const loginWithEmailWhitespace = await fetch(`${baseUrl}/api/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      email: `  ${email}  `,
+      password: registration.password,
+    }),
+  });
+  assert.equal(loginWithEmailWhitespace.status, 200);
+
   const login = await fetch(`${baseUrl}/api/login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -641,6 +838,7 @@ test("registration, duplicate registration, login, and profile flow", async () =
   const profile = (await me.json()) as { user: { id: number; role: string } };
   assert.equal(profile.user.id, apiUserId);
   assert.equal(profile.user.role, "USER");
+
 });
 
 test("cart add/read/update, checkout, and owner order history flow", async () => {
@@ -966,6 +1164,29 @@ test("admin self password requires old password, can reset USER, but not another
   const nullBodyResponse = await patchPassword(selfUrl, adminToken, null);
   assert.equal(nullBodyResponse.status, 400);
 
+  for (const [index, invalidPassword] of [
+    "",
+    "Ab123",
+    "123456",
+    "      ",
+    "Ab 123",
+    "Ab\t123",
+    null,
+    123456,
+    [],
+    {},
+  ].entries()) {
+    const invalidPasswordResponse = await patchPassword(
+      selfUrl,
+      adminToken,
+      {
+        currentPassword: password,
+        newPassword: invalidPassword,
+      },
+    );
+    assert.equal(invalidPasswordResponse.status, 400, `invalid password ${index}`);
+  }
+
   assert.equal(
     (
       await patchPassword(selfUrl, adminToken, {
@@ -994,6 +1215,13 @@ test("admin self password requires old password, can reset USER, but not another
   );
 
   const otherUserUrl = `${baseUrl}/api/users/${userId}/password`;
+  const minimumPasswordUpdate = await patchPassword(
+    otherUserUrl,
+    adminToken,
+    { newPassword: "Ab1234" },
+  );
+  assert.equal(minimumPasswordUpdate.status, 200);
+
   assert.equal(
     (
       await patchPassword(otherUserUrl, adminToken, {

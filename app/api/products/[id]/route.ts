@@ -122,7 +122,7 @@ export async function PUT(
     if (duplicateProduct) {
       return NextResponse.json(
         { message: "Sản phẩm đã tồn tại" },
-        { status: 400 },
+        { status: 409 },
       );
     }
 
@@ -157,7 +157,7 @@ export async function PUT(
       if (error.code === "P2002") {
         return NextResponse.json(
           { message: "Sản phẩm đã tồn tại" },
-          { status: 400 },
+          { status: 409 },
         );
       }
 

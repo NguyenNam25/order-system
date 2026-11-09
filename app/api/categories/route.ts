@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     if (existingCategory) {
       return NextResponse.json(
         { message: "Danh mục đã tồn tại" },
-        { status: 400 },
+        { status: 409 },
       );
     }
 
